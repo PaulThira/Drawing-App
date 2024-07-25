@@ -16,6 +16,9 @@ using System.Windows;
 using System.Windows.Ink;
 using Prism.Mvvm;
 using System.Collections.ObjectModel;
+using System.Drawing;
+using Color = System.Windows.Media.Color;
+using Drawing_App.Model;
 
 namespace Drawing_App.VM
 {
@@ -33,10 +36,30 @@ namespace Drawing_App.VM
         private Color _currentColor;
         private HashSet<Color> _usedColors;
         private ObservableCollection<Color> _colorPalette;
-
+        private Brush _rectangleFill;
+        private Brush _color1;
+        private Brush _color2;
+        private Brush _color3;
+        private Brush _color4;
+        private Brush _color5;
+        private Brush _color6;
+        private Brush _color7;
+        public ObservableCollection<string> _brushes=new ObservableCollection<string>();
+        private string _selectedItem;
+        public ICommand ItemSelectedCommand { get; }
         public MainWindowVM()
 
         {
+            Items = new ObservableCollection<string>
+        {
+            "Pen",
+            "Pencil",
+            "Marker"
+            
+        };
+            _currentColor = Colors.Cyan;
+            ItemSelectedCommand = new DelegateCommand(OnItemSelected);
+            RectangleFill = Brushes.Cyan;
             _usedColors = new HashSet<Color>();
             _colorPalette = new ObservableCollection<Color>();
             SaveCommand = new DelegateCommand<InkCanvas>(SaveCall);
@@ -50,7 +73,7 @@ namespace Drawing_App.VM
             Strokes = new StrokeCollection();
             DrawingAttributes = new DrawingAttributes
             {
-                Color = Colors.Black,
+                Color = Colors.Cyan,
                 Width = 5,
                 Height = 5,
                 FitToCurve = true
@@ -59,6 +82,119 @@ namespace Drawing_App.VM
             InkCanvasWidth = 600;  // Default width
             InkCanvasHeight = 1000;
             BackgroundColor = Colors.White;// Default height
+            Color1 = new SolidColorBrush(Colors.Red);
+            Color2 = new SolidColorBrush(Colors.Green);
+            Color3 = new SolidColorBrush(Colors.Blue);
+            Color4 = new SolidColorBrush(Colors.Yellow);
+            Color5 = new SolidColorBrush(Colors.Orange);
+            Color6 = new SolidColorBrush(Colors.Purple);
+            Color7 = new SolidColorBrush(Colors.Pink);
+        }
+        public string SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                if (SetProperty(ref _selectedItem, value))
+                {
+                    // Execute the command whenever the selected item changes
+                    ItemSelectedCommand.Execute(_selectedItem);
+                }
+            }
+        }
+
+        private void OnItemSelected()
+        {
+            if (SelectedItem != null)
+            {
+                if (SelectedItem == "Pencil")
+                {
+                    DrawingAttributes = new DrawingAttributes
+                    {
+                        Color=CurrentColor,
+                        Width = 1,
+                        Height = 1,
+                        StylusTip = StylusTip.Ellipse,
+                        IsHighlighter = false, // Ensure it is not semi-transparent like a highlighter
+                        IgnorePressure = false, // Pressure sensitivity can give a natural feel
+                        StylusTipTransform = new Matrix(1, 0, 0, 1, 0, 0)
+                    };
+                }
+                else if (SelectedItem == "Marker")
+                {
+                    DrawingAttributes = new DrawingAttributes
+                    {
+                        Color = CurrentColor, // Set to any color you like
+                        Width = 10, // A typical marker is wider than a pen or pencil
+                        Height = 10,
+                        StylusTip = StylusTip.Rectangle, // Rectangular tip for a marker-like feel
+                        IsHighlighter = false, // Ensure it's opaque, like a marker
+                        IgnorePressure = true, // Consistent width irrespective of pressure
+                        StylusTipTransform = new Matrix(1, 0, 0, 1, 0, 0) // No transformation, standard tip
+                    };
+                }
+                else
+                {
+                    DrawingAttributes = new DrawingAttributes
+                    {
+                        Color = Colors.Cyan,
+                        Width = 5,
+                        Height = 5,
+                        FitToCurve = true
+                    };
+                }
+            }
+        }
+        public ObservableCollection<string> Items
+        {
+            get => _brushes;
+            set => SetProperty(ref _brushes, value);
+        }
+        public Brush Color1
+        {
+            get => _color1;
+            set => SetProperty(ref _color1, value);
+        }
+
+        public Brush Color2
+        {
+            get => _color2;
+            set => SetProperty(ref _color2, value);
+        }
+
+        public Brush Color3
+        {
+            get => _color3;
+            set => SetProperty(ref _color3, value);
+        }
+
+        public Brush Color4
+        {
+            get => _color4;
+            set => SetProperty(ref _color4, value);
+        }
+
+        public Brush Color5
+        {
+            get => _color5;
+            set => SetProperty(ref _color5, value);
+        }
+
+        public Brush Color6
+        {
+            get => _color6;
+            set => SetProperty(ref _color6, value);
+        }
+
+        public Brush Color7
+        {
+            get => _color7;
+            set => SetProperty(ref _color7, value);
+        }
+        public Brush RectangleFill
+        {
+            get => _rectangleFill;
+            set => SetProperty(ref _rectangleFill, value);
         }
         public Color BackgroundColor
         {
@@ -145,7 +281,7 @@ namespace Drawing_App.VM
                 using (DrawingContext dc = dv.RenderOpen())
                 {
                     VisualBrush vb = new VisualBrush(inkCanvas);
-                    dc.DrawRectangle(vb, null, new Rect(new System.Windows.Point(), new Size(width, height)));
+                    dc.DrawRectangle(vb, null, new Rect(new System.Windows.Point(), new System.Windows.Size(width, height)));
                 }
                 renderBitmap.Render(dv);
 
@@ -183,7 +319,8 @@ namespace Drawing_App.VM
     {
         CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
         DrawingAttributes.Color = CurrentColor;
-    }
+            RectangleFill = new SolidColorBrush(CurrentColor);
+        }
 
     private void UpdateOpacity(double value)
     {
@@ -244,13 +381,58 @@ namespace Drawing_App.VM
 
     public void HandleStrokesChanged(StrokeCollectionChangedEventArgs e)
     {
-        foreach (var stroke in e.Added)
-        {
+            if (_usedColors.Count > 7)
+            {
+                _usedColors.Clear();
+            }
+            foreach (var stroke in e.Added)
+            {
             if (_usedColors.Add(stroke.DrawingAttributes.Color))
             {
                 ColorPalette.Add(stroke.DrawingAttributes.Color);
             }
+            }
+            int i = 0;
+            List<Color> colors = new List<Color>(); 
+            foreach(var color in _usedColors)
+            {
+                Brush newBrush = new SolidColorBrush(color);
+                colors.Add(color);
+                if (i % 7 == 0)
+                {
+                    Color1 = newBrush;
+                }
+                else if (i % 7 == 1)
+                {
+                    Color2 = newBrush;
+                }
+                else if (i % 7 == 2)
+                {
+                    Color3 = newBrush;
+                }
+                else if (i % 7 == 3)
+                {
+                    Color4 = newBrush;
+                }
+                else if (i % 7 == 4)
+                {
+                    Color5 = newBrush;
+                }
+                else if (i % 7 == 5)
+                {
+                    Color6 = newBrush;
+                }
+                else if (i % 7 == 6)
+                {
+                    Color7 = newBrush;
+                }
+                i++;
+
+
+            }
+            HSVColours h=new HSVColours();
+            h.Colors = colors;
+            h.ColorHarmony();
         }
-    }
 }
 }

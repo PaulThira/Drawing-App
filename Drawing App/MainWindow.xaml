@@ -23,20 +23,20 @@
     <Window.DataContext>
         <viewmodel:MainWindowVM/>
     </Window.DataContext>
-    <Grid>
+    <Grid  VerticalAlignment="Top">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="250"/>
 
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="8*"/>
         </Grid.RowDefinitions>
 
         <!-- InkCanvas for Drawing -->
         <InkCanvas x:Name="inkCanvas" Background="{Binding BackgroundColor, Mode=TwoWay}" 
-                   Margin="10,10,35,10" 
+                   Margin="10,10,18,10" 
                    Grid.Column="0"
                    Grid.Row="1"
                    Opacity="{Binding Opacity}"
@@ -44,7 +44,7 @@
                    DefaultDrawingAttributes="{Binding DrawingAttributes}"/>
 
         <!-- Side Panel for Tools and Color Picker -->
-        <StackPanel Margin="0,0,0,3" Background="#FFE5C591" Grid.Column="1" Grid.Row="1">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right"  Width="300" Background="#FFE5C591" Grid.Column="1" Grid.Row="1">
             <TextBlock Text="Brush Size" HorizontalAlignment="Center"/>
             <Slider Name="SizeBrush" Minimum="1" Maximum="100" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10" ValueChanged="SizeBrush_ValueChanged"/>
 
@@ -60,17 +60,22 @@
             <Slider Name="OpacitySlider" Minimum="0" Maximum="1" Value="{Binding Opacity, Mode=TwoWay}" TickFrequency="0.01" IsSnapToTickEnabled="True" Margin="10"/>
 
             <Button Content="Eraser" Margin="10" Height="30" Width="200" Command="{Binding EraserCommand}" Background="#FFDC75CC"/>
-            <Rectangle Name="ColorViews" Height="100" Stroke="Black" Width="100" Margin="10"/>
+            <Rectangle Name="ColorViews" Height="100" Stroke="Black" Width="100" Margin="10" Fill="{Binding RectangleFill}"/>
             <Button Content="Save As Image" Height="63" Width="140" Background="#FF84E588" Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=inkCanvas}" Margin="0,0,0,5"/>
             <UniformGrid Rows="1" Margin="0,0,10,10">
-                <Ellipse Name="one" Height="30" Width="30" Margin="3,0,3,0" Fill="Red"></Ellipse>
-                <Ellipse Name="two" Height="30" Width="30" Margin="3,0,3,0" Fill="Green"></Ellipse>
-                <Ellipse Name="three" Height="30" Width="30" Margin="3,0,3,0" Fill="Blue"></Ellipse>
-                <Ellipse Name="four" Height="30" Width="30" Margin="3,0,3,0" Fill="Yellow"></Ellipse>
-                <Ellipse Name="five" Height="30" Width="30" Margin="3,0,3,0" Fill="Orange"></Ellipse>
-                <Ellipse Name="six" Height="30" Width="30" Margin="3,0,3,0" Fill="Purple"></Ellipse>
-                <Ellipse Name="seven" Height="30" Width="30" Margin="3,0,3,0" Fill="Pink"></Ellipse>
+                <Ellipse Name="one" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color1}"></Ellipse>
+                <Ellipse Name="two" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color2}"></Ellipse>
+                <Ellipse Name="three" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color3}"></Ellipse>
+                <Ellipse Name="four" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color4}"></Ellipse>
+                <Ellipse Name="five" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color5}"></Ellipse>
+                <Ellipse Name="six" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color6}"></Ellipse>
+                <Ellipse Name="seven" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color7}"></Ellipse>
             </UniformGrid>
+        </StackPanel>
+
+
+        <StackPanel Background="#FFE5C591" Margin="0,0,0,3" Grid.Row="0" Grid.ColumnSpan="2">
+            <ComboBox HorizontalAlignment="Right" Margin="10" Height="24" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" Width="85"  ></ComboBox>
         </StackPanel>
     </Grid>
 </Window>

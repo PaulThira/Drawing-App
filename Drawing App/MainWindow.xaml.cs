@@ -39,7 +39,17 @@ namespace Drawing_App
             SaturationSlider.ValueChanged += SaturationSlider_ValueChanged;
             BrightnessSlider.ValueChanged += BrightnessSlider_ValueChanged;
             OpacitySlider.ValueChanged += OpacitySlider_ValueChanged;
+            inkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
         }
+
+        private void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
+        {
+            if(_viewModel!=null)
+            {
+                _viewModel.HandleStrokesChanged(e);
+            }
+        }
+
 
         private void SizeBrush_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
