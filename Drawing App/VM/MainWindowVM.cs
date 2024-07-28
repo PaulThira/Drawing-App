@@ -19,6 +19,8 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using Color = System.Windows.Media.Color;
 using Drawing_App.Model;
+using System.Windows.Shapes;
+using Point = System.Windows.Point;
 
 namespace Drawing_App.VM
 {
@@ -32,7 +34,7 @@ namespace Drawing_App.VM
         private DrawingAttributes _drawingAttributes;
         private double _inkCanvasWidth;
         private double _inkCanvasHeight;
-        private Color _backgroundColor;
+        private Brush _backgroundColor;
         private Color _currentColor;
         private HashSet<Color> _usedColors;
         private ObservableCollection<Color> _colorPalette;
@@ -44,26 +46,29 @@ namespace Drawing_App.VM
         private Brush _color5;
         private Brush _color6;
         private Brush _color7;
-        public ObservableCollection<string> _brushes=new ObservableCollection<string>();
-        private string _selectedItem;
-        public ICommand ItemSelectedCommand { get; }
+        private Polyline _currentPolyline;
+        public ObservableCollection<UIElement> DrawingElements { get; }
+
+        public ICommand StartStrokeCommand { get; }
+        public ICommand ContinueStrokeCommand { get; }
+        public ICommand EndStrokeCommand { get; }
+
+
         public MainWindowVM()
 
         {
-            Items = new ObservableCollection<string>
-        {
-            "Pen",
-            "Pencil",
-            "Marker"
-            
-        };
+            DrawingElements = new ObservableCollection<UIElement>();
             _currentColor = Colors.Cyan;
-            ItemSelectedCommand = new DelegateCommand(OnItemSelected);
+            StartStrokeCommand = new DelegateCommand<Point?>(StartStroke);
+            ContinueStrokeCommand = new DelegateCommand<Point?>(ContinueStroke);
+            EndStrokeCommand = new DelegateCommand(EndStroke);
+            
             RectangleFill = Brushes.Cyan;
             _usedColors = new HashSet<Color>();
             _colorPalette = new ObservableCollection<Color>();
             SaveCommand = new DelegateCommand<InkCanvas>(SaveCall);
             EraserCommand = new DelegateCommand(EraserCall);
+            
             _opacity = 1.0;
             BrushSize = 5;
             Hue = 0;
@@ -79,9 +84,9 @@ namespace Drawing_App.VM
                 FitToCurve = true
             };
 
-            InkCanvasWidth = 600;  // Default width
-            InkCanvasHeight = 1000;
-            BackgroundColor = Colors.White;// Default height
+            InkCanvasWidth = 4200;  // Default width
+            InkCanvasHeight = 2100;
+            BackgroundColor = new SolidColorBrush(Colors.White);// Default height
             Color1 = new SolidColorBrush(Colors.Red);
             Color2 = new SolidColorBrush(Colors.Green);
             Color3 = new SolidColorBrush(Colors.Blue);
@@ -90,66 +95,33 @@ namespace Drawing_App.VM
             Color6 = new SolidColorBrush(Colors.Purple);
             Color7 = new SolidColorBrush(Colors.Pink);
         }
-        public string SelectedItem
+        private void StartStroke(Point? startPoint)
         {
-            get => _selectedItem;
-            set
+            if (startPoint == null) return;
+
+            _currentPolyline = new Polyline
             {
-                if (SetProperty(ref _selectedItem, value))
-                {
-                    // Execute the command whenever the selected item changes
-                    ItemSelectedCommand.Execute(_selectedItem);
-                }
-            }
+                Stroke = RectangleFill,
+                StrokeThickness = BrushSize,
+                Points = new PointCollection { startPoint.Value }
+            };
+            DrawingElements.Add(_currentPolyline);
         }
 
-        private void OnItemSelected()
+        private void ContinueStroke(Point? currentPoint)
         {
-            if (SelectedItem != null)
-            {
-                if (SelectedItem == "Pencil")
-                {
-                    DrawingAttributes = new DrawingAttributes
-                    {
-                        Color=CurrentColor,
-                        Width = 1,
-                        Height = 1,
-                        StylusTip = StylusTip.Ellipse,
-                        IsHighlighter = false, // Ensure it is not semi-transparent like a highlighter
-                        IgnorePressure = false, // Pressure sensitivity can give a natural feel
-                        StylusTipTransform = new Matrix(1, 0, 0, 1, 0, 0)
-                    };
-                }
-                else if (SelectedItem == "Marker")
-                {
-                    DrawingAttributes = new DrawingAttributes
-                    {
-                        Color = CurrentColor, // Set to any color you like
-                        Width = 10, // A typical marker is wider than a pen or pencil
-                        Height = 10,
-                        StylusTip = StylusTip.Rectangle, // Rectangular tip for a marker-like feel
-                        IsHighlighter = false, // Ensure it's opaque, like a marker
-                        IgnorePressure = true, // Consistent width irrespective of pressure
-                        StylusTipTransform = new Matrix(1, 0, 0, 1, 0, 0) // No transformation, standard tip
-                    };
-                }
-                else
-                {
-                    DrawingAttributes = new DrawingAttributes
-                    {
-                        Color = Colors.Cyan,
-                        Width = 5,
-                        Height = 5,
-                        FitToCurve = true
-                    };
-                }
-            }
+            if (currentPoint == null || _currentPolyline == null) return;
+            _currentPolyline.Points.Add(currentPoint.Value);
         }
-        public ObservableCollection<string> Items
+
+        private void EndStroke()
         {
-            get => _brushes;
-            set => SetProperty(ref _brushes, value);
+            
+            _currentPolyline = null;
         }
+
+
+
         public Brush Color1
         {
             get => _color1;
@@ -196,7 +168,7 @@ namespace Drawing_App.VM
             get => _rectangleFill;
             set => SetProperty(ref _rectangleFill, value);
         }
-        public Color BackgroundColor
+        public Brush BackgroundColor
         {
             get => _backgroundColor;
             set=> _backgroundColor = value;
@@ -263,7 +235,7 @@ namespace Drawing_App.VM
         public ICommand EraserCommand { get; }
         private void EraserCall()
         {
-            _drawingAttributes.Color = BackgroundColor;
+            DrawingElements.RemoveAt(DrawingElements.Count-1);
         }
 
         private void SaveCall(InkCanvas inkCanvas)
@@ -312,7 +284,9 @@ namespace Drawing_App.VM
     private void UpdateBrush()
     {
         DrawingAttributes.Width = BrushSize;
+
         DrawingAttributes.Height = BrushSize;
+            
     }
 
     private void UpdateColor()
@@ -378,8 +352,20 @@ namespace Drawing_App.VM
         else
             return Color.FromRgb(v, p, q);
     }
-
-    public void HandleStrokesChanged(StrokeCollectionChangedEventArgs e)
+        public void HandleStrokeCollected(Stroke stroke)
+        {
+            if (DrawingAttributes is TexturedBrushes texturedBrushes)
+            {
+                var textureBrush = texturedBrushes.GetTextureBrush();
+                if (textureBrush != null)
+                {
+                    var stylusPoints = stroke.StylusPoints;
+                    var texturedStroke = new TexturedStroke(stylusPoints, textureBrush);
+                    stroke = texturedStroke;
+                }
+            }
+        }
+        public void HandleStrokesChanged(StrokeCollectionChangedEventArgs e)
     {
             if (_usedColors.Count > 7)
             {

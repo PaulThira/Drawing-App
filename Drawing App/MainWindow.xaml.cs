@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
+using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 
 namespace Drawing_App
@@ -27,7 +28,8 @@ namespace Drawing_App
     public partial class MainWindow : Window
     {
         private MainWindowVM _viewModel;
-
+        private System.Windows.Point? _startPoint;
+        private Polyline _currentPolyline;
         public MainWindow()
         {
             InitializeComponent();
@@ -39,16 +41,9 @@ namespace Drawing_App
             SaturationSlider.ValueChanged += SaturationSlider_ValueChanged;
             BrightnessSlider.ValueChanged += BrightnessSlider_ValueChanged;
             OpacitySlider.ValueChanged += OpacitySlider_ValueChanged;
-            inkCanvas.Strokes.StrokesChanged += Strokes_StrokesChanged;
+            
         }
-
-        private void Strokes_StrokesChanged(object sender, StrokeCollectionChangedEventArgs e)
-        {
-            if(_viewModel!=null)
-            {
-                _viewModel.HandleStrokesChanged(e);
-            }
-        }
+        
 
 
         private void SizeBrush_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -90,12 +85,46 @@ namespace Drawing_App
                 _viewModel.OnOpacityChanged(e.NewValue);
             }
         }
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+
+        private void drawingCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.PropertyName == nameof(MainWindowVM.Opacity))
+            if (_viewModel != null)
             {
-                inkCanvas.Opacity = _viewModel.Opacity;
+                _startPoint = e.GetPosition(draw);
+                _viewModel.StartStrokeCommand.Execute(_startPoint);
+
             }
+        }
+
+        private void drawingCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    // Add the current point to the Polyline's Points collection
+                    var currentPoint = e.GetPosition(draw);
+                    _viewModel.ContinueStrokeCommand.Execute(currentPoint);
+                }
+
+            }
+        }
+
+        private void drawingCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                if (_currentPolyline != null && e.LeftButton == MouseButtonState.Pressed)
+                {
+                    // Add the current point to the Polyline's Points collection
+                    _viewModel.EndStrokeCommand.Execute(null);
+                }
+
+            }
+        }
+        private void AddStrokeToCanvas(Polyline stroke)
+        {
+            
         }
     }
 }

@@ -7,7 +7,7 @@
         xmlns:syncfusion="http://schemas.syncfusion.com/wpf" x:Class="Drawing_App.MainWindow"
         mc:Ignorable="d"
         xmlns:viewmodel="clr-namespace:Drawing_App.VM"
-        Title="MainWindow" Height="630" Width="800">
+        Title="MainWindow" Height="650" Width="1000">
     <Window.Resources>
         <LinearGradientBrush x:Key="HueBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Color="#FFFF0000" Offset="0.0"/>
@@ -23,7 +23,7 @@
     <Window.DataContext>
         <viewmodel:MainWindowVM/>
     </Window.DataContext>
-    <Grid  VerticalAlignment="Top">
+    <Grid Margin="0,0,0,4" Background="#FFC77740">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="*"/>
@@ -34,17 +34,28 @@
             <RowDefinition Height="8*"/>
         </Grid.RowDefinitions>
 
-        <!-- InkCanvas for Drawing -->
-        <InkCanvas x:Name="inkCanvas" Background="{Binding BackgroundColor, Mode=TwoWay}" 
-                   Margin="10,10,18,10" 
-                   Grid.Column="0"
-                   Grid.Row="1"
-                   Opacity="{Binding Opacity}"
-                   Strokes="{Binding Strokes}" 
-                   DefaultDrawingAttributes="{Binding DrawingAttributes}"/>
+        <StackPanel Grid.Row="1"  VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="0" RenderTransformOrigin="0.5,0.5" >
+            <StackPanel.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleX="-0.231"/>
+                    <RotateTransform/>
+                    <TranslateTransform X="-1.246"/>
+                </TransformGroup>
+            </StackPanel.RenderTransform>
+            <ItemsControl x:Name="draw" ItemsSource="{Binding DrawingElements}" Width="665" Height="563">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas  x:Name="drawingCanvas" IsItemsHost="True" Background="White" MouseLeftButtonDown="drawingCanvas_MouseLeftButtonDown" MouseMove="drawingCanvas_MouseMove" MouseLeftButtonUp="drawingCanvas_MouseLeftButtonUp" Height="NaN" Width="NaN" Margin="36,0,42,49"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+        </StackPanel>
+
 
         <!-- Side Panel for Tools and Color Picker -->
-        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right"  Width="300" Background="#FFE5C591" Grid.Column="1" Grid.Row="1">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left"  Height="1560" Width="265" Background="#FFE5C591" Grid.Column="1" Margin="0,40,0,0" Grid.RowSpan="2">
             <TextBlock Text="Brush Size" HorizontalAlignment="Center"/>
             <Slider Name="SizeBrush" Minimum="1" Maximum="100" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10" ValueChanged="SizeBrush_ValueChanged"/>
 
@@ -61,7 +72,7 @@
 
             <Button Content="Eraser" Margin="10" Height="30" Width="200" Command="{Binding EraserCommand}" Background="#FFDC75CC"/>
             <Rectangle Name="ColorViews" Height="100" Stroke="Black" Width="100" Margin="10" Fill="{Binding RectangleFill}"/>
-            <Button Content="Save As Image" Height="63" Width="140" Background="#FF84E588" Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=inkCanvas}" Margin="0,0,0,5"/>
+            <Button Content="Save As Image" Height="63" Width="140" Background="#FF84E588" />
             <UniformGrid Rows="1" Margin="0,0,10,10">
                 <Ellipse Name="one" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color1}"></Ellipse>
                 <Ellipse Name="two" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color2}"></Ellipse>
@@ -71,11 +82,10 @@
                 <Ellipse Name="six" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color6}"></Ellipse>
                 <Ellipse Name="seven" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color7}"></Ellipse>
             </UniformGrid>
+
         </StackPanel>
 
 
-        <StackPanel Background="#FFE5C591" Margin="0,0,0,3" Grid.Row="0" Grid.ColumnSpan="2">
-            <ComboBox HorizontalAlignment="Right" Margin="10" Height="24" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" Width="85"  ></ComboBox>
-        </StackPanel>
+        <StackPanel Background="#FFE5C591" Margin="0,0,0,30" Grid.Row="0" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>
