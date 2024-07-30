@@ -21,6 +21,8 @@ using Color = System.Windows.Media.Color;
 using Drawing_App.Model;
 using System.Windows.Shapes;
 using Point = System.Windows.Point;
+using System.Security.Cryptography.Xml;
+
 
 namespace Drawing_App.VM
 {
@@ -47,16 +49,23 @@ namespace Drawing_App.VM
         private Brush _color6;
         private Brush _color7;
         private Polyline _currentPolyline;
+        
         public ObservableCollection<UIElement> DrawingElements { get; }
 
         public ICommand StartStrokeCommand { get; }
         public ICommand ContinueStrokeCommand { get; }
         public ICommand EndStrokeCommand { get; }
+        public ICommand PencilCommand { get; }
+        public ICommand PenCommand { get; }
+        public ICommand MarkerCommand { get; }
 
-
+        private ImageBrush _pencilBrush;
+        private DrawingBrush _currentBrush;
         public MainWindowVM()
 
         {
+
+            PenCommand = new DelegateCommand(PenCall);
             DrawingElements = new ObservableCollection<UIElement>();
             _currentColor = Colors.Cyan;
             StartStrokeCommand = new DelegateCommand<Point?>(StartStroke);
@@ -66,8 +75,10 @@ namespace Drawing_App.VM
             RectangleFill = Brushes.Cyan;
             _usedColors = new HashSet<Color>();
             _colorPalette = new ObservableCollection<Color>();
-            SaveCommand = new DelegateCommand<InkCanvas>(SaveCall);
+            SaveCommand = new DelegateCommand<ItemsControl>(SaveCall);
             EraserCommand = new DelegateCommand(EraserCall);
+            PencilCommand = new DelegateCommand(PencilCall);
+            MarkerCommand = new DelegateCommand(MarkerCall);
             
             _opacity = 1.0;
             BrushSize = 5;
@@ -94,18 +105,160 @@ namespace Drawing_App.VM
             Color5 = new SolidColorBrush(Colors.Orange);
             Color6 = new SolidColorBrush(Colors.Purple);
             Color7 = new SolidColorBrush(Colors.Pink);
+            _currentBrush = new DrawingBrush();
+            _currentBrush.Drawing = new GeometryDrawing(
+                brush: new SolidColorBrush(CurrentColor),   // Fill brush
+                pen: new Pen(new SolidColorBrush(CurrentColor), 1), // Outline pen
+                geometry: new RectangleGeometry(new Rect(0, 0, 10, 10))
+            );
+        }
+        private void MarkerCall()
+        {
+            var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1));
+
+            // Create a radial gradient to simulate the soft edges of a marker stroke
+            var gradientBrush = new RadialGradientBrush
+            {
+                GradientOrigin = new Point(0.5, 0.5),
+                Center = new Point(0.5, 0.5),
+                RadiusX = 0.5,
+                RadiusY = 0.5,
+                GradientStops = new GradientStopCollection
+        {
+            new GradientStop(CurrentColor, 0.5), // Solid color at the center
+            new GradientStop(Color.FromArgb(75, CurrentColor.R, CurrentColor.G, CurrentColor.B), 1) // Transparent at the edges
+        }
+            };
+
+            // Create the GeometryDrawing using the gradient brush and rectangle geometry
+            var geometryDrawing = new GeometryDrawing(gradientBrush, null, rectGeometry);
+
+            // Create the DrawingBrush with the GeometryDrawing
+            var drawingBrush = new DrawingBrush(geometryDrawing)
+            {
+                TileMode = TileMode.None, // No tiling for a continuous marker effect
+                Viewport = new Rect(0, 0, 1, 1), // Fill the entire area
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox
+            };
+            _currentBrush=drawingBrush;
+            _usedColors.Add(_currentColor);
+        }
+        private void PenCall()
+        {
+            // Load the pencil texture from resources or a file path
+
+            var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1));
+
+            // Create a solid color brush with the specified color
+            var solidColorBrush = new SolidColorBrush(CurrentColor);
+
+            // Create a GeometryDrawing using the solid color brush and the rectangle geometry
+            var geometryDrawing = new GeometryDrawing(solidColorBrush, null, rectGeometry);
+
+            // Create the DrawingBrush with the GeometryDrawing
+            var drawingBrush = new DrawingBrush(geometryDrawing)
+            {
+                // Set the Viewport to cover the entire area; no tiling needed
+                Viewport = new Rect(0, 0, 1, 1),
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
+                TileMode = TileMode.None // No tiling for a solid color effect
+            };
+            _currentBrush = drawingBrush;
+            _usedColors.Add(_currentColor);
+        }
+        private void PencilCall()
+        {
+            // Load the pencil texture from resources or a file path
+            var lineGroup = new GeometryGroup();
+            for (int i = 0; i < 300; i++) // Increased number of lines for a denser texture
+            {
+                lineGroup.Children.Add(new LineGeometry(new Point(i * 5, 0), new Point(0, i * 5)));
+            }
+
+            // Use the CurrentBrushColor to simulate the pencil color
+            var pencilPen = new Pen(new SolidColorBrush(CurrentColor), 1); // Thin lines for texture
+
+            // Create the GeometryDrawing using the line group and pencil pen
+            var pencilDrawing = new GeometryDrawing(null, pencilPen, lineGroup);
+
+            // Optionally, combine with an additional color overlay or background if desired
+            _currentBrush = new DrawingBrush(pencilDrawing)
+            {
+                TileMode = TileMode.Tile,
+                Viewport = new Rect(0, 0, 1000, 1000), // Adjust the viewport size for desired effect
+                ViewportUnits = BrushMappingMode.Absolute,
+                Opacity=0.5
+            };
+            _usedColors.Add(_currentColor);
         }
         private void StartStroke(Point? startPoint)
         {
+            UpdateColor();
             if (startPoint == null) return;
 
             _currentPolyline = new Polyline
             {
-                Stroke = RectangleFill,
+                Stroke = _currentBrush,
                 StrokeThickness = BrushSize,
+                
                 Points = new PointCollection { startPoint.Value }
             };
             DrawingElements.Add(_currentPolyline);
+
+
+            _usedColors.Add(_currentColor);
+            List<Color> colors = new List<Color>();
+            int i = 0;
+            foreach (var color in _usedColors)
+            {
+
+                Brush newBrush = new SolidColorBrush(color);
+                colors.Add(color);
+                if (i % 7 == 0)
+                {
+                    Color1 = newBrush;
+                }
+                else if (i % 7 == 1)
+                {
+                    Color2 = newBrush;
+                }
+                else if (i % 7 == 2)
+                {
+                    Color3 = newBrush;
+                }
+                else if (i % 7 == 3)
+                {
+                    Color4 = newBrush;
+                }
+                else if (i % 7 == 4)
+                {
+                    Color5 = newBrush;
+                }
+                else if (i % 7 == 5)
+                {
+                    Color6 = newBrush;
+                }
+                else if (i % 7 == 6)
+                {
+                    Color7 = newBrush;
+                }
+                i++;
+
+            }
+            HSVColours h = new HSVColours(colors);
+            h.ColorHarmony();
+            if(colors.Count>=2)
+            {
+                if(h.harmony==true)
+                {
+                    
+                }
+                else
+                {
+                    
+
+                }
+            }
         }
 
         private void ContinueStroke(Point? currentPoint)
@@ -116,7 +269,13 @@ namespace Drawing_App.VM
 
         private void EndStroke()
         {
+            List<Color> colors = new List<Color>();
+            foreach(var color in _usedColors)
+            {
+                colors.Add(color);
+            }
             
+
             _currentPolyline = null;
         }
 
@@ -232,40 +391,103 @@ namespace Drawing_App.VM
         }
 
         public ICommand SaveCommand { get; }
+
         public ICommand EraserCommand { get; }
         private void EraserCall()
         {
-            DrawingElements.RemoveAt(DrawingElements.Count-1);
+            var ellipseGeometry = new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.5);
+
+            // Define the brush and pen for the geometry
+            var fillBrush = new SolidColorBrush(Colors.White);
+            var outlinePen = new Pen(new SolidColorBrush(Colors.White), 0.05);
+
+            // Create the GeometryDrawing using the fill brush, outline pen, and geometry
+            var geometryDrawing = new GeometryDrawing(fillBrush, outlinePen, ellipseGeometry);
+
+            // Create the DrawingBrush with the GeometryDrawing
+            var drawingBrush = new DrawingBrush(geometryDrawing)
+            {
+                TileMode = TileMode.Tile, // Repeat the drawing in both directions
+                Viewport = new Rect(0, 0, 1, 1), // Define the size of one tile
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Size relative to the area being filled
+            };
+            _currentBrush = drawingBrush;
         }
 
-        private void SaveCall(InkCanvas inkCanvas)
+        private void SaveCall(ItemsControl itemsControl)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PNG Image|*.png";
+            if (itemsControl == null) return;
+
+            // Find the Canvas within the ItemsControl
+            Canvas canvas = FindVisualChild<Canvas>(itemsControl);
+
+            if (canvas == null) return;
+
+            // Define the size of the canvas
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+
+            // Create a RenderTargetBitmap to render the canvas
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                (int)width, (int)height, 96d, 96d, PixelFormats.Pbgra32);
+
+            // Render the canvas to the RenderTargetBitmap
+            renderBitmap.Render(canvas);
+
+            // Open SaveFileDialog to allow the user to specify the file path
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp",
+                Title = "Save Canvas As Image",
+                DefaultExt = "png"
+            };
+
             if (saveFileDialog.ShowDialog() == true)
             {
-                string filename = saveFileDialog.FileName;
-                int width = (int)InkCanvasWidth;
-                int height = (int)InkCanvasHeight;
+                // Get the chosen file path
+                string filePath = saveFileDialog.FileName;
 
-                RenderTargetBitmap renderBitmap = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Pbgra32);
-                DrawingVisual dv = new DrawingVisual();
-                using (DrawingContext dc = dv.RenderOpen())
+                // Determine the file extension to select the appropriate encoder
+                BitmapEncoder encoder;
+                switch (System.IO.Path.GetExtension(filePath).ToLower())
                 {
-                    VisualBrush vb = new VisualBrush(inkCanvas);
-                    dc.DrawRectangle(vb, null, new Rect(new System.Windows.Point(), new System.Windows.Size(width, height)));
+                    case ".jpg":
+                    case ".jpeg":
+                        encoder = new JpegBitmapEncoder();
+                        break;
+                    case ".bmp":
+                        encoder = new BmpBitmapEncoder();
+                        break;
+                    default:
+                        encoder = new PngBitmapEncoder();
+                        break;
                 }
-                renderBitmap.Render(dv);
 
-                using (FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None))
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                // Save the image to the file
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    PngBitmapEncoder encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-                    encoder.Save(fs);
+                    encoder.Save(fileStream);
                 }
-
-                MessageBox.Show($"Image saved to {filename}", "Save Successful", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+        }
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t)
+                {
+                    return t;
+                }
+                var childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null)
+                {
+                    return childOfChild;
+                }
+            }
+            return null;
         }
         public Color CurrentColor
     {
@@ -293,12 +515,16 @@ namespace Drawing_App.VM
     {
         CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
         DrawingAttributes.Color = CurrentColor;
-            RectangleFill = new SolidColorBrush(CurrentColor);
+        RectangleFill=new SolidColorBrush(CurrentColor);
+       
+        
+
         }
+
 
     private void UpdateOpacity(double value)
     {
-        // Update inkCanvas opacity logic can be handled here
+        
     }
         
         public void OnBrushSizeChanged(double newValue)
@@ -352,73 +578,7 @@ namespace Drawing_App.VM
         else
             return Color.FromRgb(v, p, q);
     }
-        public void HandleStrokeCollected(Stroke stroke)
-        {
-            if (DrawingAttributes is TexturedBrushes texturedBrushes)
-            {
-                var textureBrush = texturedBrushes.GetTextureBrush();
-                if (textureBrush != null)
-                {
-                    var stylusPoints = stroke.StylusPoints;
-                    var texturedStroke = new TexturedStroke(stylusPoints, textureBrush);
-                    stroke = texturedStroke;
-                }
-            }
-        }
-        public void HandleStrokesChanged(StrokeCollectionChangedEventArgs e)
-    {
-            if (_usedColors.Count > 7)
-            {
-                _usedColors.Clear();
-            }
-            foreach (var stroke in e.Added)
-            {
-            if (_usedColors.Add(stroke.DrawingAttributes.Color))
-            {
-                ColorPalette.Add(stroke.DrawingAttributes.Color);
-            }
-            }
-            int i = 0;
-            List<Color> colors = new List<Color>(); 
-            foreach(var color in _usedColors)
-            {
-                Brush newBrush = new SolidColorBrush(color);
-                colors.Add(color);
-                if (i % 7 == 0)
-                {
-                    Color1 = newBrush;
-                }
-                else if (i % 7 == 1)
-                {
-                    Color2 = newBrush;
-                }
-                else if (i % 7 == 2)
-                {
-                    Color3 = newBrush;
-                }
-                else if (i % 7 == 3)
-                {
-                    Color4 = newBrush;
-                }
-                else if (i % 7 == 4)
-                {
-                    Color5 = newBrush;
-                }
-                else if (i % 7 == 5)
-                {
-                    Color6 = newBrush;
-                }
-                else if (i % 7 == 6)
-                {
-                    Color7 = newBrush;
-                }
-                i++;
-
-
-            }
-            HSVColours h=new HSVColours();
-            h.Colors = colors;
-            h.ColorHarmony();
-        }
+        
+       
 }
 }

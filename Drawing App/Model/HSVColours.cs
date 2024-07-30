@@ -17,6 +17,11 @@ namespace Drawing_App.Model
          Colors = new List<Color>();
             harmony = false;
         }
+        public HSVColours( List<Color> h)
+        {
+            this.Colors = h;
+            harmony = false;
+        }
         public Tuple<float, float, float> BGRtoHSV(Color color)
         {
             double r = color.R, g = color.G, b = color.B;
@@ -84,32 +89,32 @@ namespace Drawing_App.Model
             if (Math.Abs(range - 30) <= 10)
             {
                 harmony = true;
-                MessageBox.Show("Nice Colors!!!");
+                
             }
             else if(Math.Abs(range -60)<=10)
             {
                 harmony = true;
-                MessageBox.Show("Nice Colors!!!");
+                
             }
             else if (Math.Abs(range - 90) <= 10)
             {
                 harmony = true;
-                MessageBox.Show("Nice Colors!!!");
+                
             }
             else if (Math.Abs(range - 120) <= 10)
             {
                 harmony = true;
-                MessageBox.Show("Nice Colors!!!");
+                
             }
             else if (Math.Abs(range - 180) <= 10)
             {
                 harmony = true;
-                MessageBox.Show("Nice Colors!!!");
+                
             }
             else
             {
                 harmony=false;
-                MessageBox.Show("Kind of muddy:(((");
+                
             }
         }
 

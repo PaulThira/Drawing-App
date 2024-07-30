@@ -23,7 +23,7 @@
     <Window.DataContext>
         <viewmodel:MainWindowVM/>
     </Window.DataContext>
-    <Grid Margin="0,0,0,4" Background="#FFC77740">
+    <Grid Margin="0,0,0,0" Background="#FFC77740">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="*"/>
@@ -34,19 +34,12 @@
             <RowDefinition Height="8*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="1"  VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="0" RenderTransformOrigin="0.5,0.5" >
-            <StackPanel.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform AngleX="-0.231"/>
-                    <RotateTransform/>
-                    <TranslateTransform X="-1.246"/>
-                </TransformGroup>
-            </StackPanel.RenderTransform>
+        <StackPanel Grid.Row="1"  VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" Height="610" >
+            
             <ItemsControl x:Name="draw" ItemsSource="{Binding DrawingElements}" Width="665" Height="563">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <Canvas  x:Name="drawingCanvas" IsItemsHost="True" Background="White" MouseLeftButtonDown="drawingCanvas_MouseLeftButtonDown" MouseMove="drawingCanvas_MouseMove" MouseLeftButtonUp="drawingCanvas_MouseLeftButtonUp" Height="NaN" Width="NaN" Margin="36,0,42,49"/>
+                        <Canvas  x:Name="drawingCanvas" IsItemsHost="True" Background="White" MouseLeftButtonDown="drawingCanvas_MouseLeftButtonDown" MouseMove="drawingCanvas_MouseMove" MouseLeftButtonUp="drawingCanvas_MouseLeftButtonUp" Height="NaN" Width="NaN" Margin="0,0,0,0" Opacity="{Binding Opacity, Mode=TwoWay}"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
@@ -72,7 +65,7 @@
 
             <Button Content="Eraser" Margin="10" Height="30" Width="200" Command="{Binding EraserCommand}" Background="#FFDC75CC"/>
             <Rectangle Name="ColorViews" Height="100" Stroke="Black" Width="100" Margin="10" Fill="{Binding RectangleFill}"/>
-            <Button Content="Save As Image" Height="63" Width="140" Background="#FF84E588" />
+            <Button Content="Save As Image" Height="63" Width="140" Background="#FF84E588" Click="Button_Click"   />
             <UniformGrid Rows="1" Margin="0,0,10,10">
                 <Ellipse Name="one" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color1}"></Ellipse>
                 <Ellipse Name="two" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color2}"></Ellipse>
@@ -82,6 +75,14 @@
                 <Ellipse Name="six" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color6}"></Ellipse>
                 <Ellipse Name="seven" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color7}"></Ellipse>
             </UniformGrid>
+            <Menu Height="36" Background="#FFE5C591" HorizontalAlignment="Center">
+                
+                <MenuItem Header="Brushes" FontSize="20"  Width="98">
+                    <MenuItem Header="Pen" Command="{Binding PencilCommand}"/>
+                    <MenuItem Header="Pencil" Command="{Binding PenCommand}"/>
+                    <MenuItem Header="Marker" Command="{Binding MarkerCommand}"/>
+                </MenuItem>
+            </Menu>
 
         </StackPanel>
 

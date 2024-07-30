@@ -126,5 +126,12 @@ namespace Drawing_App
         {
             
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if(_viewModel!= null) {
+              _viewModel.SaveCommand.Execute(draw);
+            }
+        }
     }
 }
