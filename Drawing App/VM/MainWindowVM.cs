@@ -49,7 +49,22 @@ namespace Drawing_App.VM
         private Brush _color6;
         private Brush _color7;
         private Polyline _currentPolyline;
-        
+        public ObservableCollection<Layer> Layers { get; }
+        private Layer _selectedLayer;
+
+        // Property to track the selected layer
+        public Layer SelectedLayer
+        {
+            get => _selectedLayer;
+            set => SetProperty(ref _selectedLayer, value);
+        }
+
+
+        // Commands for layer operations
+        public ICommand AddImageLayerCommand { get; }
+        public ICommand AddDrawingLayerCommand { get; }
+        public ICommand RemoveLayerCommand { get; }
+
         public ObservableCollection<UIElement> DrawingElements { get; }
 
         public ICommand StartStrokeCommand { get; }
@@ -71,7 +86,10 @@ namespace Drawing_App.VM
             StartStrokeCommand = new DelegateCommand<Point?>(StartStroke);
             ContinueStrokeCommand = new DelegateCommand<Point?>(ContinueStroke);
             EndStrokeCommand = new DelegateCommand(EndStroke);
-            
+            AddImageLayerCommand = new DelegateCommand(AddImageLayer);
+            AddDrawingLayerCommand = new DelegateCommand(AddDrawingLayer);
+            RemoveLayerCommand = new DelegateCommand(RemoveLayer, CanRemoveLayer)
+                .ObservesProperty(() => SelectedLayer);
             RectangleFill = Brushes.Cyan;
             _usedColors = new HashSet<Color>();
             _colorPalette = new ObservableCollection<Color>();
@@ -79,7 +97,7 @@ namespace Drawing_App.VM
             EraserCommand = new DelegateCommand(EraserCall);
             PencilCommand = new DelegateCommand(PencilCall);
             MarkerCommand = new DelegateCommand(MarkerCall);
-            
+            Layers = new ObservableCollection<Layer>();
             _opacity = 1.0;
             BrushSize = 5;
             Hue = 0;
@@ -112,6 +130,50 @@ namespace Drawing_App.VM
                 geometry: new RectangleGeometry(new Rect(0, 0, 10, 10))
             );
         }
+        private void AddImageLayer()
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp",
+                Title = "Select an Image"
+            };
+
+            // Show the dialog and check if the user selected a file
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // Create a new ImageLayer with the selected image file
+                var newLayer = new ImageLayer(openFileDialog.FileName);
+                Layers.Add(newLayer);
+                SelectedLayer = newLayer;
+            }
+        }
+
+        // Method to add a new drawing layer
+        private void AddDrawingLayer()
+        {
+            var newLayer = new DrawingLayer(StartStrokeCommand, ContinueStrokeCommand, EndStrokeCommand);
+            newLayer.IsVisible = true;
+            newLayer.Name = "Layer" + " " + (Layers.Count + 1).ToString();
+            Layers.Add(newLayer);
+            SelectedLayer = newLayer;
+        }
+
+        // Method to remove the selected layer
+        private void RemoveLayer()
+        {
+            if (SelectedLayer != null)
+            {
+                int index = Layers.IndexOf(SelectedLayer);
+                Layers.Remove(SelectedLayer);
+                
+            }
+        }
+
+        // Check if the selected layer can be removed
+        private bool CanRemoveLayer()
+        {
+            return SelectedLayer != null;
+        }
         private void MarkerCall()
         {
             var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1));
@@ -141,12 +203,13 @@ namespace Drawing_App.VM
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox
             };
             _currentBrush=drawingBrush;
+            UpdateBrush();
             _usedColors.Add(_currentColor);
         }
         private void PenCall()
         {
             // Load the pencil texture from resources or a file path
-
+          
             var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1));
 
             // Create a solid color brush with the specified color
@@ -164,6 +227,7 @@ namespace Drawing_App.VM
                 TileMode = TileMode.None // No tiling for a solid color effect
             };
             _currentBrush = drawingBrush;
+            UpdateBrush();
             _usedColors.Add(_currentColor);
         }
         private void PencilCall()
@@ -189,21 +253,17 @@ namespace Drawing_App.VM
                 ViewportUnits = BrushMappingMode.Absolute,
                 Opacity=0.5
             };
+            UpdateBrush();
             _usedColors.Add(_currentColor);
         }
         private void StartStroke(Point? startPoint)
         {
             UpdateColor();
-            if (startPoint == null) return;
+            if (startPoint == null || SelectedLayer is not DrawingLayer drawingLayer)
+                return;
 
-            _currentPolyline = new Polyline
-            {
-                Stroke = _currentBrush,
-                StrokeThickness = BrushSize,
-                
-                Points = new PointCollection { startPoint.Value }
-            };
-            DrawingElements.Add(_currentPolyline);
+            // Initialize a new polyline to represent the stroke
+            drawingLayer.StartStroke(startPoint.Value);
 
 
             _usedColors.Add(_currentColor);
@@ -263,8 +323,11 @@ namespace Drawing_App.VM
 
         private void ContinueStroke(Point? currentPoint)
         {
-            if (currentPoint == null || _currentPolyline == null) return;
-            _currentPolyline.Points.Add(currentPoint.Value);
+            if (currentPoint == null || SelectedLayer is not DrawingLayer drawingLayer)
+                return;
+
+            // Add the current point to the polyline
+            drawingLayer.ContinueStroke(currentPoint.Value);
         }
 
         private void EndStroke()
@@ -274,9 +337,13 @@ namespace Drawing_App.VM
             {
                 colors.Add(color);
             }
-            
 
-            _currentPolyline = null;
+
+            if (SelectedLayer is DrawingLayer drawingLayer)
+            {
+                // Finalize the stroke
+                drawingLayer.EndStroke();
+            }
         }
 
 
@@ -412,6 +479,7 @@ namespace Drawing_App.VM
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Size relative to the area being filled
             };
             _currentBrush = drawingBrush;
+            UpdateBrush();
         }
 
         private void SaveCall(ItemsControl itemsControl)
@@ -508,22 +576,33 @@ namespace Drawing_App.VM
         DrawingAttributes.Width = BrushSize;
 
         DrawingAttributes.Height = BrushSize;
-            
-    }
+            if (SelectedLayer is DrawingLayer drawingLayer)
+            {
+                // If it is a DrawingLayer, end the stroke
+                drawingLayer.SetBrush(_currentBrush, BrushSize);
+            }
+
+        }
 
     private void UpdateColor()
     {
         CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
         DrawingAttributes.Color = CurrentColor;
         RectangleFill=new SolidColorBrush(CurrentColor);
-       
-        
+            if (SelectedLayer is DrawingLayer drawingLayer)
+            {
+                // If it is a DrawingLayer, end the stroke
+                drawingLayer.SetBrush(_currentBrush, BrushSize);
+            }
+
+
 
         }
 
 
     private void UpdateOpacity(double value)
     {
+            SelectedLayer.Opacity = value;
         
     }
         

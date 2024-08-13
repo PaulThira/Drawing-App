@@ -86,52 +86,12 @@ namespace Drawing_App
             }
         }
 
-        private void drawingCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (_viewModel != null)
-            {
-                _startPoint = e.GetPosition(draw);
-                _viewModel.StartStrokeCommand.Execute(_startPoint);
-
-            }
-        }
-
-        private void drawingCanvas_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_viewModel != null)
-            {
-                if (e.LeftButton == MouseButtonState.Pressed)
-                {
-                    // Add the current point to the Polyline's Points collection
-                    var currentPoint = e.GetPosition(draw);
-                    _viewModel.ContinueStrokeCommand.Execute(currentPoint);
-                }
-
-            }
-        }
-
-        private void drawingCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (_viewModel != null)
-            {
-                if (_currentPolyline != null && e.LeftButton == MouseButtonState.Pressed)
-                {
-                    // Add the current point to the Polyline's Points collection
-                    _viewModel.EndStrokeCommand.Execute(null);
-                }
-
-            }
-        }
+      
         private void AddStrokeToCanvas(Polyline stroke)
         {
             
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            if(_viewModel!= null) {
-              _viewModel.SaveCommand.Execute(draw);
-            }
-        }
+        
     }
 }
