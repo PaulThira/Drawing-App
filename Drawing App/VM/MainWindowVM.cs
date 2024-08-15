@@ -22,6 +22,7 @@ using Drawing_App.Model;
 using System.Windows.Shapes;
 using Point = System.Windows.Point;
 using System.Security.Cryptography.Xml;
+using System.ComponentModel;
 
 
 namespace Drawing_App.VM
@@ -48,6 +49,7 @@ namespace Drawing_App.VM
         private Brush _color5;
         private Brush _color6;
         private Brush _color7;
+        private Brush harmony;
         private Polyline _currentPolyline;
         public ObservableCollection<Layer> Layers { get; }
         private Layer _selectedLayer;
@@ -74,6 +76,28 @@ namespace Drawing_App.VM
         public ICommand PenCommand { get; }
         public ICommand MarkerCommand { get; }
 
+        public ICommand LayerCheckedCommand { get; }
+        public ICommand LayerUncheckedCommand { get; }
+
+        private int _selectedLayerIndex;
+        public int SelectedLayerIndex { get =>_selectedLayerIndex;
+            set
+            {
+                if (SetProperty(ref _selectedLayerIndex, value))
+                {
+                    // Update the selected layer based on the index
+                    foreach (var layer in Layers)
+                    {
+                        layer._isSelected = false;
+                    }
+                    if (_selectedLayerIndex >= 0 && _selectedLayerIndex < Layers.Count)
+                    {
+                        Layers[_selectedLayerIndex]._isSelected = true;
+                    }
+                }
+            }
+        }
+
         private ImageBrush _pencilBrush;
         private DrawingBrush _currentBrush;
         public MainWindowVM()
@@ -97,6 +121,7 @@ namespace Drawing_App.VM
             EraserCommand = new DelegateCommand(EraserCall);
             PencilCommand = new DelegateCommand(PencilCall);
             MarkerCommand = new DelegateCommand(MarkerCall);
+         
             Layers = new ObservableCollection<Layer>();
             _opacity = 1.0;
             BrushSize = 5;
@@ -112,6 +137,7 @@ namespace Drawing_App.VM
                 Height = 5,
                 FitToCurve = true
             };
+            _selectedLayerIndex = -1;
 
             InkCanvasWidth = 4200;  // Default width
             InkCanvasHeight = 2100;
@@ -123,13 +149,56 @@ namespace Drawing_App.VM
             Color5 = new SolidColorBrush(Colors.Orange);
             Color6 = new SolidColorBrush(Colors.Purple);
             Color7 = new SolidColorBrush(Colors.Pink);
+            Harmony=new SolidColorBrush(Colors.Green);
             _currentBrush = new DrawingBrush();
             _currentBrush.Drawing = new GeometryDrawing(
                 brush: new SolidColorBrush(CurrentColor),   // Fill brush
                 pen: new Pen(new SolidColorBrush(CurrentColor), 1), // Outline pen
                 geometry: new RectangleGeometry(new Rect(0, 0, 10, 10))
             );
+            DrawingLayer l=new DrawingLayer(StartStrokeCommand, ContinueStrokeCommand, EndStrokeCommand);
+            Layers.Add(l);
+            foreach (var layer in Layers)
+            {
+                layer.PropertyChanged += Layer_PropertyChanged;
+            }
+            LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
+            LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
         }
+        private void OnLayerChecked(Layer selectedLayer)
+        {
+            foreach (var layer in Layers)
+            {
+                if (layer != selectedLayer)
+                {
+                    layer._isSelected = false;
+                }
+            }
+            selectedLayer._isSelected = true;
+            SelectedLayer = selectedLayer;
+        }
+
+        private void OnLayerUnchecked(Layer deselectedLayer)
+        {
+            deselectedLayer._isSelected = false;
+            SelectedLayer._isSelected = false;
+        }
+        private void Layer_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Layer._isSelected) && sender is Layer selectedLayer && selectedLayer._isSelected)
+            {
+                // Deselect all other layers when one layer is selected
+                foreach (var layer in Layers)
+                {
+                    if (layer != selectedLayer && layer._isSelected)
+                    {
+                        layer._isSelected = false;
+                    }
+
+                }
+            }
+        }
+       
         private void AddImageLayer()
         {
             var openFileDialog = new OpenFileDialog
@@ -165,6 +234,7 @@ namespace Drawing_App.VM
             {
                 int index = Layers.IndexOf(SelectedLayer);
                 Layers.Remove(SelectedLayer);
+                SelectedLayer=Layers.Last();
                 
             }
         }
@@ -311,11 +381,11 @@ namespace Drawing_App.VM
             {
                 if(h.harmony==true)
                 {
-                    
+                    Harmony=new SolidColorBrush(Colors.Green);
                 }
                 else
                 {
-                    
+                    Harmony = new SolidColorBrush(Colors.Red);
 
                 }
             }
@@ -347,7 +417,11 @@ namespace Drawing_App.VM
         }
 
 
-
+        public Brush Harmony
+        {
+            get => harmony;
+            set => SetProperty(ref harmony, value);
+        }
         public Brush Color1
         {
             get => _color1;

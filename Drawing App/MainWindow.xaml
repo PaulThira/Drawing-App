@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Drawing_App"
         xmlns:syncfusion="http://schemas.syncfusion.com/wpf" x:Class="Drawing_App.MainWindow"
         mc:Ignorable="d"
+     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:viewmodel="clr-namespace:Drawing_App.VM"
         Title="MainWindow" Height="650" Width="1000">
     <Window.Resources>
@@ -95,7 +96,7 @@
                     <MenuItem Header="Marker" Command="{Binding MarkerCommand}"/>
                 </MenuItem>
             </Menu>
-            <ListBox Height="79" Width="227" ItemsSource="{Binding Layers}">
+            <ListBox Height="79" Width="227" ItemsSource="{Binding Layers}"  SelectedIndex="{Binding SelectedLayerIndex, Mode=TwoWay}" Background="#FFB37943">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -104,6 +105,16 @@
 
                             <!-- RadioButton bound to the visibility of the layer -->
                             <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" Content="Visible" Margin="5" />
+                            <CheckBox IsChecked="{Binding _isSelected, Mode=TwoWay}" Content="Selected" Margin="5">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Checked">
+                                        <i:InvokeCommandAction Command="{Binding DataContext.LayerCheckedCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding }" />
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="Unchecked">
+                                        <i:InvokeCommandAction Command="{Binding DataContext.LayerUncheckedCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </CheckBox>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -116,10 +127,14 @@
 
         <StackPanel  Background="#FFE5C591" Margin="0,0,0,30" Grid.Row="0" Grid.ColumnSpan="2">
             <Menu HorizontalAlignment="Left" Height="44"  Background="#FFE5C591">
-                <MenuItem Header="Layers" FontSize="24" Background="#FFE5C591">
+                <MenuItem Header="Layers" FontSize="14" Background="#FFE5C591" Height="39">
                     <MenuItem Header="Add Image" Command="{Binding AddImageLayerCommand}"></MenuItem>
                     <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
-                    <MenuItem Header="Delete Layer" Command=""></MenuItem>
+                    <MenuItem Header="Delete Layer" Command="{Binding RemoveLayerCommand}"></MenuItem>
+                </MenuItem>
+                <MenuItem Width="62" Header="Harmony">
+                   
+                    <Ellipse Name="harmonious" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Harmony}"></Ellipse>
                 </MenuItem>
             </Menu>
         </StackPanel>
