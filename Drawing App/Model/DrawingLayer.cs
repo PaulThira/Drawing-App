@@ -101,11 +101,45 @@ namespace Drawing_App.Model
                     Y1 = startPoint.Y
                 };
             }
-
+           
             if (_currentShape != null)
             {
+                
                 _canvas.Children.Add(_currentShape);
             }
+        }
+        public void DrawShape(Point startPoint, ShapeKind shapeType)
+        {
+            _startPoint = startPoint;
+            if (shapeType == ShapeKind.Circle)
+            {
+                _currentShape = new Ellipse
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = 1, // You can set this differently if needed
+                    Width = thickness,  // Diameter
+                    Height = thickness, // Diameter
+                    Fill = Brushes.Transparent
+                };
+            }
+            else if (shapeType == ShapeKind.Square)
+            {
+                _currentShape = new Rectangle
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = 1, // You can set this differently if needed
+                    Width = thickness,  // Side length
+                    Height = thickness, // Side length
+                    Fill = Brushes.Transparent
+                };
+            }
+            if (_currentShape != null)
+            {
+                Canvas.SetLeft(_currentShape, startPoint.X - thickness/2);
+                Canvas.SetTop(_currentShape, startPoint.Y - thickness/2);
+                _canvas.Children.Add(_currentShape);
+            }
+
         }
 
         public void EndShape(Point endPoint)

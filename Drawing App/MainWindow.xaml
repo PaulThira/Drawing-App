@@ -138,8 +138,8 @@
                     <Ellipse Name="harmonious" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Harmony}"></Ellipse>
                 </MenuItem>
                 <MenuItem Header="Add Shapes">
-                    <MenuItem Header="Circle"></MenuItem>
-                    <MenuItem Header="Square"></MenuItem>
+                    <MenuItem Header="Circle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Circle}"></MenuItem>
+                    <MenuItem Header="Square" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Square}"></MenuItem>
                     <MenuItem Header="Heart"></MenuItem>
                     <MenuItem Header="Elipse" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Ellipse}"></MenuItem>
                     <MenuItem Header="Rectangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Rectangle}"></MenuItem>

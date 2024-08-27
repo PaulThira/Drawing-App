@@ -178,12 +178,30 @@ namespace Drawing_App.VM
         {
             if (shapeType.HasValue) { 
                 _selectedShapeType= shapeType.Value;
-                Point? p1=Points.Pop();
-                Point? p2 = Points.Pop();
-                StartShape((p1, _selectedShapeType));
-                EndShape(p2);
+                if (Points.Count >= 2)
+                {
+                    Point? p1 = Points.Pop();
+                    Point? p2 = Points.Pop();
+                    if (_selectedShapeType == ShapeKind.Square || _selectedShapeType == ShapeKind.Circle)
+                    {
+                        DrawShape((p2, _selectedShapeType));
+                    }
+                    else
+                    {
+                        StartShape((p1, _selectedShapeType));
+                        EndShape(p2);
+                    }
+                }
+                
+                
                 
             }
+        }
+        private void DrawShape((Point?,ShapeKind) data)
+        {
+            var (startPoint, shapeType) = data;
+            if (startPoint == null || shapeType == ShapeKind.None || !(SelectedLayer is DrawingLayer drawingLayer)) return;
+            drawingLayer.DrawShape(startPoint.Value, shapeType);
         }
         private void StartShape((Point?, ShapeKind) data)
         {
