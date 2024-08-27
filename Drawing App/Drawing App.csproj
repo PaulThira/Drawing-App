@@ -16,6 +16,10 @@
     <PackageReference Include="Prism.Core" Version="8.1.97" />
     <PackageReference Include="Syncfusion.Shared.WPF" Version="26.1.42" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Textures\" />
+  </ItemGroup>
 	
 
 </Project>

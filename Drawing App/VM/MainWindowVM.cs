@@ -51,6 +51,7 @@ namespace Drawing_App.VM
         private Brush _color7;
         private Brush harmony;
         private Polyline _currentPolyline;
+        public Stack<Point> Points = new Stack<Point>();
         public ObservableCollection<Layer> Layers { get; }
         private Layer _selectedLayer;
 
@@ -78,7 +79,7 @@ namespace Drawing_App.VM
 
         public ICommand LayerCheckedCommand { get; }
         public ICommand LayerUncheckedCommand { get; }
-
+        public ICommand ChangeShapeKind { get; }
         private int _selectedLayerIndex;
         public int SelectedLayerIndex { get =>_selectedLayerIndex;
             set
@@ -96,6 +97,13 @@ namespace Drawing_App.VM
                     }
                 }
             }
+
+        }
+        private ShapeKind _selectedShapeType = ShapeKind.None;
+        public ShapeKind SelectedShapeType
+        {
+            get => _selectedShapeType;
+            set => SetProperty(ref _selectedShapeType, value);
         }
 
         private ImageBrush _pencilBrush;
@@ -106,6 +114,7 @@ namespace Drawing_App.VM
 
             PenCommand = new DelegateCommand(PenCall);
             DrawingElements = new ObservableCollection<UIElement>();
+            ChangeShapeKind = new DelegateCommand<ShapeKind?>(SetShapeType);
             _currentColor = Colors.Cyan;
             StartStrokeCommand = new DelegateCommand<Point?>(StartStroke);
             ContinueStrokeCommand = new DelegateCommand<Point?>(ContinueStroke);
@@ -164,6 +173,29 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        public void SetShapeType(ShapeKind? shapeType)
+        {
+            if (shapeType.HasValue) { 
+                _selectedShapeType= shapeType.Value;
+                Point? p1=Points.Pop();
+                Point? p2 = Points.Pop();
+                StartShape((p1, _selectedShapeType));
+                EndShape(p2);
+                
+            }
+        }
+        private void StartShape((Point?, ShapeKind) data)
+        {
+            var (startPoint, shapeType) = data;
+            if (startPoint == null || shapeType == ShapeKind.None || !(SelectedLayer is DrawingLayer drawingLayer)) return;
+            drawingLayer.StartShape(startPoint.Value, shapeType);
+        }
+
+        private void EndShape(Point? endPoint)
+        {
+            if (endPoint == null || !(SelectedLayer is DrawingLayer drawingLayer)) return;
+            drawingLayer.EndShape(endPoint.Value);
         }
         private void OnLayerChecked(Layer selectedLayer)
         {
@@ -329,9 +361,13 @@ namespace Drawing_App.VM
         private void StartStroke(Point? startPoint)
         {
             UpdateColor();
+            
             if (startPoint == null || SelectedLayer is not DrawingLayer drawingLayer)
                 return;
-
+            if (startPoint != null)
+            {
+                Points.Push(startPoint.Value);
+            }
             // Initialize a new polyline to represent the stroke
             drawingLayer.StartStroke(startPoint.Value);
 

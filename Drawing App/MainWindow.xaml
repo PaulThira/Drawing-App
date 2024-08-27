@@ -8,6 +8,7 @@
         mc:Ignorable="d"
      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:viewmodel="clr-namespace:Drawing_App.VM"
+        xmlns:model="clr-namespace:Drawing_App.Model"
         Title="MainWindow" Height="650" Width="1000">
     <Window.Resources>
         <LinearGradientBrush x:Key="HueBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
@@ -132,9 +133,16 @@
                     <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
                     <MenuItem Header="Delete Layer" Command="{Binding RemoveLayerCommand}"></MenuItem>
                 </MenuItem>
-                <MenuItem Width="62" Header="Harmony">
+                <MenuItem Width="62" Header="Harmony" >
                    
                     <Ellipse Name="harmonious" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Harmony}"></Ellipse>
+                </MenuItem>
+                <MenuItem Header="Add Shapes">
+                    <MenuItem Header="Circle"></MenuItem>
+                    <MenuItem Header="Square"></MenuItem>
+                    <MenuItem Header="Heart"></MenuItem>
+                    <MenuItem Header="Elipse" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Ellipse}"></MenuItem>
+                    <MenuItem Header="Rectangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Rectangle}"></MenuItem>
                 </MenuItem>
             </Menu>
         </StackPanel>

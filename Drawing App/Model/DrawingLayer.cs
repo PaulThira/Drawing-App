@@ -21,6 +21,7 @@ namespace Drawing_App.Model
 
         // The starting point of the current stroke
         private Point _startPoint;
+        private Shape _currentShape;
 
         // The current stroke being drawn (as a Polyline)
         private Polyline _currentPolyline;
@@ -68,7 +69,68 @@ namespace Drawing_App.Model
                 ContinueStrokeCommand?.Execute(currentPoint);
             }
         }
+        public void StartShape(Point startPoint, ShapeKind shapeType)
+        {
+            _startPoint = startPoint;
 
+            if (shapeType == ShapeKind.Rectangle)
+            {
+                _currentShape = new Rectangle
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = thickness,
+                    Fill = Brushes.Transparent
+                };
+            }
+            else if (shapeType == ShapeKind.Ellipse)
+            {
+                _currentShape = new Ellipse
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = thickness,
+                    Fill = Brushes.Transparent
+                };
+            }
+            else if (shapeType == ShapeKind.Line)
+            {
+                _currentShape = new Line
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = thickness,
+                    X1 = startPoint.X,
+                    Y1 = startPoint.Y
+                };
+            }
+
+            if (_currentShape != null)
+            {
+                _canvas.Children.Add(_currentShape);
+            }
+        }
+
+        public void EndShape(Point endPoint)
+        {
+            if (_currentShape == null) return;
+
+            if (_currentShape is Rectangle || _currentShape is Ellipse)
+            {
+                double width = Math.Abs(endPoint.X - _startPoint.X);
+                double height = Math.Abs(endPoint.Y - _startPoint.Y);
+
+                _currentShape.Width = width;
+                _currentShape.Height = height;
+
+                Canvas.SetLeft(_currentShape, Math.Min(_startPoint.X, endPoint.X));
+                Canvas.SetTop(_currentShape, Math.Min(_startPoint.Y, endPoint.Y));
+            }
+            else if (_currentShape is Line line)
+            {
+                line.X2 = endPoint.X;
+                line.Y2 = endPoint.Y;
+            }
+
+            _currentShape = null;
+        }
         // Event handler for ending a stroke
         private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
