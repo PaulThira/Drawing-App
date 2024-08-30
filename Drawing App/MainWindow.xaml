@@ -128,6 +128,10 @@
 
         <StackPanel  Background="#FFE5C591" Margin="0,0,0,30" Grid.Row="0" Grid.ColumnSpan="2">
             <Menu HorizontalAlignment="Left" Height="44"  Background="#FFE5C591">
+                <MenuItem Header="Repair"  Width="50">
+                    <MenuItem Header="UNDO"></MenuItem>
+                    <MenuItem Header="REDO"></MenuItem>
+                </MenuItem>
                 <MenuItem Header="Layers" FontSize="14" Background="#FFE5C591" Height="39">
                     <MenuItem Header="Add Image" Command="{Binding AddImageLayerCommand}"></MenuItem>
                     <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
@@ -140,9 +144,11 @@
                 <MenuItem Header="Add Shapes">
                     <MenuItem Header="Circle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Circle}"></MenuItem>
                     <MenuItem Header="Square" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Square}"></MenuItem>
-                    <MenuItem Header="Heart"></MenuItem>
+                    <MenuItem Header="Heart" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Heart}"></MenuItem>
                     <MenuItem Header="Elipse" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Ellipse}"></MenuItem>
                     <MenuItem Header="Rectangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Rectangle}"></MenuItem>
+                    <MenuItem Header="Line" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Line}"></MenuItem>
+                    <MenuItem Header="Triangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Triangle}"></MenuItem>
                 </MenuItem>
             </Menu>
         </StackPanel>

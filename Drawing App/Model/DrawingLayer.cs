@@ -9,7 +9,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows;
 using Drawing_App.VM;
-
+using System.Drawing;
+using Point = System.Windows.Point;
 namespace Drawing_App.Model
 {
    public class DrawingLayer:Layer
@@ -75,7 +76,7 @@ namespace Drawing_App.Model
 
             if (shapeType == ShapeKind.Rectangle)
             {
-                _currentShape = new Rectangle
+                _currentShape = new System.Windows.Shapes.Rectangle
                 {
                     Stroke = _currentBrush,
                     StrokeThickness = thickness,
@@ -110,33 +111,91 @@ namespace Drawing_App.Model
         }
         public void DrawShape(Point startPoint, ShapeKind shapeType)
         {
+            double size = thickness * 3;
             _startPoint = startPoint;
+
             if (shapeType == ShapeKind.Circle)
             {
                 _currentShape = new Ellipse
                 {
                     Stroke = _currentBrush,
                     StrokeThickness = 1, // You can set this differently if needed
-                    Width = thickness,  // Diameter
-                    Height = thickness, // Diameter
+                    Width = size,  // Diameter
+                    Height = size, // Diameter
                     Fill = Brushes.Transparent
                 };
             }
             else if (shapeType == ShapeKind.Square)
             {
-                _currentShape = new Rectangle
+                _currentShape = new System.Windows.Shapes.Rectangle
                 {
                     Stroke = _currentBrush,
                     StrokeThickness = 1, // You can set this differently if needed
-                    Width = thickness,  // Side length
-                    Height = thickness, // Side length
+                    Width = size,  // Side length
+                    Height = size, // Side length
                     Fill = Brushes.Transparent
                 };
             }
-            if (_currentShape != null)
+            else if (shapeType == ShapeKind.Heart)
             {
-                Canvas.SetLeft(_currentShape, startPoint.X - thickness/2);
-                Canvas.SetTop(_currentShape, startPoint.Y - thickness/2);
+                PathFigure heartFigure = new PathFigure
+                {
+                    StartPoint = new Point(startPoint.X, startPoint.Y - size / 4)  // Top center of the heart
+                };
+
+                // Left side of the heart using a cubic Bézier curve
+                heartFigure.Segments.Add(new BezierSegment(
+                    new Point(startPoint.X - size / 2, startPoint.Y - size / 2),  // Control Point 1
+                    new Point(startPoint.X - size / 2, startPoint.Y + size / 4),  // Control Point 2
+                    new Point(startPoint.X, startPoint.Y + size / 2),             // End Point
+                    true));
+
+                // Right side of the heart using a cubic Bézier curve
+                heartFigure.Segments.Add(new BezierSegment(
+                    new Point(startPoint.X + size / 2, startPoint.Y + size / 4),  // Control Point 1
+                    new Point(startPoint.X + size / 2, startPoint.Y - size / 2),  // Control Point 2
+                    new Point(startPoint.X, startPoint.Y - size / 4),             // End Point (back to top center)
+                    true));
+
+                PathGeometry heartGeometry = new PathGeometry();
+                heartGeometry.Figures.Add(heartFigure);
+
+                _currentShape = new Path
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = 1,
+                    Data = heartGeometry,
+                    Fill = Brushes.Transparent
+                };
+
+                _canvas.Children.Add(_currentShape);
+            }
+            else if (shapeType == ShapeKind.Triangle)
+            {
+                double height = Math.Sqrt(3) / 2 * size;
+
+                // Calculate the vertices of the triangle
+                Point vertex1 = new Point(startPoint.X, startPoint.Y - 2 * height / 3);  // Top vertex
+                Point vertex2 = new Point(startPoint.X - size / 2, startPoint.Y + height / 3);  // Bottom left vertex
+                Point vertex3 = new Point(startPoint.X + size / 2, startPoint.Y + height / 3);  // Bottom right vertex
+
+                // Create a polygon representing the equilateral triangle
+                _currentShape = new Polygon
+                {
+                    Stroke = _currentBrush,
+                    StrokeThickness = 5, // You can set this differently if needed
+                    Fill = Brushes.Transparent,
+                    Points = new PointCollection { vertex1, vertex2, vertex3 }
+                };
+
+                // Add the triangle to the canvas
+                _canvas.Children.Add(_currentShape);
+            }
+
+            if (_currentShape != null && shapeType != ShapeKind.Heart&& shapeType != ShapeKind.Triangle)
+            {
+                Canvas.SetLeft(_currentShape, startPoint.X - size / 2);
+                Canvas.SetTop(_currentShape, startPoint.Y - size / 2);
                 _canvas.Children.Add(_currentShape);
             }
 
@@ -146,7 +205,7 @@ namespace Drawing_App.Model
         {
             if (_currentShape == null) return;
 
-            if (_currentShape is Rectangle || _currentShape is Ellipse)
+            if (_currentShape is System.Windows.Shapes.Rectangle || _currentShape is Ellipse)
             {
                 double width = Math.Abs(endPoint.X - _startPoint.X);
                 double height = Math.Abs(endPoint.Y - _startPoint.Y);

@@ -16,5 +16,6 @@ namespace Drawing_App.Model
         Ellipse,
         Star,
         Heart,
+        Triangle,
     }
 }

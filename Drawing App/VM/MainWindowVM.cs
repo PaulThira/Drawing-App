@@ -182,7 +182,11 @@ namespace Drawing_App.VM
                 {
                     Point? p1 = Points.Pop();
                     Point? p2 = Points.Pop();
-                    if (_selectedShapeType == ShapeKind.Square || _selectedShapeType == ShapeKind.Circle)
+                    if (_selectedShapeType == ShapeKind.Heart||_selectedShapeType==ShapeKind.Triangle)
+                    {
+                        DrawShape((p2, _selectedShapeType));
+                    }
+                    else if (_selectedShapeType == ShapeKind.Square || _selectedShapeType == ShapeKind.Circle)
                     {
                         DrawShape((p2, _selectedShapeType));
                     }
