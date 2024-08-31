@@ -11,6 +11,7 @@ using System.Windows;
 using Drawing_App.VM;
 using System.Drawing;
 using Point = System.Windows.Point;
+using System.Xml.Linq;
 namespace Drawing_App.Model
 {
    public class DrawingLayer:Layer
@@ -23,7 +24,8 @@ namespace Drawing_App.Model
         // The starting point of the current stroke
         private Point _startPoint;
         private Shape _currentShape;
-
+        private Stack<UIElement> _undoStack = new Stack<UIElement>();
+        private Stack<UIElement> _redoStack = new Stack<UIElement>();
         // The current stroke being drawn (as a Polyline)
         private Polyline _currentPolyline;
 
@@ -53,12 +55,18 @@ namespace Drawing_App.Model
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
         }
-
+        public void ExecuteDrawingAction(UIElement element)
+        {
+            
+            _undoStack.Push(element);
+            _redoStack.Clear(); // Clear redo stack on new action
+        }
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _isDrawing = true;
             _startPoint = e.GetPosition(_canvas);
             StartStrokeCommand?.Execute(_startPoint);
+            
         }
 
         // Event handler for continuing a stroke
@@ -198,6 +206,10 @@ namespace Drawing_App.Model
                 Canvas.SetTop(_currentShape, startPoint.Y - size / 2);
                 _canvas.Children.Add(_currentShape);
             }
+            if (_currentShape != null)
+            {
+                ExecuteDrawingAction(_currentShape);
+            }
 
         }
 
@@ -221,6 +233,7 @@ namespace Drawing_App.Model
                 line.X2 = endPoint.X;
                 line.Y2 = endPoint.Y;
             }
+            ExecuteDrawingAction(_currentShape);
 
             _currentShape = null;
         }
@@ -229,6 +242,26 @@ namespace Drawing_App.Model
         {
             _isDrawing = false;
             EndStrokeCommand?.Execute(null);
+        }
+        public override void Undo()
+        {
+            if (_undoStack.Count > 0)
+            {
+                var lastAction = _undoStack.Pop();
+                _canvas.Children.Remove(lastAction);
+                _redoStack.Push(lastAction);
+            }
+        }
+
+        // Override the Redo method from the Layer class
+        public override void Redo()
+        {
+            if (_redoStack.Count > 0)
+            {
+                var lastUndoneAction = _redoStack.Pop();
+                _canvas.Children.Add(lastUndoneAction);
+                _undoStack.Push(lastUndoneAction);
+            }
         }
 
         // Method to start a new stroke
@@ -241,6 +274,7 @@ namespace Drawing_App.Model
                 Points = new PointCollection { startPoint }
             };
             _canvas.Children.Add(_currentPolyline);
+            ExecuteDrawingAction(_currentPolyline);
         }
 
         // Method to continue the current stroke

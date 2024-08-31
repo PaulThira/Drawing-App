@@ -105,13 +105,15 @@ namespace Drawing_App.VM
             get => _selectedShapeType;
             set => SetProperty(ref _selectedShapeType, value);
         }
-
+        public ICommand UndoCommand { get; }
+        public ICommand RedoCommand { get; }
         private ImageBrush _pencilBrush;
         private DrawingBrush _currentBrush;
         public MainWindowVM()
 
         {
-
+            UndoCommand = new DelegateCommand(Undo).ObservesProperty(() => SelectedLayer);
+            RedoCommand = new DelegateCommand(Redo).ObservesProperty(() => SelectedLayer);
             PenCommand = new DelegateCommand(PenCall);
             DrawingElements = new ObservableCollection<UIElement>();
             ChangeShapeKind = new DelegateCommand<ShapeKind?>(SetShapeType);
@@ -174,6 +176,19 @@ namespace Drawing_App.VM
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
         }
+        private void Undo()
+        {
+            SelectedLayer?.Undo();
+        }
+
+        
+
+        private void Redo()
+        {
+            SelectedLayer?.Redo();
+        }
+
+        
         public void SetShapeType(ShapeKind? shapeType)
         {
             if (shapeType.HasValue) { 

@@ -37,5 +37,13 @@ namespace Drawing_App.Model
             };
          
         }
+        public override void Redo()
+        {
+            
+        }
+        public override void Undo()
+        {
+
+        }
     }
 }

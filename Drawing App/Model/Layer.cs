@@ -55,6 +55,15 @@ namespace Drawing_App.Model
             _isSelected = false;
 
         }
+        public virtual void Undo()
+        {
+            // Default implementation (if any) or abstract
+        }
+        
+        public virtual void Redo()
+        {
+            // Default implementation (if any) or abstract
+        }
         protected virtual void OnVisibilityChanged(bool? isVisible)
         {
             // Your logic here
