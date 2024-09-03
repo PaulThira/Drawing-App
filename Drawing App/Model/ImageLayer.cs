@@ -21,7 +21,7 @@ namespace Drawing_App.Model
 
 
         public override UIElement VisualElement => _image;
-
+        public string _filePath {  get; set; }
         
 
         
@@ -35,6 +35,7 @@ namespace Drawing_App.Model
                 Width = 665,
                 Height = 563
             };
+            _filePath = imagePath;
          
         }
         public override void Redo()

@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Drawing_App.VM;
 
 namespace Drawing_App.View
 {
@@ -22,6 +23,13 @@ namespace Drawing_App.View
         public ProcessedImage()
         {
             InitializeComponent();
+        }
+        public ProcessedImage(IEnumerable<string> imagePaths)
+        {
+            InitializeComponent();
+            var viewModel = new ProcessedImageVM();
+            viewModel.LoadImages(imagePaths);
+            DataContext = viewModel;
         }
     }
 }

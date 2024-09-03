@@ -32,7 +32,7 @@
     </Window.InputBindings>
     <Grid Margin="0,0,0,0" Background="#FFC77740">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="*"/>
 
         </Grid.ColumnDefinitions>
@@ -85,14 +85,14 @@
             <Button Content="Eraser" Margin="10" Height="24" Width="114" Command="{Binding EraserCommand}" Background="#FFDC75CC"/>
             <Rectangle Name="ColorViews" Height="49" Stroke="Black" Width="84" Margin="10" Fill="{Binding RectangleFill}"/>
             <Button Content="Save As Image" Height="41" Width="124" Background="#FF84E588"    />
-            <UniformGrid Rows="1" Margin="0,0,10,10">
-                <Ellipse Name="one" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color1}"></Ellipse>
-                <Ellipse Name="two" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color2}"></Ellipse>
-                <Ellipse Name="three" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color3}"></Ellipse>
-                <Ellipse Name="four" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color4}"></Ellipse>
-                <Ellipse Name="five" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color5}"></Ellipse>
-                <Ellipse Name="six" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color6}"></Ellipse>
-                <Ellipse Name="seven" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Color7}"></Ellipse>
+            <UniformGrid Rows="1" Margin="0,0,5,10" Height="20" Width="236">
+                <Ellipse Name="one" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color1}"></Ellipse>
+                <Ellipse Name="two" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color2}"></Ellipse>
+                <Ellipse Name="three" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color3}"></Ellipse>
+                <Ellipse Name="four" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color4}"></Ellipse>
+                <Ellipse Name="five" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color5}"></Ellipse>
+                <Ellipse Name="six" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color6}"></Ellipse>
+                <Ellipse Name="seven" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color7}"></Ellipse>
             </UniformGrid>
             <Menu Height="36" Background="#FFE5C591" HorizontalAlignment="Center">
 
@@ -138,6 +138,7 @@
                     <MenuItem Header="Add Image" Command="{Binding AddImageLayerCommand}"></MenuItem>
                     <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
                     <MenuItem Header="Delete Layer" Command="{Binding RemoveLayerCommand}"></MenuItem>
+                    <MenuItem Header="Add References" Command="{Binding ReferencesCommand}"></MenuItem>
                 </MenuItem>
                 <MenuItem Width="62" Header="Harmony" >
 

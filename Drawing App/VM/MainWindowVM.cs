@@ -23,6 +23,7 @@ using System.Windows.Shapes;
 using Point = System.Windows.Point;
 using System.Security.Cryptography.Xml;
 using System.ComponentModel;
+using Drawing_App.View;
 
 
 namespace Drawing_App.VM
@@ -107,11 +108,13 @@ namespace Drawing_App.VM
         }
         public ICommand UndoCommand { get; }
         public ICommand RedoCommand { get; }
+        public ICommand ReferencesCommand { get; }
         private ImageBrush _pencilBrush;
         private DrawingBrush _currentBrush;
         public MainWindowVM()
 
         {
+            ReferencesCommand = new DelegateCommand(References);
             UndoCommand = new DelegateCommand(Undo).ObservesProperty(() => SelectedLayer);
             RedoCommand = new DelegateCommand(Redo).ObservesProperty(() => SelectedLayer);
             PenCommand = new DelegateCommand(PenCall);
@@ -175,6 +178,25 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        private void References()
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp",
+                Title = "Select Images",
+                Multiselect = true
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // Convert the list of selected image file paths into an ObservableCollection
+                var selectedImages = new ObservableCollection<string>(openFileDialog.FileNames.ToList());
+
+                // Pass the ObservableCollection to the ImageSliderWindow
+                var imageSliderWindow = new ProcessedImage(selectedImages);
+                imageSliderWindow.Show();
+            }
         }
         private void Undo()
         {
