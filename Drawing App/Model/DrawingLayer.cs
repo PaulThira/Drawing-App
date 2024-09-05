@@ -12,6 +12,7 @@ using Drawing_App.VM;
 using System.Drawing;
 using Point = System.Windows.Point;
 using System.Xml.Linq;
+using Emgu.CV.Linemod;
 namespace Drawing_App.Model
 {
    public class DrawingLayer:Layer
@@ -20,7 +21,7 @@ namespace Drawing_App.Model
 
         // Flags to track if a stroke is currently being drawn
         private bool _isDrawing;
-
+        private ShapeDetector _detector { get; set; }
         // The starting point of the current stroke
         private Point _startPoint;
         private Shape _currentShape;
@@ -54,6 +55,7 @@ namespace Drawing_App.Model
             _canvas.MouseLeftButtonUp += Canvas_MouseLeftButtonUp;
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
+            _detector = new ShapeDetector();
         }
         public void ExecuteDrawingAction(UIElement element)
         {
@@ -289,6 +291,34 @@ namespace Drawing_App.Model
         // Method to finalize the current stroke
         public void EndStroke()
         {
+            var points = _currentPolyline.Points;
+            
+            // Detect shapes using the ShapeDetector
+            if (_detector.IsRectangle(points))
+            {
+                // Replace the polyline with a rectangle
+                var startPoint = points.First();
+                var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                StartShape(startPoint, ShapeKind.Rectangle);
+                EndShape(furthestPoint);
+                _canvas.Children.Remove(_currentPolyline);
+            }
+            else if (_detector.IsEllipse(points))
+            {
+                // Replace the polyline with an ellipse
+                var startPoint = points.First();
+                var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                StartShape(startPoint, ShapeKind.Ellipse);
+                EndShape(furthestPoint);
+                _canvas.Children.Remove(_currentPolyline);
+            }
+            else if (_detector.IsEquilateralTriangle(points))
+            {
+                // Replace the polyline with a triangle
+                DrawShape(points.First(),ShapeKind.Triangle);
+                _canvas.Children.Remove(_currentPolyline);
+            }
+
             _currentPolyline = null;
         }
 

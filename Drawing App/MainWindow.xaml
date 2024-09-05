@@ -67,7 +67,7 @@
 
 
         <!-- Side Panel for Tools and Color Picker -->
-        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center"  Height="1560" Width="333" Background="#FFE5C591" Grid.Column="1" Margin="0,40,0,0" Grid.RowSpan="2">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center"   Background="#FFE5C591" Grid.Column="1" Margin="0,40,0,0" Grid.RowSpan="2" Height="594">
             <TextBlock Text="Brush Size" HorizontalAlignment="Center"/>
             <Slider Name="SizeBrush" Minimum="1" Maximum="100" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10" ValueChanged="SizeBrush_ValueChanged"/>
 
