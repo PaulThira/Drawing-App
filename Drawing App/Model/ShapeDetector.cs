@@ -23,7 +23,7 @@ namespace Drawing_App.Model
         {
             _tolerance = tolerance;
         }
-
+        public double radius {  get; set; }
         public bool IsRectangle(PointCollection points)
         {
             if (points.Count < 4)
@@ -122,9 +122,9 @@ namespace Drawing_App.Model
             double side1 = Distance(startPoint, furthestPoint);
             double side2 = Distance(furthestPoint, thirdPoint);
             double side3 = Distance(thirdPoint, startPoint);
-
+            radius = (Math.Sqrt(3) / 2) * side1;
             // Step 6: Validate the shape as an equilateral triangle
-            return AreCloseEnoughTriangle(side1, side2) && AreCloseEnoughTriangle(side2, side3);
+            return AreCloseEnoughTriangle(side1, side2) || AreCloseEnoughTriangle(side2, side3);
         }
         public double Distance(Point p1, Point p2)
         {
@@ -137,7 +137,7 @@ namespace Drawing_App.Model
         }
         public bool AreCloseEnoughTriangle(double value1, double value2)
         {
-            return Math.Abs(value1 - value2) < _tolerance * 100;
+            return Math.Abs(value1 - value2) < _tolerance * 500;
         }
     }
 }

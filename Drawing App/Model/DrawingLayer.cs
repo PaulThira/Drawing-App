@@ -119,10 +119,14 @@ namespace Drawing_App.Model
                 _canvas.Children.Add(_currentShape);
             }
         }
-        public void DrawShape(Point startPoint, ShapeKind shapeType)
+        public void DrawShape(Point startPoint, ShapeKind shapeType,double radius=0)
         {
             double size = thickness * 3;
             _startPoint = startPoint;
+            if (radius != 0)
+            {
+                size =radius;
+            }
 
             if (shapeType == ShapeKind.Circle)
             {
@@ -315,7 +319,7 @@ namespace Drawing_App.Model
             else if (_detector.IsEquilateralTriangle(points))
             {
                 // Replace the polyline with a triangle
-                DrawShape(points.First(),ShapeKind.Triangle);
+                DrawShape(points.First(),ShapeKind.Triangle,_detector.radius);
                 _canvas.Children.Remove(_currentPolyline);
             }
 
