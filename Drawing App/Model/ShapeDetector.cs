@@ -95,6 +95,33 @@ namespace Drawing_App.Model
 
             return true;
         }
+        public bool IsSimilarToHeartShape(PointCollection polylinePoints, Point center, double scale, double tolerance = 0.05)
+        {
+            int matchingPoints = 0;
+            int totalPoints = polylinePoints.Count;
+
+            foreach (Point point in polylinePoints)
+            {
+                // Translate the polyline point to the heart equation's local coordinates
+                double x = (point.X - center.X) / scale;
+                double y = (center.Y - point.Y) / scale; // Inverted Y-axis in WPF
+
+                // Evaluate the heart shape equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 = 0
+                double heartEquation = Math.Pow(x * x + y * y - 1, 3) - x * x * y * y * y;
+
+                // Check if the equation is approximately zero (within a small tolerance)
+                if (Math.Abs(heartEquation) < tolerance)
+                {
+                    matchingPoints++;
+                }
+            }
+
+            // Determine similarity based on the ratio of matching points
+            double similarityRatio = (double)matchingPoints / totalPoints;
+
+            // Return true if a significant portion of the points match the heart shape equation
+            return similarityRatio > 0.2; // 80% match threshold
+        }
         public bool IsEquilateralTriangle(PointCollection points)
         {
             if (points.Count < 3)

@@ -152,6 +152,7 @@
                     <MenuItem Header="Rectangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Rectangle}"></MenuItem>
                     <MenuItem Header="Line" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Line}"></MenuItem>
                     <MenuItem Header="Triangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Triangle}"></MenuItem>
+                    <MenuItem Header="ShapeDetect" Command="{ Binding ShapeDetectCommand}" ></MenuItem>
                 </MenuItem>
             </Menu>
         </StackPanel>

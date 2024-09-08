@@ -109,11 +109,13 @@ namespace Drawing_App.VM
         public ICommand UndoCommand { get; }
         public ICommand RedoCommand { get; }
         public ICommand ReferencesCommand { get; }
+        public ICommand ShapeDetectCommand { get; }
         private ImageBrush _pencilBrush;
         private DrawingBrush _currentBrush;
         public MainWindowVM()
 
         {
+            ShapeDetectCommand = new DelegateCommand(ShapeDetects);
             ReferencesCommand = new DelegateCommand(References);
             UndoCommand = new DelegateCommand(Undo).ObservesProperty(() => SelectedLayer);
             RedoCommand = new DelegateCommand(Redo).ObservesProperty(() => SelectedLayer);
@@ -178,6 +180,13 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        private void ShapeDetects()
+        {
+            if(SelectedLayer is DrawingLayer drawingLayer)
+            {
+                drawingLayer.corectShapes = !(drawingLayer.corectShapes);
+            }
         }
         private void References()
         {

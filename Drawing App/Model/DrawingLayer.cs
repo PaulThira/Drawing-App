@@ -29,6 +29,7 @@ namespace Drawing_App.Model
         private Stack<UIElement> _redoStack = new Stack<UIElement>();
         // The current stroke being drawn (as a Polyline)
         private Polyline _currentPolyline;
+        public bool corectShapes {  get; set; }
 
         // Commands to interact with the ViewModel
         public ICommand StartStrokeCommand { get; }
@@ -56,6 +57,7 @@ namespace Drawing_App.Model
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
             _detector = new ShapeDetector();
+            corectShapes=true;
         }
         public void ExecuteDrawingAction(UIElement element)
         {
@@ -296,32 +298,37 @@ namespace Drawing_App.Model
         public void EndStroke()
         {
             var points = _currentPolyline.Points;
-            
+            if (corectShapes)
+            {
+                if (_detector.IsRectangle(points))
+                {
+                    // Replace the polyline with a rectangle
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Rectangle);
+                    EndShape(furthestPoint);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+
+                else if (_detector.IsEllipse(points))
+                {
+                    // Replace the polyline with an ellipse
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Ellipse);
+                    EndShape(furthestPoint);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+                else if (_detector.IsEquilateralTriangle(points))
+                {
+                    // Replace the polyline with a triangle
+                    DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+            }
             // Detect shapes using the ShapeDetector
-            if (_detector.IsRectangle(points))
-            {
-                // Replace the polyline with a rectangle
-                var startPoint = points.First();
-                var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                StartShape(startPoint, ShapeKind.Rectangle);
-                EndShape(furthestPoint);
-                _canvas.Children.Remove(_currentPolyline);
-            }
-            else if (_detector.IsEllipse(points))
-            {
-                // Replace the polyline with an ellipse
-                var startPoint = points.First();
-                var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                StartShape(startPoint, ShapeKind.Ellipse);
-                EndShape(furthestPoint);
-                _canvas.Children.Remove(_currentPolyline);
-            }
-            else if (_detector.IsEquilateralTriangle(points))
-            {
-                // Replace the polyline with a triangle
-                DrawShape(points.First(),ShapeKind.Triangle,_detector.radius);
-                _canvas.Children.Remove(_currentPolyline);
-            }
+            
+            
 
             _currentPolyline = null;
         }
