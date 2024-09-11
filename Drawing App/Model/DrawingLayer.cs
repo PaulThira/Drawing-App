@@ -12,8 +12,11 @@ using Drawing_App.VM;
 using System.Drawing;
 using Point = System.Windows.Point;
 using System.Xml.Linq;
+using Brushes = System.Windows.Media.Brushes;
+using Brush = System.Windows.Media.Brush;
 using Emgu.CV.Linemod;
 namespace Drawing_App.Model
+
 {
    public class DrawingLayer:Layer
     {
@@ -334,7 +337,7 @@ namespace Drawing_App.Model
         }
 
         // Method to configure the brush and stroke thickness (optional, for more flexibility)
-        public void SetBrush(Brush brush, double thick)
+        public void SetBrush(System.Windows.Media.Brush brush, double thick)
         {
             _currentBrush=brush;
             thickness = thick;

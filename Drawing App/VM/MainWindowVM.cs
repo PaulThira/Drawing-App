@@ -24,7 +24,9 @@ using Point = System.Windows.Point;
 using System.Security.Cryptography.Xml;
 using System.ComponentModel;
 using Drawing_App.View;
-
+using Brush = System.Windows.Media.Brush;
+using Pen = System.Windows.Media.Pen;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace Drawing_App.VM
 {
@@ -63,6 +65,7 @@ namespace Drawing_App.VM
             set => SetProperty(ref _selectedLayer, value);
         }
 
+        public ICommand HistoCommand { get; set; }
 
         // Commands for layer operations
         public ICommand AddImageLayerCommand { get; }
@@ -115,6 +118,7 @@ namespace Drawing_App.VM
         public MainWindowVM()
 
         {
+            HistoCommand = new DelegateCommand(Histo);
             ShapeDetectCommand = new DelegateCommand(ShapeDetects);
             ReferencesCommand = new DelegateCommand(References);
             UndoCommand = new DelegateCommand(Undo).ObservesProperty(() => SelectedLayer);
@@ -180,6 +184,13 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        private void Histo()
+        {
+            if (SelectedLayer is ImageLayer imageLayer)
+            {
+                imageLayer.CalculateHistogram();
+            }
         }
         private void ShapeDetects()
         {

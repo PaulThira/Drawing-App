@@ -154,6 +154,9 @@
                     <MenuItem Header="Triangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Triangle}"></MenuItem>
                     <MenuItem Header="ShapeDetect" Command="{ Binding ShapeDetectCommand}" ></MenuItem>
                 </MenuItem>
+                <MenuItem Header="Filters">
+                    <MenuItem Header="Histogram" Command="{Binding HistoCommand}"/>
+                </MenuItem>
             </Menu>
         </StackPanel>
     </Grid>
