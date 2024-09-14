@@ -36,5 +36,18 @@ namespace Algorithms.Sections
             
 
         }
+        public Image<Gray,Byte> BgrToGrayscale(Image<Bgr,Byte> image)
+        {
+            Image<Gray,Byte> gray = new Image<Gray, Byte>(image.Height,image.Width);
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
+                {
+                    gray.Data[i,j,0]=(Byte)(0.299 * image.Data[i, j, 2] + 0.587 * image.Data[i, j, 1] + 0.114 * image.Data[i,j,0]);
+
+                }
+            }
+            return gray;
+        }
     }
 }

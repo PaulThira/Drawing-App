@@ -42,6 +42,19 @@ namespace Drawing_App.Model
                 }
             }
         }
+        private double _zoomLevel = 1.0;
+        public virtual double ZoomLevel
+        {
+            get => _zoomLevel;
+            set
+            {
+                if (_zoomLevel != value)
+                {
+                    _zoomLevel = value;
+                    RaisePropertyChanged(nameof(ZoomLevel));  // Notify UI
+                }
+            }
+        }
         public ICommand OnVisibilityChangedCommand { get; }
         public abstract UIElement VisualElement {  get; }
 
@@ -53,7 +66,23 @@ namespace Drawing_App.Model
             Name = name;
             OnVisibilityChangedCommand = new DelegateCommand<bool?>(OnVisibilityChanged);
             _isSelected = false;
+            
 
+
+        }
+         
+
+        // Virtual methods for zooming
+        public virtual void ZoomIn()
+        {
+            ZoomLevel += 0.1; // Default behavior
+           
+        }
+
+        public virtual void ZoomOut()
+        {
+            ZoomLevel = Math.Max(0.1, ZoomLevel - 0.1); // Default behavior
+            
         }
         public virtual void Undo()
         {

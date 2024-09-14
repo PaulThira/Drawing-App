@@ -29,7 +29,7 @@ namespace Drawing_App.Model
         public override UIElement VisualElement => _image;
         public string _filePath {  get; set; }
         public BasicOperations basicOperations { get; set; }
-
+        public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
             basicOperations.HistogramCalc(Bgr);
@@ -38,20 +38,34 @@ namespace Drawing_App.Model
 
         }
 
-        public ImageLayer(string imagePath, double opacity = 1.0, bool isVisible = true, string name="Layer")
+        public ImageLayer(string imagePath, double imageWidth=665, double imageHeight=563, double opacity = 1.0, bool isVisible = true, string name="Layer")
             : base(opacity, isVisible, name)
         {
             _image = new Image
             {
                 Source = new BitmapImage(new Uri(imagePath)),
-                Width = 665,
-                Height = 563
+                Width = imageWidth,
+                Height = imageHeight
             };
             _filePath = imagePath;
             Bgr= ConvertImageToEmguImage(_image);
 
             basicOperations = new BasicOperations();
 
+        }
+
+        public override void ZoomIn()
+        {
+            ZoomLevel += 0.1;
+            _image.LayoutTransform = new ScaleTransform(ZoomLevel, ZoomLevel);
+            
+        }
+
+        public override void ZoomOut()
+        {
+            ZoomLevel = Math.Max(0.1, ZoomLevel - 0.1);
+            _image.LayoutTransform = new ScaleTransform(ZoomLevel, ZoomLevel);
+            
         }
         private Image<Bgr, byte> ConvertImageToEmguImage(Image wpfImage)
         {

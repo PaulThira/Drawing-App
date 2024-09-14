@@ -27,6 +27,8 @@ using Drawing_App.View;
 using Brush = System.Windows.Media.Brush;
 using Pen = System.Windows.Media.Pen;
 using Brushes = System.Windows.Media.Brushes;
+using Application = System.Windows.Application;
+using System.Windows.Media.Effects;
 
 namespace Drawing_App.VM
 {
@@ -109,15 +111,27 @@ namespace Drawing_App.VM
             get => _selectedShapeType;
             set => SetProperty(ref _selectedShapeType, value);
         }
+        public string width {  get; set; }  
+        public string height { get; set; }
+        public ICommand UpdateDimensionsCanvas { get; }
         public ICommand UndoCommand { get; }
         public ICommand RedoCommand { get; }
         public ICommand ReferencesCommand { get; }
         public ICommand ShapeDetectCommand { get; }
         private ImageBrush _pencilBrush;
         private DrawingBrush _currentBrush;
+        public ICommand MechanicalCommand { get; }
+        public ICommand GoucheCommand { get; }
+        public ICommand ZoomInCommand { get; }
+        public ICommand ZoomOutCommand { get; }
+        
         public MainWindowVM()
 
         {
+            ZoomInCommand = new DelegateCommand(ZoomIn);
+            ZoomOutCommand = new DelegateCommand(ZoomOut);
+            GoucheCommand = new DelegateCommand(Gouche);
+            UpdateDimensionsCanvas = new DelegateCommand(UpdateCanvas);
             HistoCommand = new DelegateCommand(Histo);
             ShapeDetectCommand = new DelegateCommand(ShapeDetects);
             ReferencesCommand = new DelegateCommand(References);
@@ -141,6 +155,7 @@ namespace Drawing_App.VM
             EraserCommand = new DelegateCommand(EraserCall);
             PencilCommand = new DelegateCommand(PencilCall);
             MarkerCommand = new DelegateCommand(MarkerCall);
+            MechanicalCommand = new DelegateCommand(Mechanical);
          
             Layers = new ObservableCollection<Layer>();
             _opacity = 1.0;
@@ -158,7 +173,8 @@ namespace Drawing_App.VM
                 FitToCurve = true
             };
             _selectedLayerIndex = -1;
-
+            width = "500";
+            height = "500";
             InkCanvasWidth = 4200;  // Default width
             InkCanvasHeight = 2100;
             BackgroundColor = new SolidColorBrush(Colors.White);// Default height
@@ -184,6 +200,79 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        private void ZoomIn()
+        {
+            foreach (var layer in Layers)
+            {
+                layer.ZoomLevel += 0.1;
+                layer.ZoomIn();
+                MessageBox.Show( layer.ZoomLevel.ToString());
+                // Calls the overridden method
+            }// Increase zoom level
+        }
+
+        // Logic for Zooming Out
+        private void ZoomOut()
+        {
+            foreach (var layer in Layers)
+            {
+                layer.ZoomLevel = Math.Max(0.1, layer.ZoomLevel - 0.1);
+                
+                MessageBox.Show(layer.ZoomLevel.ToString());
+            } // Decrease zoom level but don't go below 0.1
+        }
+        private void Gouche() {
+            var strokeGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1));
+
+            // Use a radial gradient to simulate paint-like transparency and softness
+            var gradientBrush = new RadialGradientBrush
+            {
+                GradientOrigin = new Point(0.5, 0.5),
+                Center = new Point(0.5, 0.5),
+                RadiusX = 0.7,
+                RadiusY = 0.7,
+                GradientStops = new GradientStopCollection
+        {
+            new GradientStop(CurrentColor, 0.0), // Fully opaque in the center
+            new GradientStop(Color.FromArgb(200, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.6), // Slightly transparent near edges
+            new GradientStop(Color.FromArgb(50, CurrentColor.R, CurrentColor.G, CurrentColor.B), 1.0)   // Highly transparent at the very edge
+        }
+            };
+
+            // Create the main stroke drawing with the geometry and gradient brush
+            var strokeDrawing = new GeometryDrawing(gradientBrush, null, strokeGeometry);
+
+            // Create the DrawingBrush
+            var drawingBrush = new DrawingBrush(strokeDrawing)
+            {
+                TileMode = TileMode.None, // No tiling, to make the brush continuous
+                Viewport = new Rect(0, 0, 1, 1), // Define the size of the brush stroke
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox
+            };
+
+            // Set the current brush to simulate smooth gouache
+            _currentBrush = drawingBrush;
+            UpdateBrush();
+            _usedColors.Add(CurrentColor);
+        }
+        private void UpdateCanvas()
+        {
+            if (SelectedLayer is DrawingLayer imageLayer)
+            {
+                try
+                {
+                    int w, h;
+                    w = int.Parse(width);
+                    h = int.Parse(height);
+                    imageLayer._canvas.Width = w;
+                    imageLayer._canvas.Height = h;
+                }
+                catch {
+                    MessageBox.Show("Please insert numbers");
+                }
+
+            }
         }
         private void Histo()
         {
@@ -321,8 +410,16 @@ namespace Drawing_App.VM
             // Show the dialog and check if the user selected a file
             if (openFileDialog.ShowDialog() == true)
             {
-                // Create a new ImageLayer with the selected image file
-                var newLayer = new ImageLayer(openFileDialog.FileName);
+                // Load the image from the file
+                var bitmapImage = new BitmapImage(new Uri(openFileDialog.FileName));
+
+                // Extract the dimensions of the image
+                double imageWidth = bitmapImage.PixelWidth;
+                double imageHeight = bitmapImage.PixelHeight;
+
+                // Create a new ImageLayer with the selected image file and its dimensions
+                var newLayer = new ImageLayer(openFileDialog.FileName, imageWidth, imageHeight);
+
                 Layers.Add(newLayer);
                 SelectedLayer = newLayer;
             }
@@ -355,37 +452,76 @@ namespace Drawing_App.VM
         {
             return SelectedLayer != null;
         }
-        private void MarkerCall()
+        private void Mechanical()
         {
-            var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1));
+            var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1)); // Rectangular geometry for consistent stroke
 
-            // Create a radial gradient to simulate the soft edges of a marker stroke
-            var gradientBrush = new RadialGradientBrush
+            // Create a linear gradient for a consistent but slightly textured look
+            var linearGradientBrush = new LinearGradientBrush
             {
-                GradientOrigin = new Point(0.5, 0.5),
-                Center = new Point(0.5, 0.5),
-                RadiusX = 0.5,
-                RadiusY = 0.5,
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(1, 1),
                 GradientStops = new GradientStopCollection
-        {
-            new GradientStop(CurrentColor, 0.5), // Solid color at the center
-            new GradientStop(Color.FromArgb(75, CurrentColor.R, CurrentColor.G, CurrentColor.B), 1) // Transparent at the edges
-        }
+    {
+        // Solid mechanical pencil-like color with subtle texture
+        new GradientStop(CurrentColor, 0.0),
+        new GradientStop(Color.FromArgb(230, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.5), // Slightly lighter in the middle
+        new GradientStop(CurrentColor, 1.0)
+    }
             };
 
-            // Create the GeometryDrawing using the gradient brush and rectangle geometry
-            var geometryDrawing = new GeometryDrawing(gradientBrush, null, rectGeometry);
+            // Create the GeometryDrawing using the linear gradient brush and rectangle geometry
+            var geometryDrawing = new GeometryDrawing(linearGradientBrush, null, rectGeometry);
 
             // Create the DrawingBrush with the GeometryDrawing
             var drawingBrush = new DrawingBrush(geometryDrawing)
             {
-                TileMode = TileMode.None, // No tiling for a continuous marker effect
+                TileMode = TileMode.None, // No tiling for a smooth, mechanical pencil stroke
                 Viewport = new Rect(0, 0, 1, 1), // Fill the entire area
-                ViewportUnits = BrushMappingMode.RelativeToBoundingBox
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Relative scaling of the brush
             };
-            _currentBrush=drawingBrush;
+
+            // Set the current brush to the mechanical pencil effect brush
+            _currentBrush = drawingBrush;
             UpdateBrush();
-            _usedColors.Add(_currentColor);
+            _usedColors.Add(CurrentColor);
+        }
+        private void MarkerCall()
+        {
+            var ellipseGeometry = new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.3); // Elliptical shape for a brush marker tip
+
+            // Create a radial gradient to simulate the soft, blended edges of a brush marker stroke
+            var gradientBrush = new RadialGradientBrush
+            {
+                GradientOrigin = new Point(0.5, 0.5), // Center of the gradient
+                Center = new Point(0.5, 0.5), // Center point
+                RadiusX = 1.0, // Larger radius for smoother transition
+                RadiusY = 0.75, // Elliptical gradient
+                GradientStops = new GradientStopCollection
+    {
+        // Solid color at the center with softer opacity
+        new GradientStop(Color.FromArgb(180, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.1), // Stronger at the center
+        new GradientStop(Color.FromArgb(100, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.5), // Mid-opacity in the middle
+        new GradientStop(Color.FromArgb(50, CurrentColor.R, CurrentColor.G, CurrentColor.B), 1.0) // Softer towards the edges
+    }
+            };
+
+            // Create the GeometryDrawing using the gradient brush and elliptical geometry
+            var geometryDrawing = new GeometryDrawing(gradientBrush, null, ellipseGeometry);
+
+            // Create the DrawingBrush with the GeometryDrawing
+            var drawingBrush = new DrawingBrush(geometryDrawing)
+            {
+                TileMode = TileMode.None, // No tiling for a continuous brush effect
+                Viewport = new Rect(0, 0, 1, 1), // Fill the entire area
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Relative scaling of the brush
+            };
+
+            // Set the current brush to the brush marker effect
+            _currentBrush = drawingBrush;
+            UpdateBrush();
+            _usedColors.Add(CurrentColor);
+
         }
         private void PenCall()
         {
@@ -413,29 +549,57 @@ namespace Drawing_App.VM
         }
         private void PencilCall()
         {
-            // Load the pencil texture from resources or a file path
+            Random rand = new Random();
+
+            // Create a simple pencil-like texture with 50 straight horizontal lines
             var lineGroup = new GeometryGroup();
-            for (int i = 0; i < 300; i++) // Increased number of lines for a denser texture
+
+            // Add 50 straight horizontal lines to the group
+            for (int i = 0; i < 50; i++)
             {
-                lineGroup.Children.Add(new LineGeometry(new Point(i * 5, 0), new Point(0, i * 5)));
+                // Calculate the y-offset for each line
+                double offset = i * 10;
+
+                // Randomize the line thickness for a natural pencil effect
+                double randomThickness = rand.NextDouble() * 20 + 1; // Random thickness between 1 and 3
+
+                // Add straight horizontal lines to the group
+                lineGroup.Children.Add(new LineGeometry(new Point(0, offset), new Point(100, offset))); // Horizontal line
+
+                // Create a pen with a random thickness
+                var pencilColor = new SolidColorBrush(CurrentColor)
+                {
+                    Opacity = 0.85
+                };
+
+                var pencilPen = new Pen(pencilColor, randomThickness)
+                {
+                    LineJoin = PenLineJoin.Round,
+                    StartLineCap = PenLineCap.Round,
+                    EndLineCap = PenLineCap.Round
+                };
+
+                // Create the GeometryDrawing using the line group and pencil pen
+                var pencilDrawing = new GeometryDrawing(null, pencilPen, lineGroup);
+
+                // Use the drawing as a tiled texture on a DrawingBrush
+                _currentBrush = new DrawingBrush(pencilDrawing)
+                {
+                    TileMode = TileMode.Tile,
+                    Viewport = new Rect(0, 0, 200, 200),  // Adjust the viewport size for desired effect
+                    ViewportUnits = BrushMappingMode.Absolute,
+                    Opacity = 0.8
+                };
+
+                // Update the brush for drawing
+                UpdateBrush();
             }
 
-            // Use the CurrentBrushColor to simulate the pencil color
-            var pencilPen = new Pen(new SolidColorBrush(CurrentColor), 1); // Thin lines for texture
+            // Add the current color to the used color set
+            _usedColors.Add(CurrentColor);
 
-            // Create the GeometryDrawing using the line group and pencil pen
-            var pencilDrawing = new GeometryDrawing(null, pencilPen, lineGroup);
+            // Run only the heavy 'for' loop in a background task
 
-            // Optionally, combine with an additional color overlay or background if desired
-            _currentBrush = new DrawingBrush(pencilDrawing)
-            {
-                TileMode = TileMode.Tile,
-                Viewport = new Rect(0, 0, 1000, 1000), // Adjust the viewport size for desired effect
-                ViewportUnits = BrushMappingMode.Absolute,
-                Opacity=0.5
-            };
-            UpdateBrush();
-            _usedColors.Add(_currentColor);
         }
         private void StartStroke(Point? startPoint)
         {

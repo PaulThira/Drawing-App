@@ -20,7 +20,7 @@ namespace Drawing_App.Model
 {
    public class DrawingLayer:Layer
     {
-        private readonly Canvas _canvas;
+        public Canvas _canvas { get; set; }
 
         // Flags to track if a stroke is currently being drawn
         private bool _isDrawing;
@@ -41,6 +41,7 @@ namespace Drawing_App.Model
         public Brush _currentBrush { get; set; }
         public double thickness { get; set; }
         public override UIElement VisualElement => _canvas;
+        public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
 
         public DrawingLayer(ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand ,double opacity = 1.0, bool isVisible = true, string name="Layer")
             : base(opacity, isVisible, name)
@@ -51,8 +52,8 @@ namespace Drawing_App.Model
             _canvas = new Canvas
             {
                 Background = Brushes.White,
-                Width = 665,
-                Height = 563
+                Width = 1000,
+                Height = 1000
             };
             _canvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
             _canvas.MouseMove += Canvas_MouseMove;
@@ -61,6 +62,21 @@ namespace Drawing_App.Model
             thickness = 5;
             _detector = new ShapeDetector();
             corectShapes=true;
+        }
+        public override void ZoomIn()
+        {
+            ZoomLevel += 0.1;
+            // Any additional behavior unique to DrawingLayer
+            _canvas.LayoutTransform = new ScaleTransform(ZoomLevel, ZoomLevel);
+            
+        }
+
+        // Override ZoomOut to customize zoom behavior for DrawingLayer
+        public override void ZoomOut()
+        {
+            ZoomLevel = Math.Max(0.1, ZoomLevel - 0.1);
+            _canvas.LayoutTransform = new ScaleTransform(ZoomLevel, ZoomLevel);
+            
         }
         public void ExecuteDrawingAction(UIElement element)
         {

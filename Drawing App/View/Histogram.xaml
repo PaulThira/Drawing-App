@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Drawing_App.View"
         mc:Ignorable="d"
-        Title="Histogram" Height="450" Width="800">
+        Title="Histogram" Height="450" Width="1000">
     <Grid Background="#FF744C16" >
-        <StackPanel Margin="30" Background="#FFC99650" >
-            <Label Content="Histogram" HorizontalAlignment="Center" FontSize="40"/>
-            <!-- Bind the Canvas Items to the Red Histogram Bars -->
-            <Canvas x:Name="RedCanvas" Height="100" Background="White" Width="280" >
+        <Label Content="Histogram" HorizontalAlignment="Center" FontSize="40" Margin="0,-18,0,18"/>
+        <StackPanel  Margin="40,54,40,30" Background="#FFC99650" Orientation="Horizontal" HorizontalAlignment="Right" Width="930" >
+
+            <Canvas x:Name="RedCanvas" Height="100" Background="White" Width="255" Margin="60,0,10,0">
                 <ItemsControl ItemsSource="{Binding RedHistogramBars}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -21,7 +21,7 @@
             </Canvas>
 
             <!-- Bind the Canvas Items to the Green Histogram Bars -->
-            <Canvas x:Name="GreenCanvas" Height="100" Background="White" Width="280">
+            <Canvas x:Name="GreenCanvas" Height="100" Background="White" Width="256" Margin="10,0,10,0">
                 <ItemsControl ItemsSource="{Binding GreenHistogramBars}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -32,7 +32,7 @@
             </Canvas>
 
             <!-- Bind the Canvas Items to the Blue Histogram Bars -->
-            <Canvas x:Name="BlueCanvas" Height="100" Background="White" Width="280">
+            <Canvas x:Name="BlueCanvas" Height="100" Background="White" Width="256" Margin="10,0,10,0">
                 <ItemsControl ItemsSource="{Binding BlueHistogramBars}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

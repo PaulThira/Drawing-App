@@ -9,7 +9,7 @@
      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:viewmodel="clr-namespace:Drawing_App.VM"
         xmlns:model="clr-namespace:Drawing_App.Model"
-        Title="MainWindow" Height="650" Width="1000">
+        Title="MainWindow" Height="680" Width="1000">
     <Window.Resources>
         <LinearGradientBrush x:Key="HueBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Color="#FFFF0000" Offset="0.0"/>
@@ -28,9 +28,12 @@
     <Window.InputBindings>
         <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
         <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
+        <KeyBinding Command="{Binding ZoomInCommand}" Key="A" Modifiers="Control" />
+
+        <KeyBinding Command="{Binding ZoomOutCommand}" Key="B" Modifiers="Control" />
 
     </Window.InputBindings>
-    <Grid Margin="0,0,0,0" Background="#FFC77740">
+    <Grid Margin="0,0,0,-16" Background="#FFC77740">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="*"/>
@@ -41,33 +44,36 @@
             <RowDefinition Height="8*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="1"  VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" Height="610" >
-
-            <ItemsControl ItemsSource="{Binding Layers}">
-
-
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" Height="604">
+            <!-- Layers Collection -->
+            <ItemsControl ItemsSource="{Binding Layers}" Background="Transparent" Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=StackPanel}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StackPanel}}">
+                <!-- Item Template for each Layer -->
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-
-                        <ContentPresenter Content="{Binding VisualElement}" 
-                                          Opacity="{Binding Opacity}" 
-                                           />
+                        <ContentPresenter Content="{Binding VisualElement}"
+                                  Opacity="{Binding Opacity}"
+                                  VerticalAlignment="Top" HorizontalAlignment="Center">
+                            <!-- RenderTransform for Zoom Level -->
+                            <ContentPresenter.RenderTransform>
+                                <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
 
-                <!-- Define how the layers will be stacked (using a Grid) -->
+                <!-- Grid to Stack Layers -->
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <Grid />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
-
         </StackPanel>
 
 
+
         <!-- Side Panel for Tools and Color Picker -->
-        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center"   Background="#FFE5C591" Grid.Column="1" Margin="0,40,0,0" Grid.RowSpan="2" Height="594">
+        <StackPanel HorizontalAlignment="Center"   Background="#FFE5C591" Grid.Column="1" Margin="0,46,0,-4" Grid.RowSpan="2">
             <TextBlock Text="Brush Size" HorizontalAlignment="Center"/>
             <Slider Name="SizeBrush" Minimum="1" Maximum="100" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10" ValueChanged="SizeBrush_ValueChanged"/>
 
@@ -100,6 +106,8 @@
                     <MenuItem Header="Pen" Command="{Binding PencilCommand}"/>
                     <MenuItem Header="Pencil" Command="{Binding PenCommand}"/>
                     <MenuItem Header="Marker" Command="{Binding MarkerCommand}"/>
+                    <MenuItem Header="Mechanical Pencil" Command="{Binding MechanicalCommand}"/>
+                    <MenuItem Header="Gouche" Command="{Binding GoucheCommand}"/>
                 </MenuItem>
             </Menu>
             <ListBox Height="79" Width="227" ItemsSource="{Binding Layers}"  SelectedIndex="{Binding SelectedLayerIndex, Mode=TwoWay}" Background="#FFB37943">
@@ -125,6 +133,13 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 10 0 10">
+                <TextBox x:Name="LayerWidth" Width="50" Margin="10 0 10 0" Text="{Binding width, Mode=TwoWay }"></TextBox>
+                <TextBox x:Name="LayerHeight" Width="50" Margin="10 0 10 0" Text="{Binding height, Mode=TwoWay }"></TextBox>
+
+
+            </StackPanel>
+            <Button Height="27" Width="95" Content="Update Canvas" Background="#FFD2DD50" Command="{Binding UpdateDimensionsCanvas}"></Button>
 
 
 
@@ -133,7 +148,7 @@
 
         <StackPanel  Background="#FFE5C591" Margin="0,0,0,30" Grid.Row="0" Grid.ColumnSpan="2">
             <Menu HorizontalAlignment="Left" Height="44"  Background="#FFE5C591">
-               
+
                 <MenuItem Header="Layers" FontSize="14" Background="#FFE5C591" Height="39">
                     <MenuItem Header="Add Image" Command="{Binding AddImageLayerCommand}"></MenuItem>
                     <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
