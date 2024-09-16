@@ -18,7 +18,37 @@ namespace Drawing_App.VM
         private ObservableCollection<ImageLayer> _images;
         private int _currentIndex;
         private BitmapImage _currentImage;
+        private string _red;
 
+        private string _green;
+        private string _blue;
+        public string Red
+        {
+            get { return _red; }
+            set
+            {
+                SetProperty(ref _red, value);
+                 // Optional: If you want to update something based on color changes
+            }
+        }    
+        public string Green
+        {
+            get { return _green; }
+            set
+            {
+                SetProperty(ref _green, value);
+                 // Optional: If you want to update something based on color changes
+            }
+        }
+        public string Blue
+        {
+            get { return _blue; }
+            set
+            {
+                SetProperty(ref _blue, value);
+                 // Optional: If you want to update something based on color changes
+            }
+        }
         public ObservableCollection<ImageLayer> Images
         {
             get => _images;
@@ -48,6 +78,9 @@ namespace Drawing_App.VM
             ImageClickCommand = new DelegateCommand<Point?>(OnImageClick);
             NextImageCommand = new DelegateCommand(NextImage);
             PreviousImageCommand = new DelegateCommand(PreviousImage);
+            Red = "0";
+            Green = "0";
+            Blue = "0";
         }
         private void OnImageClick(Point? clickPosition)
         {
@@ -81,7 +114,9 @@ namespace Drawing_App.VM
                 byte green = pixelData[1];
                 byte red = pixelData[2];
                 byte alpha = pixelData[3];
-                MessageBox.Show(red.ToString()+" "+green.ToString()+" "+blue.ToString()+" ");
+                Red = red.ToString();
+                Green = green.ToString();
+                Blue = blue.ToString();
 
 
             }

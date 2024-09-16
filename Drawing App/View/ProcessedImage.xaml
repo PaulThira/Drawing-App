@@ -26,10 +26,16 @@
                 <Button Content="Back" Command="{Binding PreviousImageCommand}" Width="50" Background="#FF965A2C" Foreground="#FFF0C387" />
                 <Button Content="Next" Command="{Binding NextImageCommand}" Width="50" Background="#FF965A2C" Foreground="#FFF0C387" />
             </StackPanel>
-
+            <Label  HorizontalAlignment="Center" Content="Red"/>
+            <TextBox Height="20" Width="95" Text="{Binding Red,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <Label  HorizontalAlignment="Center" Content="Green"/>
+            <TextBox Height="20" Width="95" Text="{Binding  Green,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <Label  HorizontalAlignment="Center" Content="Blue"/>
+            <TextBox Height="20" Width="95" Text="{Binding Blue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
         <StackPanel x:Name="Stack" Grid.Row="1" Grid.Column="0"  Background="#FF965A2C" >
             <Image x:Name="Imagery" Source="{Binding CurrentImage}"    MouseLeftButtonDown="Image_MouseLeftButtonDown"/>
+            
 
         </StackPanel>
     </Grid>
