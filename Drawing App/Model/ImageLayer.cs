@@ -17,6 +17,7 @@ using Drawing_App.View;
 using System.IO;
 using Bitmap = System.Drawing.Bitmap;
 using System.Drawing.Imaging;
+using System.Windows.Input;
 
 namespace Drawing_App.Model
 {
@@ -25,7 +26,7 @@ namespace Drawing_App.Model
         private readonly Image _image;
 
         public Image<Bgr,Byte> Bgr { get; set; }
-         
+        public Point Point { get; set; }
         public override UIElement VisualElement => _image;
         public string _filePath {  get; set; }
         public BasicOperations basicOperations { get; set; }
@@ -51,9 +52,158 @@ namespace Drawing_App.Model
             Bgr= ConvertImageToEmguImage(_image);
 
             basicOperations = new BasicOperations();
+            _image.MouseDown += Image_MouseDown;
+            Point= new Point();
 
         }
+        private void Image_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point = e.GetPosition((UIElement)sender);
+            
 
+        }
+        public void ZoomedPixels()
+        {
+            int x = (int)Point.X;
+            int y = (int)Point.Y;
+            GetZoomedPixels(x, y);
+        }
+        private void GetZoomedPixels(int x, int y)
+        {
+            // Assuming 'image' is your Image<Bgr, byte> or a similar bitmap object
+            int[,,] surroundingPixels = new int[3, 3,3];
+
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    int newX = x + i;
+                    int newY = y + j;
+
+                    if (IsValidPixel(newX, newY)) // Check if the pixel is within bounds
+                    {
+                        // Get pixel color (you could adapt this to extract RGB values)
+                        surroundingPixels[i + 1, j + 1,0] = Bgr.Data[newY, newX, 0];
+                        surroundingPixels[i + 1, j + 1, 1] = Bgr.Data[newY, newX, 1];
+                        surroundingPixels[i + 1, j + 1, 2] = Bgr.Data[newY, newX, 2]; // Assuming BGR image
+                    }
+                }
+            }
+            BitmapSource zoomedBitmap = CreateZoomedBitmap(surroundingPixels, 10); // Zoom factor of 10
+
+            // Display the zoomed view
+            var zoomWindow = new ProcessedImage(zoomedBitmap);
+            zoomWindow.Show();
+
+            // Display the zoomed view
+
+        }
+        private BitmapSource CreateZoomedBitmap(int[,,] surroundingPixels, int zoomFactor)
+        {
+            int gridSize = surroundingPixels.GetLength(0); // Should be 3 in this case (3x3 grid)
+            int zoomedWidth = gridSize * zoomFactor;
+            int zoomedHeight = gridSize * zoomFactor;
+
+            // Create a WriteableBitmap to hold the zoomed-in image
+            WriteableBitmap zoomedBitmap = new WriteableBitmap(zoomedWidth, zoomedHeight, 96, 96, PixelFormats.Bgr32, null);
+
+            // Create a DrawingVisual for overlaying text (RGB values)
+            DrawingVisual drawingVisual = new DrawingVisual();
+            using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+            {
+                zoomedBitmap.Lock();
+
+                // Loop through each pixel in the surroundingPixels array
+                for (int i = 0; i < gridSize; i++)
+                {
+                    for (int j = 0; j < gridSize; j++)
+                    {
+                        // Extract BGR values from the surroundingPixels array
+                        byte blue = (byte)surroundingPixels[i, j, 0]; // Blue channel
+                        byte green = (byte)surroundingPixels[i, j, 1]; // Green channel
+                        byte red = (byte)surroundingPixels[i, j, 2]; // Red channel
+
+                        // Create a Color using the BGR values
+                        System.Windows.Media.Color pixelColor = System.Windows.Media.Color.FromRgb(red, green, blue);
+
+                        // Draw the pixel on the WriteableBitmap, zoomed by the zoomFactor
+                        DrawZoomedPixel(zoomedBitmap, pixelColor, i * zoomFactor, j * zoomFactor, zoomFactor);
+
+                        // Draw the RGB values on the pixel
+                        DrawRgbText(drawingContext, red, green, blue, i * zoomFactor, j * zoomFactor, zoomFactor);
+                    }
+                }
+
+                zoomedBitmap.Unlock();
+
+                // Finish drawing text overlay
+                drawingContext.Close();
+            }
+
+            // Combine the WriteableBitmap (zoomed pixels) with the DrawingVisual (text)
+            return CombineBitmapWithVisual(zoomedBitmap, drawingVisual);
+        }
+
+        private void DrawRgbText(DrawingContext drawingContext, byte red, byte green, byte blue, int x, int y, int zoomFactor)
+        {
+            // Create the RGB text
+            string rgbText = $"R:{red} G:{green} B:{blue}";
+
+            // Set the font and brush for the text
+            var typeface = new Typeface("Arial");
+            var fontSize = zoomFactor / 3; // Scale the font size according to the zoom factor to fit inside the pixel
+            var textBrush = Brushes.Black;
+
+            // Position the text inside the zoomed pixel, with a small margin
+            var textPosition = new Point(x + zoomFactor * 0.1, y + zoomFactor * 0.3);  // Position the text inside the pixel block
+
+            // Draw the text on the DrawingContext
+            drawingContext.DrawText(
+                new FormattedText(rgbText,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    FlowDirection.LeftToRight,
+                    typeface, fontSize, textBrush, 1.25),
+                textPosition);
+        }
+
+        private BitmapSource CombineBitmapWithVisual(WriteableBitmap bitmap, DrawingVisual visual)
+        {
+            // Create a RenderTargetBitmap to combine the bitmap and text overlay
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                bitmap.PixelWidth, bitmap.PixelHeight, bitmap.DpiX, bitmap.DpiY, PixelFormats.Pbgra32);
+
+            // Create a DrawingVisual to combine both
+            using (DrawingContext context = visual.RenderOpen())
+            {
+                context.DrawImage(bitmap, new Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+            }
+
+            // Render the combined image
+            renderBitmap.Render(visual);
+            return renderBitmap;
+        }
+
+
+        private void DrawZoomedPixel(WriteableBitmap bitmap, System.Windows.Media.Color color, int x, int y, int zoomFactor)
+        {
+            // Convert the color to a byte array
+            byte[] pixelData = { color.B, color.G, color.R, color.A };
+
+            // Fill a zoomed square for the pixel
+            for (int i = 0; i < zoomFactor; i++)
+            {
+                for (int j = 0; j < zoomFactor; j++)
+                {
+                    bitmap.WritePixels(new Int32Rect(x + i, y + j, 1, 1), pixelData, 4, 0);
+                }
+            }
+        }
+
+
+        private bool IsValidPixel(int x, int y)
+        {
+            return (x >= 0 && x < _image.Width && y >= 0 && y < _image.Height);
+        }
         public override void ZoomIn()
         {
             ZoomLevel += 0.1;

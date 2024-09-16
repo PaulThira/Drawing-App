@@ -22,22 +22,14 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#FFEDB081" ></StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1"  Background="#FFEDB081"  >
-            <Label Content="+" FontSize="20" HorizontalAlignment="Center" Height="35"></Label>
-            <Slider Minimum="0" Maximum="{Binding Images.Count, Mode=OneWay}" 
-                Value="{Binding CurrentIndex, Mode=TwoWay}" 
-                TickFrequency="1" IsSnapToTickEnabled="True" 
-                Orientation="Vertical"
-                HorizontalAlignment="Center"
-                Height="221"/>
-            <Label Content="-" FontSize="20" HorizontalAlignment="Center" Height="35"></Label>
             <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" >
                 <Button Content="Back" Command="{Binding PreviousImageCommand}" Width="50" Background="#FF965A2C" Foreground="#FFF0C387" />
                 <Button Content="Next" Command="{Binding NextImageCommand}" Width="50" Background="#FF965A2C" Foreground="#FFF0C387" />
             </StackPanel>
 
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="0"  Background="#FF965A2C" >
-            <Image Source="{Binding CurrentImage}" Stretch="Uniform" Grid.Row="0" />
+        <StackPanel x:Name="Stack" Grid.Row="1" Grid.Column="0"  Background="#FF965A2C" >
+            <Image x:Name="Imagery" Source="{Binding CurrentImage}"    MouseLeftButtonDown="Image_MouseLeftButtonDown"/>
 
         </StackPanel>
     </Grid>

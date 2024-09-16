@@ -124,10 +124,13 @@ namespace Drawing_App.VM
         public ICommand GoucheCommand { get; }
         public ICommand ZoomInCommand { get; }
         public ICommand ZoomOutCommand { get; }
+        public ICommand SuperZoomCommand { get; }
         
         public MainWindowVM()
 
         {
+            SuperZoomCommand=new DelegateCommand(SuperZoom);
+
             ZoomInCommand = new DelegateCommand(ZoomIn);
             ZoomOutCommand = new DelegateCommand(ZoomOut);
             GoucheCommand = new DelegateCommand(Gouche);
@@ -201,13 +204,20 @@ namespace Drawing_App.VM
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
         }
+        private void SuperZoom()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.ZoomedPixels();
+            }
+        }
         private void ZoomIn()
         {
             foreach (var layer in Layers)
             {
                 layer.ZoomLevel += 0.1;
                 layer.ZoomIn();
-                MessageBox.Show( layer.ZoomLevel.ToString());
+                
                 // Calls the overridden method
             }// Increase zoom level
         }
@@ -218,8 +228,8 @@ namespace Drawing_App.VM
             foreach (var layer in Layers)
             {
                 layer.ZoomLevel = Math.Max(0.1, layer.ZoomLevel - 0.1);
+                layer.ZoomOut();
                 
-                MessageBox.Show(layer.ZoomLevel.ToString());
             } // Decrease zoom level but don't go below 0.1
         }
         private void Gouche() {

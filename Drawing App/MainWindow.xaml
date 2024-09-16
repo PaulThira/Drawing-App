@@ -87,10 +87,7 @@
             <Slider Name="BrightnessSlider" Minimum="0" Maximum="1" Value="1" TickFrequency="0.001" IsSnapToTickEnabled="True" Margin="10" ValueChanged="BrightnessSlider_ValueChanged"/>
             <TextBlock Text="Opacity" HorizontalAlignment="Center"/>
             <Slider Name="OpacitySlider" Minimum="0" Maximum="1" Value="{Binding Opacity, Mode=TwoWay}" TickFrequency="0.01" IsSnapToTickEnabled="True" Margin="10"/>
-
-            <Button Content="Eraser" Margin="10" Height="24" Width="114" Command="{Binding EraserCommand}" Background="#FFDC75CC"/>
             <Rectangle Name="ColorViews" Height="49" Stroke="Black" Width="84" Margin="10" Fill="{Binding RectangleFill}"/>
-            <Button Content="Save As Image" Height="41" Width="124" Background="#FF84E588"    />
             <UniformGrid Rows="1" Margin="0,0,5,10" Height="20" Width="236">
                 <Ellipse Name="one" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color1}"></Ellipse>
                 <Ellipse Name="two" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color2}"></Ellipse>
@@ -108,6 +105,7 @@
                     <MenuItem Header="Marker" Command="{Binding MarkerCommand}"/>
                     <MenuItem Header="Mechanical Pencil" Command="{Binding MechanicalCommand}"/>
                     <MenuItem Header="Gouche" Command="{Binding GoucheCommand}"/>
+                    <MenuItem Header="Eraser" Command="{Binding EraserCommand}"/>
                 </MenuItem>
             </Menu>
             <ListBox Height="79" Width="227" ItemsSource="{Binding Layers}"  SelectedIndex="{Binding SelectedLayerIndex, Mode=TwoWay}" Background="#FFB37943">
@@ -171,7 +169,13 @@
                 </MenuItem>
                 <MenuItem Header="Filters">
                     <MenuItem Header="Histogram" Command="{Binding HistoCommand}"/>
+                    <MenuItem Header="Super Zoom" Command="{Binding SuperZoomCommand}"/>
                 </MenuItem>
+                <MenuItem Header="Save As">
+                    <MenuItem Header="Photoshop file"></MenuItem>
+                    <MenuItem Header="Image file"></MenuItem>
+                </MenuItem>
+                
             </Menu>
         </StackPanel>
     </Grid>
