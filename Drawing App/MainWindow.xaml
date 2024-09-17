@@ -170,6 +170,11 @@
                 <MenuItem Header="Filters">
                     <MenuItem Header="Histogram" Command="{Binding HistoCommand}"/>
                     <MenuItem Header="Super Zoom" Command="{Binding SuperZoomCommand}"/>
+                    <MenuItem Header="Basic Operations">
+                        <MenuItem Header="Grayscale" Command="{Binding GrayscaleCommand}"/>
+                        <MenuItem Header="Histogram Equalisation" Command="{Binding HistogramEqualisationCommand}"/>
+                    </MenuItem>
+                    
                 </MenuItem>
                 <MenuItem Header="Save As">
                     <MenuItem Header="Photoshop file"></MenuItem>

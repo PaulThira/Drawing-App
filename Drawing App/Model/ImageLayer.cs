@@ -56,6 +56,69 @@ namespace Drawing_App.Model
             Point= new Point();
 
         }
+        public void GrayscaleConversion()
+        {
+            Image<Gray,byte> gray=basicOperations.BgrToGrayscale(Bgr);
+            var grays=ConvertToBitmapSource(gray);
+            ProcessedImage p = new ProcessedImage(grays);
+            p.Show();
+
+        }
+        public void HistogramEqualisation()
+        {
+            Image<Bgr,byte> result=basicOperations.HistogramEqualisation(Bgr);
+            var results = ConvertToBitmapSource(Bgr);
+            ProcessedImage processedImage = new ProcessedImage(results);
+            processedImage.Show();
+        }
+        public static BitmapSource ConvertToBitmapSource(Image<Gray, byte> grayImage)
+        {
+            // Get the width, height, and stride of the image
+            int width = grayImage.Width;
+            int height = grayImage.Height;
+            int stride = width; // Gray image, so 1 byte per pixel
+
+            // Get a pointer to the image data
+            IntPtr ptr = grayImage.Mat.DataPointer;
+
+            // Create a new BitmapSource
+            BitmapSource bitmapSource = BitmapSource.Create(
+                width,
+                height,
+                96, 96,  // DPI
+                System.Windows.Media.PixelFormats.Gray8, // Pixel format for a Gray image
+                null,  // No palette needed for Gray images
+                ptr,
+                stride * height,
+                stride);
+
+            return bitmapSource;
+        }
+        public static BitmapSource ConvertToBitmapSource(Image<Bgr, byte> bgrImage)
+        {
+            // Get the width, height, and stride of the image
+            int width = bgrImage.Width;
+            int height = bgrImage.Height;
+            int stride = width * 3; // 3 bytes per pixel (BGR format)
+
+            // Get a pointer to the image data
+            IntPtr ptr = bgrImage.Mat.DataPointer;
+
+            // Create a new BitmapSource
+            BitmapSource bitmapSource = BitmapSource.Create(
+                width,
+                height,
+                96, 96,  // DPI
+                System.Windows.Media.PixelFormats.Bgr24, // Pixel format for a BGR image (8 bits per channel, 3 channels)
+                null,  // No palette needed for BGR images
+                ptr,
+                stride * height,
+                stride);
+
+            return bitmapSource;
+        }
+
+
         private void Image_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Point = e.GetPosition((UIElement)sender);

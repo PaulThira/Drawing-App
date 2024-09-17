@@ -125,11 +125,14 @@ namespace Drawing_App.VM
         public ICommand ZoomInCommand { get; }
         public ICommand ZoomOutCommand { get; }
         public ICommand SuperZoomCommand { get; }
-        
+        public ICommand GrayscaleCommand { get; }
+        public ICommand HistogramEqualisationCommand { get; }
         public MainWindowVM()
 
         {
+            GrayscaleCommand=new DelegateCommand(Grayscale);
             SuperZoomCommand=new DelegateCommand(SuperZoom);
+            HistogramEqualisationCommand=new DelegateCommand(HistoEqual);
 
             ZoomInCommand = new DelegateCommand(ZoomIn);
             ZoomOutCommand = new DelegateCommand(ZoomOut);
@@ -203,6 +206,20 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        private void HistoEqual()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.HistogramEqualisation();
+            }
+        }
+        private void Grayscale()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.GrayscaleConversion();
+            }
         }
         private void SuperZoom()
         {

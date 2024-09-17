@@ -21,6 +21,8 @@ namespace Drawing_App.View
     /// </summary>
     public partial class ProcessedImage : Window
     {
+        public int correctWidth { get; set; } = 0;
+        public int correctHeight { get; set; } = 0;
         public ProcessedImage()
         {
             InitializeComponent();
@@ -55,7 +57,8 @@ namespace Drawing_App.View
             
             // Initialize the ViewModel and set the DataContext
             BitmapImage bitmapImage = ConvertBitmapSourceToBitmapImage(zoomedImage);
-           
+            correctHeight=(int)bitmapImage.Height;
+            correctWidth=(int)bitmapImage.Width;
             // Initialize the ViewModel and set the DataContext
             var viewModel = new ProcessedImageVM();
             viewModel.CurrentImage = bitmapImage;  // Assign converted BitmapImage to the ViewModel
@@ -69,8 +72,8 @@ namespace Drawing_App.View
             var width = image.ActualWidth;
             var height = image.ActualHeight;
             var ActualPos = new Point();
-            ActualPos.X =(clickPosition.X*30)/width;
-            ActualPos .Y =(clickPosition.Y*30)/height;
+            ActualPos.X =(clickPosition.X*correctWidth)/width;
+            ActualPos .Y =(clickPosition.Y*correctHeight)/height;
             // Pass the coordinates to the ViewModel
             var viewModel = DataContext as ProcessedImageVM;
             if (viewModel != null && viewModel.ImageClickCommand.CanExecute(ActualPos))

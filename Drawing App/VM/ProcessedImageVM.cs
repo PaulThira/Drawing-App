@@ -110,13 +110,27 @@ namespace Drawing_App.VM
                 writeableBitmap.CopyPixels(rect, pixelData, stride, 0);
 
                 // Extract the color components from the pixel data (assuming BGR32 format)
-                byte blue = pixelData[0];
-                byte green = pixelData[1];
-                byte red = pixelData[2];
-                byte alpha = pixelData[3];
-                Red = red.ToString();
-                Green = green.ToString();
-                Blue = blue.ToString();
+                if (pixelData.Length == 1)
+                {
+                    byte blue = pixelData[0];
+                    byte green = pixelData[0];
+                    byte red = pixelData[0];
+                    byte alpha = pixelData[0];
+                    Red = red.ToString();
+                    Green = green.ToString();
+                    Blue = blue.ToString();
+                }
+                else
+                {
+                    byte blue = pixelData[0];
+                    byte green = pixelData[1];
+                    byte red = pixelData[2];
+                    byte alpha = pixelData[3];
+                    Red = red.ToString();
+                    Green = green.ToString();
+                    Blue = blue.ToString();
+                }
+                
 
 
             }
