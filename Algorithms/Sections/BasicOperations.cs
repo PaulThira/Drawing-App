@@ -124,6 +124,20 @@ namespace Algorithms.Sections
             }
 
         }
+        public Image<Bgr,byte> Negative(Image<Hsv, byte> image) { 
+            Image<Bgr,byte> result=new Image<Bgr, byte>(image.Width, image.Height);
+            for(int i=0;i<result.Height; i++)
+            {
+                for(int j=0;j<result.Width; j++)
+                {
+                    result.Data[i,j,0]= (byte)(255 -image.Data[i,j,0]);
+                    result.Data[i,j,1]=(byte)(255-image.Data[i,j,1]);
+                    result.Data[i, j, 2] = (byte)(255 - image.Data[i,j,2]);
+                }
+            }
+            return result;
+        
+        }
         public Image<Bgr,byte> HistogramEqualisation(Image<Bgr, Byte> image)
         {
             Image<Hsv,byte> hsv=BgrToHSV(image);

@@ -127,9 +127,11 @@ namespace Drawing_App.VM
         public ICommand SuperZoomCommand { get; }
         public ICommand GrayscaleCommand { get; }
         public ICommand HistogramEqualisationCommand { get; }
+        public ICommand Spline { get; }
         public MainWindowVM()
 
         {
+            Spline = new DelegateCommand(Splined);
             GrayscaleCommand=new DelegateCommand(Grayscale);
             SuperZoomCommand=new DelegateCommand(SuperZoom);
             HistogramEqualisationCommand=new DelegateCommand(HistoEqual);
@@ -206,6 +208,11 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+        }
+        private void Splined()
+        {
+            SplineTool splineTool = new SplineTool();
+            splineTool.Show();
         }
         private void HistoEqual()
         {
