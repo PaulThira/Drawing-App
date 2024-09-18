@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Emgu.CV;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,24 +10,28 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Drawing_App.VM
 {
-    public class SplineToolVM:BindableBase
+    public class SplineToolVM : BindableBase
     {
-        public ObservableCollection<Point> points {  get; set; }
+        public ObservableCollection<Point> points { get; set; }
         private Canvas _canvas;
-        
+
         public ICommand SplineToolCommand { get; }
-        public SplineToolVM(Canvas canvas) {
+        public SplineToolVM(Canvas canvas)
+        {
             SplineToolCommand = new DelegateCommand(DrawSpline);
 
             points = new ObservableCollection<Point>();
             points.Add(new Point(0, 255));
-            points.Add(new Point(255,0)); 
+            points.Add(new Point(255, 0));
             _canvas = canvas;
         }
-        public SplineToolVM() {
+        public int[] LUT { get; set; }
+        public SplineToolVM()
+        {
             SplineToolCommand = new DelegateCommand(DrawSpline);
 
             points = new ObservableCollection<Point>();
@@ -35,8 +40,9 @@ namespace Drawing_App.VM
             _canvas = new Canvas();
             _canvas.Width = 255;
             _canvas.Height = 255;
+            LUT = new int[256];
         }
-        private List<Point> CalculateBezierCurve(Point p0, Point p1, Point p2, int numPoints = 100)
+        private List<Point> CalculateBezierCurve(Point p0, Point p1, Point p2, int numPoints = 1000)
         {
             List<Point> bezierPoints = new List<Point>();
             for (int i = 0; i <= numPoints; i++)
@@ -52,7 +58,7 @@ namespace Drawing_App.VM
         {
             List<Point> curvePoints = new List<Point>();
 
-            double tStep = 0.01; // Control the smoothness of the curve, adjust as needed
+            double tStep = 0.001; // Control the smoothness of the curve, adjust as needed
 
             for (double t = 0; t <= 1; t += tStep)
             {
@@ -82,7 +88,7 @@ namespace Drawing_App.VM
             var controlPoints = points.OrderBy(p => p.X).ToList();
             int i;
             // Iterate through the points in sets of 4 for cubic Bézier curves
-            for ( i = 0; i <= controlPoints.Count - 4; i += 3)
+            for (i = 0; i <= controlPoints.Count - 4; i += 3)
             {
                 Point p0 = controlPoints[i];
                 Point p1 = controlPoints[i + 1];
@@ -112,14 +118,14 @@ namespace Drawing_App.VM
             // connect them with a simple line
             if (controlPoints.Count - i == 3)
             {
-                
+
                 Point p0 = controlPoints[i];
                 Point p1 = controlPoints[i + 1];
                 Point p2 = controlPoints[i + 2];
 
                 // Calculate quadratic Bézier curve points
                 List<Point> quadraticBezierPoints = CalculateBezierCurve(p0, p1, p2);
-                
+
 
                 // Create a Polyline to represent the Bézier curve
                 Polyline quadraticBezierPolyline = new Polyline
@@ -137,47 +143,12 @@ namespace Drawing_App.VM
                 {
                     quadraticBezierPolyline.Points.Add(bezierPoint);
                 }
-               
+
 
                 _canvas.Children.Add(quadraticBezierPolyline);
                 // Add the curve to the canvas
             }
-            if (controlPoints.Count - i == 2)
-            {
-                Point pk = controlPoints[i - 1];
-                Point p0 = controlPoints[i];
-                Point p1 = controlPoints[i + 1];
-                Point p2 = controlPoints[i + 2];
-
-                // Calculate quadratic Bézier curve points
-                List<Point> quadraticBezierPoints = CalculateBezierCurve(p0, p1, p2);
-                List<Point> quadraticBezierPoints2 = CalculateBezierCurve(pk, p0, p1);
-
-                // Create a Polyline to represent the Bézier curve
-                Polyline quadraticBezierPolyline = new Polyline
-                {
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 2
-                };
-                Polyline quadraticBezierPolyline2 = new Polyline
-                {
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 2
-                };
-                // Add all the quadratic Bézier curve points to the polyline
-                foreach (var bezierPoint in quadraticBezierPoints)
-                {
-                    quadraticBezierPolyline.Points.Add(bezierPoint);
-                }
-                foreach (var bezierPoint in quadraticBezierPoints2)
-                {
-                    quadraticBezierPolyline2.Points.Add(bezierPoint);
-                }
-
-                _canvas.Children.Add(quadraticBezierPolyline);
-                // Add the curve to the canvas
-
-            }
+            
             if (controlPoints.Count - i == 2)
             {
                 Point p0 = controlPoints[i];
@@ -196,8 +167,63 @@ namespace Drawing_App.VM
 
                 _canvas.Children.Add(line); // Add the line to the canvas
             }
+            CalculateLUT();
+            int d = LUT[10];
+            d++;
 
         }
-    
-}
+        
+        private void CalculateLUT()
+        {
+            LUT = new int[256];
+            foreach (UIElement element in _canvas.Children)
+            {
+                
+                 if (element is Polyline polyline) { 
+                    var points= polyline.Points;
+                    foreach (var p in points) {
+                        
+                        int i = (int)Math.Round(p.X);
+                        if (p.X - Math.Truncate(p.X) <= 0.3)
+                        {
+                            int k = (int)(255 - Math.Round(p.Y));
+                            LUT[i] = k;
+                        }
+                        
+                    }
+                }
+                else if (element is Line line)
+                {
+                    var p1 = new Point(line.X1, line.Y1);
+                    var p2 = new Point(line.X2, line.Y2);
+                    List<Point> interpolatedPoints = new List<Point>();
+
+                    for (int step = 0; step <= 1000; step++)
+                    {
+                        // Compute the interpolation factor t
+                        double t = (double)step / 1000;
+
+                        // Linearly interpolate between p1 and p2
+                        double x_t = (1 - t) * p1.X + t * p2.X;
+                        double y_t = (1 - t) * p1.Y + t * p2.Y;
+                        if (x_t - Math.Truncate(x_t)<0.3){
+                            int k=(int)Math.Round(x_t);
+                            LUT[k] = (int)(255-Math.Round(y_t));
+
+                        }
+
+                        // Add the interpolated point to the list
+                        interpolatedPoints.Add(new Point(x_t, y_t));
+                    }
+                }
+            }
+            for (int i = 1; i < 255; i++) {
+                if (LUT[i] == 0) {
+                    LUT[i] = (int)((LUT[i - 1] + LUT[i+1])/2);
+                }
+            }
+            LUT[255] = 255;
+
+        }
+    }
 }
