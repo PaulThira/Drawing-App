@@ -13,7 +13,7 @@
     <Grid Background="#FFEEB269">
         <Label HorizontalAlignment="Center" FontSize="50" Content="Spline Tool"/>
         <Canvas x:Name="canvas" Width="255" Height="255" Background="White" MouseLeftButtonDown="OnCanvasClick"/>
-        <Button  Content="Calculate Curve" Height="50" Width="100" VerticalAlignment="Bottom" Command="{Binding SplineToolCommand}" Background="#FFA3652C"/>
+        <Button  Content="Calculate Curve" Height="50" Width="100" VerticalAlignment="Bottom"  Background="#FFA3652C" Click="Button_Click"/>
 
     </Grid>
 </Window>

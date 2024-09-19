@@ -172,10 +172,12 @@
                     <MenuItem Header="Super Zoom" Command="{Binding SuperZoomCommand}"/>
                     <MenuItem Header="Basic Operations">
                         <MenuItem Header="Grayscale" Command="{Binding GrayscaleCommand}"/>
-                        <MenuItem Header="Histogram Equalisation" Command="{Binding HistogramEqualisationCommand}"/>
+                        <MenuItem Header="Negative" Command="{Binding NegativeFilterCommand}"/>
+                        
                     </MenuItem>
                     <MenuItem Header="Pointwise Operations">
                         <MenuItem Header="Spline Tool" Command="{Binding Spline}"/>
+                        <MenuItem Header="Histogram Equalisation" Command="{Binding HistogramEqualisationCommand}"/>
                     </MenuItem>
                     
                 </MenuItem>

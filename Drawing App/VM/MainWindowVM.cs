@@ -128,9 +128,12 @@ namespace Drawing_App.VM
         public ICommand GrayscaleCommand { get; }
         public ICommand HistogramEqualisationCommand { get; }
         public ICommand Spline { get; }
+        public ICommand NegativeFilterCommand { get; }
+        private bool? result;
         public MainWindowVM()
 
         {
+            NegativeFilterCommand = new DelegateCommand(NegativeFilter);
             Spline = new DelegateCommand(Splined);
             GrayscaleCommand=new DelegateCommand(Grayscale);
             SuperZoomCommand=new DelegateCommand(SuperZoom);
@@ -209,10 +212,82 @@ namespace Drawing_App.VM
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
         }
+        private void NegativeFilter()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                i.ApplyNegative();
+            }
+        }
         private void Splined()
         {
+            int[] blue, green, red;
             SplineTool splineTool = new SplineTool();
-            splineTool.Show();
+      
+
+            // Show the window as a dialog (execution is paused until the window is closed)
+            bool? dialogResult = splineTool.ShowDialog();
+            
+            blue = new int[256];
+            if (dialogResult == true || dialogResult == null)
+            {
+                var viewModel = splineTool.DataContext as SplineToolVM;
+                if (viewModel != null)
+                {
+                    blue = viewModel.LUT;  // Access the LUT from the ViewModel
+                    
+                }
+
+
+            }
+            SplineTool splineTool1 = new SplineTool();
+
+
+            // Show the window as a dialog (execution is paused until the window is closed)
+            bool? dialogResult1 = splineTool1.ShowDialog();
+
+            green = new int[256];
+            if (dialogResult1 == true || dialogResult1 == null)
+            {
+                var viewModel = splineTool1.DataContext as SplineToolVM;
+                if (viewModel != null)
+                {
+                    green = viewModel.LUT;  // Access the LUT from the ViewModel
+
+                }
+
+
+            }
+            SplineTool splineTool2 = new SplineTool();
+
+
+            // Show the window as a dialog (execution is paused until the window is closed)
+            bool? dialogResult2 = splineTool2.ShowDialog();
+
+            red = new int[256];
+            if (dialogResult2 == true || dialogResult2 == null)
+            {
+                var viewModel = splineTool.DataContext as SplineToolVM;
+                if (viewModel != null)
+                {
+                    red = viewModel.LUT;  // Access the LUT from the ViewModel
+
+                }
+
+
+            }
+            if(SelectedLayer is ImageLayer i&& blue!=null&&green!=null&&red!=null)
+            {
+                i.ApplySplinedTransformation(blue,green,red);
+            }
+        }
+        private void ApplyLUT()
+        {
+            if (result == true)
+            {
+                MessageBox.Show("True");
+
+            }
         }
         private void HistoEqual()
         {

@@ -124,7 +124,7 @@ namespace Algorithms.Sections
             }
 
         }
-        public Image<Bgr,byte> Negative(Image<Hsv, byte> image) { 
+        public Image<Bgr,byte> Negative(Image<Bgr, byte> image) { 
             Image<Bgr,byte> result=new Image<Bgr, byte>(image.Width, image.Height);
             for(int i=0;i<result.Height; i++)
             {

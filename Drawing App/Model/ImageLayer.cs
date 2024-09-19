@@ -30,6 +30,7 @@ namespace Drawing_App.Model
         public override UIElement VisualElement => _image;
         public string _filePath {  get; set; }
         public BasicOperations basicOperations { get; set; }
+        public PointwiseOperations pointwiseOperations { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
@@ -54,6 +55,7 @@ namespace Drawing_App.Model
             basicOperations = new BasicOperations();
             _image.MouseDown += Image_MouseDown;
             Point= new Point();
+            pointwiseOperations = new PointwiseOperations();
 
         }
         public void GrayscaleConversion()
@@ -93,6 +95,20 @@ namespace Drawing_App.Model
                 stride);
 
             return bitmapSource;
+        }
+        public void ApplySplinedTransformation(int[] blue, int[] green, int[] red)
+        {
+            pointwiseOperations.blue=blue; pointwiseOperations.green=green; pointwiseOperations.red=red;
+           var result= pointwiseOperations.ApplyLUT(Bgr);
+            ProcessedImage p=new ProcessedImage(ConvertToBitmapSource(result));
+            p.Show();
+        }
+        public void ApplyNegative()
+        {
+            var result=basicOperations.Negative(Bgr);
+
+            ProcessedImage p = new ProcessedImage(ConvertToBitmapSource(result));
+            p.Show();
         }
         public static BitmapSource ConvertToBitmapSource(Image<Bgr, byte> bgrImage)
         {

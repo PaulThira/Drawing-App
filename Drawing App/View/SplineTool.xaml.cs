@@ -21,10 +21,12 @@ namespace Drawing_App.View
     public partial class SplineTool : Window
     {
         SplineToolVM vm;
+        public int[] LUT;
         public SplineTool()
         {
             InitializeComponent();
             DataContext = new SplineToolVM(canvas);
+            
 
         }
         private void OnCanvasClick(object sender, MouseButtonEventArgs e)
@@ -55,9 +57,25 @@ namespace Drawing_App.View
                 }
             }
             else { MessageBox.Show("Not from canvas"); }
-            
-            
-            
+           
+
+
+        }
+        private void SplineTool_Closed(object sender, EventArgs e)
+        {
+            // Code to handle when the window is closed
+           
+        }
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            vm = (SplineToolVM)DataContext;
+            if (vm != null)
+            {
+                vm.SplineToolCommand.Execute(null);
+                LUT=vm.LUT;
+                int g = LUT[0];
+            }
+            this.DialogResult = true;
         }
     }
 }
