@@ -74,48 +74,67 @@ namespace Drawing_App.Model
 
             }
             float maxhue=0, minhue=361;
-            foreach(Tuple<float,float,float> hsv in hsvs)
+            List<float> difs=new List<float>();
+            
+            for (int i= 0;i< hsvs.Count; i++)
             {
-                if(hsv.Item1 < minhue)
-                {
-                    minhue = hsv.Item1;
+                for (int j = i+1; j<hsvs.Count;j++){
+                    var dif = Math.Abs(hsvs[j].Item1 - hsvs[i].Item1);
+                    if (dif>180)
+                    {
+                        dif = 360 - dif;
+                    }
+                    difs.Add(dif);
+
                 }
-                if(hsv.Item1 >maxhue)
+
+            }
+            if(difs.Count <= 1) { return; }
+            minhue = difs.Min();
+            maxhue = difs.Max();
+            if (Math.Abs(minhue - 180) <= 10)
+            {
+                minhue = 0;
+            }
+            if (minhue <= 10)
+            {
+                if (Math.Abs(maxhue - 30) <= 10)
                 {
-                    maxhue = hsv.Item1;
+                    harmony = true;
+
                 }
-            }
-            float range=Math.Abs(180-Math.Abs(maxhue-minhue));
-            if (Math.Abs(range - 30) <= 10)
-            {
-                harmony = true;
-                
-            }
-            else if(Math.Abs(range -60)<=10)
-            {
-                harmony = true;
-                
-            }
-            else if (Math.Abs(range - 90) <= 10)
-            {
-                harmony = true;
-                
-            }
-            else if (Math.Abs(range - 120) <= 10)
-            {
-                harmony = true;
-                
-            }
-            else if (Math.Abs(range - 180) <= 10)
-            {
-                harmony = true;
-                
+                else if (Math.Abs(maxhue - 60) <= 10)
+                {
+                    harmony = true;
+
+                }
+                else if (Math.Abs(maxhue - 90) <= 10)
+                {
+                    harmony = true;
+
+                }
+                else if (Math.Abs(maxhue - 120) <= 10)
+                {
+                    harmony = true;
+
+                }
+                else if (Math.Abs(maxhue - 180) <= 10)
+                {
+                    harmony = true;
+
+                }
+                else
+                {
+                    harmony = false;
+
+                }
             }
             else
             {
                 harmony=false;
-                
             }
+            
+            
         }
 
     }

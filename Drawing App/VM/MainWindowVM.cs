@@ -54,11 +54,19 @@ namespace Drawing_App.VM
         private Brush _color5;
         private Brush _color6;
         private Brush _color7;
+        private Brush _color8;
         private Brush harmony;
         private Polyline _currentPolyline;
         public Stack<Point> Points = new Stack<Point>();
         public ObservableCollection<Layer> Layers { get; }
         private Layer _selectedLayer;
+        private ObservableCollection<ObservableCollection<Brush>> _colorPalettes;
+
+        public ObservableCollection<ObservableCollection<Brush>> ColorPalettes
+        {
+            get => _colorPalettes;
+            set => SetProperty(ref _colorPalettes, value);
+        }
 
         // Property to track the selected layer
         public Layer SelectedLayer
@@ -87,6 +95,12 @@ namespace Drawing_App.VM
         public ICommand LayerUncheckedCommand { get; }
         public ICommand ChangeShapeKind { get; }
         private int _selectedLayerIndex;
+        private ObservableCollection<Brush> _selectedPalette;
+        public ObservableCollection<Brush> SelectedPalette
+        {
+            get => _selectedPalette;
+            set => SetProperty(ref _selectedPalette, value);
+        }
         public int SelectedLayerIndex { get =>_selectedLayerIndex;
             set
             {
@@ -130,6 +144,8 @@ namespace Drawing_App.VM
         public ICommand Spline { get; }
         public ICommand NegativeFilterCommand { get; }
         private bool? result;
+        public ICommand NextPaletteCommand { get; }
+        public ICommand PreviousPaletteCommand { get; }
         public MainWindowVM()
 
         {
@@ -196,7 +212,8 @@ namespace Drawing_App.VM
             Color5 = new SolidColorBrush(Colors.Orange);
             Color6 = new SolidColorBrush(Colors.Purple);
             Color7 = new SolidColorBrush(Colors.Pink);
-            Harmony=new SolidColorBrush(Colors.Green);
+            Color8 = new SolidColorBrush(Colors.Lavender);
+            Harmony =new SolidColorBrush(Colors.Green);
             _currentBrush = new DrawingBrush();
             _currentBrush.Drawing = new GeometryDrawing(
                 brush: new SolidColorBrush(CurrentColor),   // Fill brush
@@ -211,6 +228,54 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+            ColorPalettes = new ObservableCollection<ObservableCollection<Brush>>();
+            ColorPalettes.Add(new ObservableCollection<Brush>
+            {
+                new SolidColorBrush(Colors.Red),
+                new SolidColorBrush(Colors.Sienna),
+                new SolidColorBrush(Colors.Maroon)
+            });
+            ColorPalettes.Add(new ObservableCollection<Brush>
+            {
+                new SolidColorBrush(Colors.Cyan),
+                new SolidColorBrush(Colors.Teal),
+                new SolidColorBrush(Colors.Lavender)
+            });
+            ColorPalettes.Add(new ObservableCollection<Brush>
+            {
+                new SolidColorBrush(Colors.Salmon),
+                new SolidColorBrush(Colors.Coral),
+                new SolidColorBrush(Colors.Pink)
+            });
+            NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
+            PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
+            SelectedPalette = ColorPalettes[0];
+        }
+
+        private void MoveToNextPalette()
+        {
+            int currentIndex = ColorPalettes.IndexOf(SelectedPalette);
+            if (currentIndex == ColorPalettes.Count - 1)
+            {
+                SelectedPalette = ColorPalettes[0]; // Go to first palette
+            }
+            else
+            {
+                SelectedPalette = ColorPalettes[currentIndex + 1];
+            }
+        }
+
+        private void MoveToPreviousPalette()
+        {
+            int currentIndex = ColorPalettes.IndexOf(SelectedPalette);
+            if (currentIndex == 0)
+            {
+                SelectedPalette = ColorPalettes[ColorPalettes.Count - 1]; // Go to last palette
+            }
+            else
+            {
+                SelectedPalette = ColorPalettes[currentIndex - 1];
+            }
         }
         private void NegativeFilter()
         {
@@ -732,33 +797,37 @@ namespace Drawing_App.VM
 
                 Brush newBrush = new SolidColorBrush(color);
                 colors.Add(color);
-                if (i % 7 == 0)
+                if (i % 8 == 0)
                 {
                     Color1 = newBrush;
                 }
-                else if (i % 7 == 1)
+                else if (i % 8 == 1)
                 {
                     Color2 = newBrush;
                 }
-                else if (i % 7 == 2)
+                else if (i % 8 == 2)
                 {
                     Color3 = newBrush;
                 }
-                else if (i % 7 == 3)
+                else if (i % 8 == 3)
                 {
                     Color4 = newBrush;
                 }
-                else if (i % 7 == 4)
+                else if (i % 8 == 4)
                 {
                     Color5 = newBrush;
                 }
-                else if (i % 7 == 5)
+                else if (i % 8 == 5)
                 {
                     Color6 = newBrush;
                 }
-                else if (i % 7 == 6)
+                else if (i % 8 == 6)
                 {
                     Color7 = newBrush;
+                }
+                else if(i % 8 == 7)
+                {
+
                 }
                 i++;
 
@@ -851,6 +920,12 @@ namespace Drawing_App.VM
             get => _color7;
             set => SetProperty(ref _color7, value);
         }
+        public Brush Color8
+        {
+            get => _color8;
+            set => SetProperty(ref _color7, value);
+        }
+
         public Brush RectangleFill
         {
             get => _rectangleFill;

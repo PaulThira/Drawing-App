@@ -9,7 +9,7 @@
      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:viewmodel="clr-namespace:Drawing_App.VM"
         xmlns:model="clr-namespace:Drawing_App.Model"
-        Title="MainWindow" Height="680" Width="1000">
+        Title="MainWindow" Height="800" Width="1000">
     <Window.Resources>
         <LinearGradientBrush x:Key="HueBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
             <GradientStop Color="#FFFF0000" Offset="0.0"/>
@@ -96,6 +96,7 @@
                 <Ellipse Name="five" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color5}"></Ellipse>
                 <Ellipse Name="six" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color6}"></Ellipse>
                 <Ellipse Name="seven" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color7}"></Ellipse>
+                <Ellipse Name="eight" Height="15" Width="15" Margin="3,0,3,0" Fill="{Binding Color8}"></Ellipse>
             </UniformGrid>
             <Menu Height="36" Background="#FFE5C591" HorizontalAlignment="Center">
 
@@ -138,8 +139,28 @@
 
             </StackPanel>
             <Button Height="27" Width="95" Content="Update Canvas" Background="#FFD2DD50" Command="{Binding UpdateDimensionsCanvas}"></Button>
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="10">
+                <Button Content="Previous Palette" Command="{Binding PreviousPaletteCommand}" Width="102" Height="30" />
+                <Button Content="Next Palette" Command="{Binding NextPaletteCommand}" Width="93" Height="30" Margin="10,0,0,0" />
+            </StackPanel>
 
-
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Orientation="Horizontal">
+                <!-- Display the selected palette using ItemsControl -->
+                <ItemsControl ItemsSource="{Binding SelectedPalette}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Ellipses to represent each color in the selected palette -->
+                            <Ellipse Width="30" Height="30" Fill="{Binding}" Stroke="Black" StrokeThickness="1" Margin="5"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+           
 
         </StackPanel>
 
@@ -173,19 +194,19 @@
                     <MenuItem Header="Basic Operations">
                         <MenuItem Header="Grayscale" Command="{Binding GrayscaleCommand}"/>
                         <MenuItem Header="Negative" Command="{Binding NegativeFilterCommand}"/>
-                        
+
                     </MenuItem>
                     <MenuItem Header="Pointwise Operations">
                         <MenuItem Header="Spline Tool" Command="{Binding Spline}"/>
                         <MenuItem Header="Histogram Equalisation" Command="{Binding HistogramEqualisationCommand}"/>
                     </MenuItem>
-                    
+
                 </MenuItem>
                 <MenuItem Header="Save As">
                     <MenuItem Header="Photoshop file"></MenuItem>
                     <MenuItem Header="Image file"></MenuItem>
                 </MenuItem>
-                
+
             </Menu>
         </StackPanel>
     </Grid>
