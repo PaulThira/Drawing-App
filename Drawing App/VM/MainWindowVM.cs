@@ -146,9 +146,11 @@ namespace Drawing_App.VM
         private bool? result;
         public ICommand NextPaletteCommand { get; }
         public ICommand PreviousPaletteCommand { get; }
+        public ICommand PalletteGeneratorCommand { get; }
         public MainWindowVM()
 
         {
+            PalletteGeneratorCommand = new DelegateCommand(OpenPalleteGenerator);
             NegativeFilterCommand = new DelegateCommand(NegativeFilter);
             Spline = new DelegateCommand(Splined);
             GrayscaleCommand=new DelegateCommand(Grayscale);
@@ -233,23 +235,31 @@ namespace Drawing_App.VM
             {
                 new SolidColorBrush(Colors.Red),
                 new SolidColorBrush(Colors.Sienna),
-                new SolidColorBrush(Colors.Maroon)
+                new SolidColorBrush(Colors.Maroon),
+                new SolidColorBrush(Colors.Crimson)
             });
             ColorPalettes.Add(new ObservableCollection<Brush>
             {
                 new SolidColorBrush(Colors.Cyan),
                 new SolidColorBrush(Colors.Teal),
-                new SolidColorBrush(Colors.Lavender)
+                new SolidColorBrush(Colors.Lavender),
+                new SolidColorBrush(Colors.Orchid)
             });
             ColorPalettes.Add(new ObservableCollection<Brush>
             {
                 new SolidColorBrush(Colors.Salmon),
                 new SolidColorBrush(Colors.Coral),
-                new SolidColorBrush(Colors.Pink)
+                new SolidColorBrush(Colors.Pink),
+                new SolidColorBrush(Colors.Magenta)
             });
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+        }
+        private void OpenPalleteGenerator()
+        {
+            ColorPalleteGenerator color=new ColorPalleteGenerator();
+            color.Show();
         }
 
         private void MoveToNextPalette()

@@ -22,47 +22,108 @@ namespace Drawing_App.Model
             this.Colors = h;
             harmony = false;
         }
+        
         public Tuple<float, float, float> BGRtoHSV(Color color)
         {
-            double r = color.R, g = color.G, b = color.B;
-            float red = (float)(r / 255), green = (float)g / 255, blue = (float)b / 255;
-            float cmax = Math.Max(red, Math.Max(blue, green));
-            float cmin = Math.Min(red, Math.Min(blue, green));
-            float d = cmax - cmin;
-            float h, s, v;
-            h = 0;
-            if (d == 0)
-            {
-                h = (float)0;
-            }
-            else
-            {
-                if (cmax == red)
-                {
-                    h = (float)60 * (((green - blue) / d) % 60);
-                }
-                
-                else if (cmax == green)
-                {
-                    h = (float)60 * ((blue - red) / d + 2);
-                }
-                else if (cmax == blue)
-                {
-                    h = (float)60 * ((green - red) / d + 4);
-                }
 
-            }
-            if (cmax == 0)
+            double r = color.R / 255.0;
+            double g = color.G / 255.0;
+            double b = color.B / 255.0;
+
+            float cmax = (float)Math.Max(r, Math.Max(g, b));
+            float cmin = (float)Math.Min(r, Math.Min(g, b));
+            float delta = cmax - cmin;
+
+            float h = 0;
+            float s = 0;
+            float v = cmax;
+
+            // Calculate Hue
+            if (delta == 0)
             {
-                s = 0;
+                h = 0; // If delta is 0, it's gray, so hue is undefined but we set it to 0
             }
-            else
+            else if (cmax == r)
             {
-                s = (float)cmax / d;
+                h = (float)(60 * (((g - b) / delta) % 6));
             }
-            v = cmax;
-            Tuple<float, float, float> hsv = new Tuple<float, float, float>(h, s, v);
-            return hsv;
+            else if (cmax == g)
+            {
+                h = (float)(60 * (((b - r) / delta) + 2));
+            }
+            else if (cmax == b)
+            {
+                h = (float)(60 * (((r - g) / delta) + 4));
+            }
+
+            // Ensure hue is positive
+            if (h < 0)
+            {
+                h += 360;
+            }
+
+            // Calculate Saturation
+            if (cmax != 0)
+            {
+                s = delta / cmax;
+            }
+
+            // Value is already assigned to cmax
+            return new Tuple<float, float, float>(h, s, v);
+        }
+        public Color ColorFromHSV(double h, double s, double v)
+        {
+            // Value is in the range [0, 255]
+
+            // Normalize saturation and value to [0, 1]
+            h = h %360;
+
+            float C =(float)( s * v); // Chroma
+            float X =(float)( C * (1 - Math.Abs((h / 60.0f) % 2 - 1))); // Intermediate value
+            float m =(float)( v - C); // Match value
+
+            float r = 0, g = 0, b = 0;
+
+            // Calculate RGB values based on hue range
+            if ( h < 60)
+            {
+                r = C;
+                g = X;
+                b = 0;
+            }
+            else if ( h < 120)
+            {
+                r = X;
+                g = C;
+                b = 0;
+            }
+            else if ( h < 180)
+            {
+                r = 0;
+                g = C;
+                b = X;
+            }
+            else if ( h < 240)
+            {
+                r = 0;
+                g = X;
+                b = C;
+            }
+            else if (h < 300)
+            {
+                r = X;
+                g = 0;
+                b = C;
+            }
+            else 
+            {
+                r = C;
+                g = 0;
+                b = X;
+            }
+            r += m; g += m; b += m;
+            
+            return Color.FromRgb((byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
         }
         public void ColorHarmony()
         {
