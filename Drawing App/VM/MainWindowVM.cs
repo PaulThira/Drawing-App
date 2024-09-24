@@ -259,7 +259,12 @@ namespace Drawing_App.VM
         private void OpenPalleteGenerator()
         {
             ColorPalleteGenerator color=new ColorPalleteGenerator();
-            color.Show();
+           var ok= color.ShowDialog();
+            if (ok == true)
+            {
+                ColorPalettes.Add(color.pallete);
+                MessageBox.Show("Success");
+            }
         }
 
         private void MoveToNextPalette()

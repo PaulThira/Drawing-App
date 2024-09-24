@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Drawing_App.Model;
 using Drawing_App.VM;
 namespace Drawing_App.View
 {
@@ -19,6 +21,7 @@ namespace Drawing_App.View
     /// </summary>
     public partial class ColorPalleteGenerator : Window
     {
+        public ObservableCollection<Brush> pallete {  get; set; }
         public ColorPalleteGenerator()
         {
             InitializeComponent();
@@ -80,6 +83,14 @@ namespace Drawing_App.View
                     vm.SelectSaturationValue(point.X, point.Y, svRectangle.Width, svRectangle.Height);
                 }
             }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = true;
+            var vm= DataContext as ColorPalleteGeneratorVM;
+            pallete = vm.SelectedPalette;
+            this.Close();
         }
     }
 }

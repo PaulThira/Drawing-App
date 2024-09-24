@@ -12,6 +12,7 @@ namespace Drawing_App.Model
         public double X { get; set; }
         public double Y { get; set; }
         public SolidColorBrush Color { get; set; }
+        public SolidColorBrush Stroked { get; set; }
         public ColorPoint() {
             X = 0;
             Y = 0;
@@ -23,6 +24,7 @@ namespace Drawing_App.Model
             X = x;
             Y = y;
             Color = colorBrush;
+            Stroked = new SolidColorBrush(Colors.Transparent);
 
         }
     }

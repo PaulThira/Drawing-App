@@ -10,6 +10,7 @@ using Drawing_App.Model;
 using ColorPoint = Drawing_App.Model.ColorPoint;
 using System.Windows;
 using System.Windows.Input;
+using Emgu.CV.Cuda;
 
 namespace Drawing_App.VM
 {
@@ -24,6 +25,7 @@ namespace Drawing_App.VM
         private string _h;
         private string _s;
         private string _v;
+       
         public string h
         {
             get => _h;
@@ -43,9 +45,10 @@ namespace Drawing_App.VM
         }
         public SolidColorBrush SelectedColor
         {
-            get { return _selectedColor; }
+            get  => _selectedColor; 
             set { SetProperty(ref _selectedColor, value); }
         }
+     
         public HSVColours HSVColourss { get; set; } = new HSVColours();// Define how many unique colors you want on the wheel
         public ObservableCollection<ColorPoint> ColorPoints { get; set; }
         public DelegateCommand GenerateColorWheelCommand { get; }
@@ -72,18 +75,226 @@ namespace Drawing_App.VM
         }
         public ICommand ColorSelectedCommand { get; }
         public ICommand AddColorCommand { get; }
+        public ICommand ColorSchemeCommand { get; }
         public ColorPalleteGeneratorVM() {
+
+            ColorSchemeCommand = new DelegateCommand<string?>(ColorScheme);
             ColorPoints = new ObservableCollection<ColorPoint>();
             GenerateColorWheelCommand = new DelegateCommand(GenerateColorWheel);
             ColorSelectedCommand = new DelegateCommand<ColorPoint>(OnColorSelected);
             SelectedColor = new SolidColorBrush(Colors.Cyan);
             AddColorCommand = new DelegateCommand(AddColor);
             SelectedPalette = new ObservableCollection<Brush>();
+            
             h = "0";
             s = "0";
             v = "0";
             // Generate color wheel on initialization
             GenerateColorWheel();
+        }
+        private void ColorScheme(string? i)
+        {
+            if (i == "0") {
+                ColorPoint c = (ColorPoint)(ColorPoints.FirstOrDefault(e => e.Color.Color == SelectedColor.Color));
+
+                if (c != null)
+                {
+                    // Get the current hue, saturation, and value
+                    var currentHue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item1;
+                    var currentSaturation = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item2;
+                    var currentValue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item3;
+
+                    // Calculate the opposite hue
+                    var Hue1 = (currentHue + 120) % 360;
+                    var Hue2 = (currentHue + 240) % 360;
+
+                    // Generate the opposite color using the HSV values
+                    Color Color1 = HSVColourss.ColorFromHSV(Hue1, currentSaturation, currentValue);
+                    Color Color2 = HSVColourss.ColorFromHSV(Hue2, currentSaturation, currentValue);
+
+                    // Find the nearest matching color in the ColorPoints collection
+                    ColorPoint op1 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color1));
+                    ColorPoint op2 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color2));
+
+                    if (op2 != null&& op1!=null)
+                    {
+                        int index1 = ColorPoints.IndexOf(op1);
+                        int index2 = ColorPoints.IndexOf(op2);
+
+                        if (index1 != -1&& index2!=-1)
+                        {
+                           var colored= ColorPoints[index1];
+                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            var coloured2= ColorPoints[index2];
+                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));    
+                        }
+                    }
+                }
+            }
+            else if (i == "1")
+            {
+                ColorPoint c = (ColorPoint)(ColorPoints.FirstOrDefault(e => e.Color.Color == SelectedColor.Color));
+
+                if (c != null)
+                {
+                    // Get the current hue, saturation, and value
+                    var currentHue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item1;
+                    var currentSaturation = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item2;
+                    var currentValue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item3;
+
+                    // Calculate the opposite hue
+                    var Hue1 = (currentHue + 180) % 360;
+                  
+
+                    // Generate the opposite color using the HSV values
+                    Color Color1 = HSVColourss.ColorFromHSV(Hue1, currentSaturation, currentValue);
+                  
+
+                    // Find the nearest matching color in the ColorPoints collection
+                    ColorPoint op1 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color1));
+                   
+
+                    if ( op1 != null)
+                    {
+                        int index1 = ColorPoints.IndexOf(op1);
+                      
+
+                        if (index1 != -1 )
+                        {
+                            var colored = ColorPoints[index1];
+                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            
+                        }
+                    }
+                }
+            }
+            else if (i == "2")
+            {
+                ColorPoint c = (ColorPoint)(ColorPoints.FirstOrDefault(e => e.Color.Color == SelectedColor.Color));
+
+                if (c != null)
+                {
+                    // Get the current hue, saturation, and value
+                    var currentHue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item1;
+                    var currentSaturation = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item2;
+                    var currentValue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item3;
+
+                    // Calculate the opposite hue
+                    var Hue1 = (currentHue + 190) % 360;
+                    var Hue2 = (currentHue + 170) % 360;
+
+                    // Generate the opposite color using the HSV values
+                    Color Color1 = HSVColourss.ColorFromHSV(Hue1, currentSaturation, currentValue);
+                    Color Color2 = HSVColourss.ColorFromHSV(Hue2, currentSaturation, currentValue);
+
+                    // Find the nearest matching color in the ColorPoints collection
+                    ColorPoint op1 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color1));
+                    ColorPoint op2 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color2));
+
+                    if (op2 != null && op1 != null)
+                    {
+                        int index1 = ColorPoints.IndexOf(op1);
+                        int index2 = ColorPoints.IndexOf(op2);
+
+                        if (index1 != -1 && index2 != -1)
+                        {
+                            var colored = ColorPoints[index1];
+                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            var coloured2 = ColorPoints[index2];
+                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));
+                        }
+                    }
+                }
+            }
+            if (i == "3")
+            {
+                ColorPoint c = (ColorPoint)(ColorPoints.FirstOrDefault(e => e.Color.Color == SelectedColor.Color));
+
+                if (c != null)
+                {
+                    // Get the current hue, saturation, and value
+                    var currentHue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item1;
+                    var currentSaturation = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item2;
+                    var currentValue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item3;
+
+                    // Calculate the opposite hue
+                    var Hue1 = (currentHue + 10) % 360;
+                    var Hue2 = (currentHue + 350) % 360;
+
+                    // Generate the opposite color using the HSV values
+                    Color Color1 = HSVColourss.ColorFromHSV(Hue1, currentSaturation, currentValue);
+                    Color Color2 = HSVColourss.ColorFromHSV(Hue2, currentSaturation, currentValue);
+
+                    // Find the nearest matching color in the ColorPoints collection
+                    ColorPoint op1 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color1));
+                    ColorPoint op2 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color2));
+
+                    if (op2 != null && op1 != null)
+                    {
+                        int index1 = ColorPoints.IndexOf(op1);
+                        int index2 = ColorPoints.IndexOf(op2);
+
+                        if (index1 != -1 && index2 != -1)
+                        {
+                            var colored = ColorPoints[index1];
+                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            var coloured2 = ColorPoints[index2];
+                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));
+                            
+                        }
+                    }
+                }
+            }
+            if (i == "4")
+            {
+                ColorPoint c = (ColorPoint)(ColorPoints.FirstOrDefault(e => e.Color.Color == SelectedColor.Color));
+
+                if (c != null)
+                {
+                    // Get the current hue, saturation, and value
+                    var currentHue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item1;
+                    var currentSaturation = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item2;
+                    var currentValue = (double)HSVColourss.BGRtoHSV(c.Color.Color).Item3;
+
+                    // Calculate the opposite hue
+                    var Hue1 = (currentHue + 90) % 360;
+                    var Hue2 = (currentHue + 180) % 360;
+                    var Hue3 = (currentHue + 270) % 360;
+
+                    // Generate the opposite color using the HSV values
+                    Color Color1 = HSVColourss.ColorFromHSV(Hue1, currentSaturation, currentValue);
+                    Color Color2 = HSVColourss.ColorFromHSV(Hue2, currentSaturation, currentValue);
+                    Color Color3 = HSVColourss.ColorFromHSV(Hue3, currentSaturation, currentValue);
+
+                    // Find the nearest matching color in the ColorPoints collection
+                    ColorPoint op1 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color1));
+                    ColorPoint op2 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color2));
+                    ColorPoint op3 = ColorPoints.FirstOrDefault(e => IsColorSimilar(e.Color.Color, Color3));
+
+                    if (op2 != null && op1 != null&& op3!=null)
+                    {
+                        int index1 = ColorPoints.IndexOf(op1);
+                        int index2 = ColorPoints.IndexOf(op2);
+                        int index3 = ColorPoints.IndexOf(op3);
+
+                        if (index1 != -1 && index2 != -1&&index3!=-1)
+                        {
+                            var colored = ColorPoints[index1];
+                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            var coloured2 = ColorPoints[index2];
+                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));
+                            var coloured3 = ColorPoints[index3];
+                            SelectedPalette.Add(new SolidColorBrush(coloured3.Color.Color));
+                        }
+                    }
+                }
+            }
+        }
+        private bool IsColorSimilar(Color color1, Color color2, int tolerance = 10)
+        {
+            return Math.Abs(color1.R - color2.R) <= tolerance &&
+                   Math.Abs(color1.G - color2.G) <= tolerance &&
+                   Math.Abs(color1.B - color2.B) <= tolerance;
         }
         private void OnColorSelected(ColorPoint selectedColorPoint)
         {
