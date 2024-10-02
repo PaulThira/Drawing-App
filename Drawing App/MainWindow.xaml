@@ -146,7 +146,7 @@
 
             <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Orientation="Horizontal">
                 <!-- Display the selected palette using ItemsControl -->
-                <ItemsControl ItemsSource="{Binding SelectedPalette}">
+                <ItemsControl x:Name="Palette" ItemsSource="{Binding SelectedPalette}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal" />
@@ -154,12 +154,26 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <!-- Ellipses to represent each color in the selected palette -->
-                            <Ellipse Width="30" Height="30" Fill="{Binding}" Stroke="Black" StrokeThickness="1" Margin="5"/>
+                            <!-- Bind Command directly to the SelectColorCommand inside CustomPallete -->
+                            <Button Width="30" Height="30" Margin="5"
+                        Command="{Binding PickedColor}"
+                            >
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <!-- Bind the Ellipse's Fill to ColorBrush from CustomPallete -->
+                                            <Ellipse Width="30" Height="30" Fill="{Binding ColorBrush}" Stroke="Black" StrokeThickness="1"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+
+
+
 
 
         </StackPanel>

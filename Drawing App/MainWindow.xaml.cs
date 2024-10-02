@@ -43,8 +43,27 @@ namespace Drawing_App
             OpacitySlider.ValueChanged += OpacitySlider_ValueChanged;
             
         }
-        
 
+        private void Ellipse_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Ellipse clickedEllipse = sender as Ellipse;
+            if (clickedEllipse != null)
+            {
+                SolidColorBrush brush = clickedEllipse.Fill as SolidColorBrush;
+                if (brush != null)
+                {
+                    var vm = (MainWindowVM)DataContext;
+                    if (vm != null) { 
+                        vm.CurrentColor = brush.Color;
+                        
+                        vm.UpdateColor(1);
+                        vm.UpdateBrush();
+                      
+                    
+                    }
+                }
+            }
+        }
 
         private void SizeBrush_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {

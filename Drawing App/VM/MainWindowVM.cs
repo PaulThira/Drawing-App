@@ -60,9 +60,9 @@ namespace Drawing_App.VM
         public Stack<Point> Points = new Stack<Point>();
         public ObservableCollection<Layer> Layers { get; }
         private Layer _selectedLayer;
-        private ObservableCollection<ObservableCollection<Brush>> _colorPalettes;
+        private ObservableCollection<ObservableCollection<CustomPallete>> _colorPalettes;
 
-        public ObservableCollection<ObservableCollection<Brush>> ColorPalettes
+        public ObservableCollection<ObservableCollection<CustomPallete>> ColorPalettes
         {
             get => _colorPalettes;
             set => SetProperty(ref _colorPalettes, value);
@@ -95,8 +95,8 @@ namespace Drawing_App.VM
         public ICommand LayerUncheckedCommand { get; }
         public ICommand ChangeShapeKind { get; }
         private int _selectedLayerIndex;
-        private ObservableCollection<Brush> _selectedPalette;
-        public ObservableCollection<Brush> SelectedPalette
+        private ObservableCollection<CustomPallete> _selectedPalette;
+        public ObservableCollection<CustomPallete> SelectedPalette
         {
             get => _selectedPalette;
             set => SetProperty(ref _selectedPalette, value);
@@ -147,6 +147,7 @@ namespace Drawing_App.VM
         public ICommand NextPaletteCommand { get; }
         public ICommand PreviousPaletteCommand { get; }
         public ICommand PalletteGeneratorCommand { get; }
+        public ICommand PickColorFromPalleteCommand { get; }
         public MainWindowVM()
 
         {
@@ -156,7 +157,8 @@ namespace Drawing_App.VM
             GrayscaleCommand=new DelegateCommand(Grayscale);
             SuperZoomCommand=new DelegateCommand(SuperZoom);
             HistogramEqualisationCommand=new DelegateCommand(HistoEqual);
-
+            
+            
             ZoomInCommand = new DelegateCommand(ZoomIn);
             ZoomOutCommand = new DelegateCommand(ZoomOut);
             GoucheCommand = new DelegateCommand(Gouche);
@@ -230,31 +232,55 @@ namespace Drawing_App.VM
             }
             LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
             LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
-            ColorPalettes = new ObservableCollection<ObservableCollection<Brush>>();
-            ColorPalettes.Add(new ObservableCollection<Brush>
-            {
-                new SolidColorBrush(Colors.Red),
-                new SolidColorBrush(Colors.Sienna),
-                new SolidColorBrush(Colors.Maroon),
-                new SolidColorBrush(Colors.Crimson)
-            });
-            ColorPalettes.Add(new ObservableCollection<Brush>
-            {
-                new SolidColorBrush(Colors.Cyan),
-                new SolidColorBrush(Colors.Teal),
-                new SolidColorBrush(Colors.Lavender),
-                new SolidColorBrush(Colors.Orchid)
-            });
-            ColorPalettes.Add(new ObservableCollection<Brush>
-            {
-                new SolidColorBrush(Colors.Salmon),
-                new SolidColorBrush(Colors.Coral),
-                new SolidColorBrush(Colors.Pink),
-                new SolidColorBrush(Colors.Magenta)
-            });
+            ColorPalettes = new ObservableCollection<ObservableCollection<CustomPallete>>();
+            ColorPalettes.Add(new ObservableCollection<CustomPallete>
+{
+    new CustomPallete(new SolidColorBrush(Colors.Red), 0,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Sienna), 1,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Maroon), 2,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Crimson), 3,ColorSelected)
+});
+
+            ColorPalettes.Add(new ObservableCollection<CustomPallete>
+{
+    new CustomPallete(new SolidColorBrush(Colors.Cyan), 0,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Teal), 1,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Lavender), 2,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Orchid), 3,ColorSelected)
+});
+
+            ColorPalettes.Add(new ObservableCollection<CustomPallete>
+{
+    new CustomPallete(new SolidColorBrush(Colors.Salmon), 0,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Coral), 1,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Pink), 2,ColorSelected),
+    new CustomPallete(new SolidColorBrush(Colors.Magenta), 3,ColorSelected)
+});
+
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+        }
+        private void ColorSelected(int selectedIndex)
+        {
+            
+            if (selectedIndex >= 0 && selectedIndex < SelectedPalette.Count)
+            {
+                var selectedBrush = SelectedPalette[selectedIndex];
+                CurrentColor=selectedBrush.ColorBrush.Color;
+
+               
+                RectangleFill = selectedBrush.ColorBrush;
+                _currentBrush.Drawing = new GeometryDrawing(
+                brush: new SolidColorBrush(CurrentColor),   // Fill brush
+                pen: new Pen(new SolidColorBrush(CurrentColor), 1), // Outline pen
+                geometry: new RectangleGeometry(new Rect(0, 0, 10, 10))
+            );
+                UpdateColor(1);
+                // Perform actions with the selected color (e.g., display a message or update UI)
+
+                MessageBox.Show($"You clicked on color at index: {selectedIndex} ");
+            }
         }
         private void OpenPalleteGenerator()
         {
@@ -792,7 +818,7 @@ namespace Drawing_App.VM
         }
         private void StartStroke(Point? startPoint)
         {
-            UpdateColor();
+          
             
             if (startPoint == null || SelectedLayer is not DrawingLayer drawingLayer)
                 return;
@@ -800,6 +826,8 @@ namespace Drawing_App.VM
             {
                 Points.Push(startPoint.Value);
             }
+        
+
             // Initialize a new polyline to represent the stroke
             drawingLayer.StartStroke(startPoint.Value);
 
@@ -1123,7 +1151,7 @@ namespace Drawing_App.VM
 
     
 
-    private void UpdateBrush()
+    public void UpdateBrush()
     {
         DrawingAttributes.Width = BrushSize;
 
@@ -1136,16 +1164,31 @@ namespace Drawing_App.VM
 
         }
 
-    private void UpdateColor()
+    public void UpdateColor(int i=0)
     {
-        CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
-        DrawingAttributes.Color = CurrentColor;
-        RectangleFill=new SolidColorBrush(CurrentColor);
-            if (SelectedLayer is DrawingLayer drawingLayer)
+            if (i == 0)
             {
-                // If it is a DrawingLayer, end the stroke
-                drawingLayer.SetBrush(_currentBrush, BrushSize);
+                CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
+                DrawingAttributes.Color = CurrentColor;
+                RectangleFill = new SolidColorBrush(CurrentColor);
+                if (SelectedLayer is DrawingLayer drawingLayer)
+                {
+                    // If it is a DrawingLayer, end the stroke
+                    drawingLayer.SetBrush(_currentBrush, BrushSize);
+                }
             }
+            else
+            {
+               
+                DrawingAttributes.Color = CurrentColor;
+                RectangleFill = new SolidColorBrush(CurrentColor);
+                if (SelectedLayer is DrawingLayer drawingLayer)
+                {
+                    // If it is a DrawingLayer, end the stroke
+                    drawingLayer.SetBrush(_currentBrush, BrushSize);
+                }
+            }
+        
 
 
 

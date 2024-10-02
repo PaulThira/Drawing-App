@@ -21,7 +21,7 @@ namespace Drawing_App.View
     /// </summary>
     public partial class ColorPalleteGenerator : Window
     {
-        public ObservableCollection<Brush> pallete {  get; set; }
+        public ObservableCollection<CustomPallete> pallete {  get; set; }
         public ColorPalleteGenerator()
         {
             InitializeComponent();

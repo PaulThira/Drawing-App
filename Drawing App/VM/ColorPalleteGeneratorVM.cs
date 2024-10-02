@@ -67,8 +67,8 @@ namespace Drawing_App.VM
                 return gradientBrush;
             }
         }
-        private ObservableCollection<Brush> _selectedPalette;
-        public ObservableCollection<Brush> SelectedPalette
+        private ObservableCollection<CustomPallete> _selectedPalette;
+        public ObservableCollection<CustomPallete> SelectedPalette
         {
             get => _selectedPalette;
             set => SetProperty(ref _selectedPalette, value);
@@ -84,7 +84,7 @@ namespace Drawing_App.VM
             ColorSelectedCommand = new DelegateCommand<ColorPoint>(OnColorSelected);
             SelectedColor = new SolidColorBrush(Colors.Cyan);
             AddColorCommand = new DelegateCommand(AddColor);
-            SelectedPalette = new ObservableCollection<Brush>();
+            SelectedPalette = new ObservableCollection<CustomPallete>();
             
             h = "0";
             s = "0";
@@ -124,9 +124,9 @@ namespace Drawing_App.VM
                         if (index1 != -1&& index2!=-1)
                         {
                            var colored= ColorPoints[index1];
-                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            SelectedPalette.Add(new CustomPallete( new SolidColorBrush(colored.Color.Color),SelectedPalette.Count));
                             var coloured2= ColorPoints[index2];
-                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));    
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(coloured2.Color.Color), SelectedPalette.Count));    
                         }
                     }
                 }
@@ -162,7 +162,7 @@ namespace Drawing_App.VM
                         if (index1 != -1 )
                         {
                             var colored = ColorPoints[index1];
-                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(colored.Color.Color), SelectedPalette.Count));
                             
                         }
                     }
@@ -199,9 +199,9 @@ namespace Drawing_App.VM
                         if (index1 != -1 && index2 != -1)
                         {
                             var colored = ColorPoints[index1];
-                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(colored.Color.Color), SelectedPalette.Count));
                             var coloured2 = ColorPoints[index2];
-                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(coloured2.Color.Color), SelectedPalette.Count));
                         }
                     }
                 }
@@ -237,10 +237,10 @@ namespace Drawing_App.VM
                         if (index1 != -1 && index2 != -1)
                         {
                             var colored = ColorPoints[index1];
-                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(colored.Color.Color), SelectedPalette.Count));
                             var coloured2 = ColorPoints[index2];
-                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));
-                            
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(coloured2.Color.Color), SelectedPalette.Count));
+
                         }
                     }
                 }
@@ -280,11 +280,11 @@ namespace Drawing_App.VM
                         if (index1 != -1 && index2 != -1&&index3!=-1)
                         {
                             var colored = ColorPoints[index1];
-                            SelectedPalette.Add(new SolidColorBrush(colored.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(colored.Color.Color), SelectedPalette.Count));
                             var coloured2 = ColorPoints[index2];
-                            SelectedPalette.Add(new SolidColorBrush(coloured2.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(coloured2.Color.Color), SelectedPalette.Count));
                             var coloured3 = ColorPoints[index3];
-                            SelectedPalette.Add(new SolidColorBrush(coloured3.Color.Color));
+                            SelectedPalette.Add(new CustomPallete(new SolidColorBrush(coloured3.Color.Color), SelectedPalette.Count));
                         }
                     }
                 }
@@ -307,7 +307,7 @@ namespace Drawing_App.VM
         private void AddColor()
         {
             // Add a new color to the palette (for example, a random color)
-            SelectedPalette.Add(SelectedColor);
+            SelectedPalette.Add(new CustomPallete(SelectedColor,SelectedPalette.Count));
         }
         public void SelectSaturationValue(double x, double y, double width, double height)
         {
