@@ -34,6 +34,8 @@ namespace Drawing_App.VM
 {
     public class MainWindowVM : BindableBase
     {
+        public bool MirrorModeEnabled {  get; set; }
+        public MirrorAxis axis {  get; set; }
         private double _brushSize;
         private double _hue;
         private double _saturation;
@@ -58,6 +60,7 @@ namespace Drawing_App.VM
         private Brush harmony;
         private Polyline _currentPolyline;
         public Stack<Point> Points = new Stack<Point>();
+        public Stack<Point> MirroredPoints = new Stack<Point>();
         public ObservableCollection<Layer> Layers { get; }
         private Layer _selectedLayer;
         private ObservableCollection<ObservableCollection<CustomPallete>> _colorPalettes;
@@ -148,16 +151,20 @@ namespace Drawing_App.VM
         public ICommand PreviousPaletteCommand { get; }
         public ICommand PalletteGeneratorCommand { get; }
         public ICommand PickColorFromPalleteCommand { get; }
+        public ICommand MirrorCommand { get; }
+        public ICommand TriangleTCommand { get; }
         public MainWindowVM()
 
         {
+            TriangleTCommand = new DelegateCommand(Triangle);
+            MirrorCommand = new DelegateCommand<string>(Mirror);
             PalletteGeneratorCommand = new DelegateCommand(OpenPalleteGenerator);
             NegativeFilterCommand = new DelegateCommand(NegativeFilter);
             Spline = new DelegateCommand(Splined);
             GrayscaleCommand=new DelegateCommand(Grayscale);
             SuperZoomCommand=new DelegateCommand(SuperZoom);
             HistogramEqualisationCommand=new DelegateCommand(HistoEqual);
-            
+            MirrorModeEnabled=false;
             
             ZoomInCommand = new DelegateCommand(ZoomIn);
             ZoomOutCommand = new DelegateCommand(ZoomOut);
@@ -261,6 +268,33 @@ namespace Drawing_App.VM
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
         }
+        public void Triangle()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                i.TriangleThresholding();
+            }
+        }
+        private void Mirror(string type)
+
+        {
+            MirrorModeEnabled = true;
+            if (type == "0")
+            {
+                axis = MirrorAxis.Horizontal;
+            }
+            else if (type == "1")
+            {
+                axis = MirrorAxis.Vertical;
+            }
+            else if (type == "2") { 
+                axis = MirrorAxis.Both;
+            }
+            else
+            {
+                MirrorModeEnabled = false;
+            }
+        }
         private void ColorSelected(int selectedIndex)
         {
             
@@ -305,7 +339,25 @@ namespace Drawing_App.VM
                 SelectedPalette = ColorPalettes[currentIndex + 1];
             }
         }
+        private Point GetMirroredPoint(Point originalPoint)
+        {
+            double mirroredX = originalPoint.X;
+            double mirroredY = originalPoint.Y;
+            double canvasHeight = double.Parse(height);
+            double canvasWidth = double.Parse(width);
 
+            if (axis == MirrorAxis.Horizontal || axis == MirrorAxis.Both)
+            {
+                mirroredY = canvasHeight - originalPoint.Y;
+            }
+
+            if (axis == MirrorAxis.Vertical || axis == MirrorAxis.Both)
+            {
+                mirroredX = canvasWidth - originalPoint.X;
+            }
+
+            return new Point(mirroredX, mirroredY);
+        }
         private void MoveToPreviousPalette()
         {
             int currentIndex = ColorPalettes.IndexOf(SelectedPalette);
@@ -825,8 +877,12 @@ namespace Drawing_App.VM
             if (startPoint != null)
             {
                 Points.Push(startPoint.Value);
+                var m=GetMirroredPoint(startPoint.Value);
+                MirroredPoints.Push(m);
+
+                
             }
-        
+            
 
             // Initialize a new polyline to represent the stroke
             drawingLayer.StartStroke(startPoint.Value);
@@ -898,6 +954,9 @@ namespace Drawing_App.VM
 
             // Add the current point to the polyline
             drawingLayer.ContinueStroke(currentPoint.Value);
+            var m = GetMirroredPoint(currentPoint.Value);
+            MirroredPoints.Push(m);
+
         }
 
         private void EndStroke()
@@ -911,9 +970,25 @@ namespace Drawing_App.VM
 
             if (SelectedLayer is DrawingLayer drawingLayer)
             {
+                
                 // Finalize the stroke
                 drawingLayer.EndStroke();
+
+
+                if (MirrorModeEnabled) {
+                    drawingLayer.StartStroke(MirroredPoints.First(),true);
+                    foreach (var point in MirroredPoints.Skip(1))
+                    {
+                        drawingLayer.ContinueStroke(point,true);
+                    }
+                    drawingLayer.EndStroke(true);
+                }
+                
             }
+            
+
+            // Clear any temporary data used for tracking mirrored points
+           
         }
 
 

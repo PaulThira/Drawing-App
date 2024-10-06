@@ -30,6 +30,7 @@ namespace Drawing_App.Model
         public override UIElement VisualElement => _image;
         public string _filePath {  get; set; }
         public BasicOperations basicOperations { get; set; }
+        public Thresholding thresholding { get; set; }
         public PointwiseOperations pointwiseOperations { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
@@ -56,6 +57,7 @@ namespace Drawing_App.Model
             _image.MouseDown += Image_MouseDown;
             Point= new Point();
             pointwiseOperations = new PointwiseOperations();
+            thresholding = new Thresholding();
 
         }
         public void GrayscaleConversion()
@@ -65,6 +67,13 @@ namespace Drawing_App.Model
             ProcessedImage p = new ProcessedImage(grays);
             p.Show();
 
+        }
+        public void TriangleThresholding()
+        {
+            Image<Gray,byte>gray=thresholding.Triangle(Bgr);
+            var grays = ConvertToBitmapSource(gray);
+            ProcessedImage p = new ProcessedImage( grays);
+            p.Show();
         }
         public void HistogramEqualisation()
         {
