@@ -118,5 +118,23 @@ namespace Algorithms.Sections
             }
             return result;
         }
+        public Image<Gray,byte> InputThresholding(Image<Bgr, byte> image,int t)
+        {
+            var grays = basicOperations.BgrToGrayscale(image);
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
+                {
+                    if (grays.Data[i, j, 0] > t)
+                    {
+                        grays.Data[i, j, 0] = 255;
+                    }
+                    else { grays.Data[i, j, 0] = 0; }
+
+                }
+            }
+            return grays;
+
+        }
     }
 }

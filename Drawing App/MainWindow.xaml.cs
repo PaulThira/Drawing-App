@@ -72,6 +72,13 @@ namespace Drawing_App
                 _viewModel.OnBrushSizeChanged(e.NewValue);
             }
         }
+        private void Thresholding_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.Threshold =(int)( e.NewValue);   
+            }
+        }
 
         private void HueSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {

@@ -68,6 +68,13 @@ namespace Drawing_App.Model
             p.Show();
 
         }
+        public void Thresholding(int g)
+        {
+            Image<Gray, byte> gray = thresholding.InputThresholding(Bgr,g);
+            var grays = ConvertToBitmapSource(gray);
+            ProcessedImage p = new ProcessedImage(grays);
+            p.Show();
+        }
         public void TriangleThresholding()
         {
             Image<Gray,byte>gray=thresholding.Triangle(Bgr);

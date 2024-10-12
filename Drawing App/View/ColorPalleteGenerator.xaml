@@ -31,7 +31,7 @@
     <Window.DataContext>
         <VM:ColorPalleteGeneratorVM/>
     </Window.DataContext>
-    <Grid Background="#FFE1C0A9">
+    <Grid Background="#D4CDC3">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2.5*"/>
             <ColumnDefinition Width="*"/>
@@ -41,7 +41,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="10*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Column="0" Grid.Row="1" Background="#FFE1C0A9">
+        <StackPanel Grid.Column="0" Grid.Row="1" Background="#f8f4e3">
             <Canvas x:Name="ColorWheelCanvas" Width="449" Height="450" HorizontalAlignment="Center" Background="Transparent">
                 <ItemsControl ItemsSource="{Binding ColorPoints}">
                     <ItemsControl.ItemsPanel>
@@ -68,7 +68,7 @@
                 </ItemsControl>
             </Canvas>
         </StackPanel>
-        <StackPanel Grid.Column="1" Grid.RowSpan="2" Background="#FFCD8F63">
+        <StackPanel Grid.Column="1" Grid.RowSpan="2" Background="#D5D0CD">
             <Rectangle x:Name="svRectangle"
                    Width="100" Height="100"
                    Fill="{Binding SaturationValueGradient}"
@@ -104,7 +104,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- Ellipses to represent each color in the selected palette -->
-                            <Ellipse Width="30" Height="30" Fill="{Binding}" Stroke="Black" StrokeThickness="1" Margin="5"/>
+                            <Ellipse Width="30" Height="30" Fill="{Binding ColorBrush}" Stroke="Black" StrokeThickness="1" Margin="5"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -112,7 +112,7 @@
                 <!-- Button to add a new color to the palette -->
               
             </StackPanel>
-            <Button Width="80" Height="30" Content="Add color" Command="{Binding AddColorCommand}" Margin="0 10 0 0" Background="#FF925931"/>
+            <Button Width="80" Height="30" Content="Add color" Command="{Binding AddColorCommand}" Margin="0 10 0 0" Background="#F8F4E3"/>
             <Menu Height="20" Background="Transparent" HorizontalAlignment="Center" Margin="0 20 0 0" >
                 <MenuItem Header="Color Schemes" HorizontalAlignment="Center" >
                     <MenuItem Header="Triadic" Command="{Binding ColorSchemeCommand}" CommandParameter="0"/>
@@ -123,7 +123,7 @@
                    
                 </MenuItem>
             </Menu>
-            <Button Width="80" Height="30" Content="Save Pallete"  Margin="0 10 0 0" Background="#FF925931" Click="Button_Click"/>
+            <Button Width="80" Height="30" Content="Save Pallete"  Margin="0 10 0 0" Background="#F8F4E3" Click="Button_Click"/>
 
         </StackPanel>
 

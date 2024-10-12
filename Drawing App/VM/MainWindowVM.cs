@@ -35,6 +35,12 @@ namespace Drawing_App.VM
     public class MainWindowVM : BindableBase
     {
         public bool MirrorModeEnabled {  get; set; }
+        private int threshold;
+        public int Threshold
+        {
+            get => threshold;
+            set => SetProperty(ref threshold, value);
+        }
         public MirrorAxis axis {  get; set; }
         private double _brushSize;
         private double _hue;
@@ -153,9 +159,11 @@ namespace Drawing_App.VM
         public ICommand PickColorFromPalleteCommand { get; }
         public ICommand MirrorCommand { get; }
         public ICommand TriangleTCommand { get; }
+        public ICommand ThresholdCommand { get; }
         public MainWindowVM()
 
         {
+            ThresholdCommand = new DelegateCommand(Thresholding);
             TriangleTCommand = new DelegateCommand(Triangle);
             MirrorCommand = new DelegateCommand<string>(Mirror);
             PalletteGeneratorCommand = new DelegateCommand(OpenPalleteGenerator);
@@ -267,6 +275,14 @@ namespace Drawing_App.VM
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+        }
+        public void Thresholding()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.Thresholding(Threshold);
+            }
+
         }
         public void Triangle()
         {

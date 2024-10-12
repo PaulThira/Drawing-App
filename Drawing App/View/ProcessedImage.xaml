@@ -20,11 +20,11 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="8*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#FFEDB081" ></StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="1"  Background="#FFEDB081"  >
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="#F8F4E3" ></StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1"  Background="#F8F4E3"  >
             <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" >
-                <Button Content="Back" Command="{Binding PreviousImageCommand}" Width="50" Background="#FF965A2C" Foreground="#FFF0C387" />
-                <Button Content="Next" Command="{Binding NextImageCommand}" Width="50" Background="#FF965A2C" Foreground="#FFF0C387" />
+                <Button Content="Back" Command="{Binding PreviousImageCommand}" Width="50" Background="#9A998C" Foreground="Black" />
+                <Button Content="Next" Command="{Binding NextImageCommand}" Width="50" Background="#9A998C" Foreground="Black" />
             </StackPanel>
             <Label  HorizontalAlignment="Center" Content="Red"/>
             <TextBox Height="20" Width="95" Text="{Binding Red,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
@@ -33,7 +33,7 @@
             <Label  HorizontalAlignment="Center" Content="Blue"/>
             <TextBox Height="20" Width="95" Text="{Binding Blue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
-        <StackPanel x:Name="Stack" Grid.Row="1" Grid.Column="0"  Background="#FF965A2C" >
+        <StackPanel x:Name="Stack" Grid.Row="1" Grid.Column="0"  Background="#9A998C" >
             <Image x:Name="Imagery" Source="{Binding CurrentImage}"    MouseLeftButtonDown="Image_MouseLeftButtonDown"/>
             
 

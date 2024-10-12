@@ -10,10 +10,11 @@
     <Window.DataContext>
         <viewmodel:SplineToolVM/>
     </Window.DataContext>
-    <Grid Background="#FFEEB269">
+    <Grid Background="#9A998C">
+        <Button Width="50" Height="50" Content="X" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#F8F4E3" Click="Button_Click_1"/>
         <Label HorizontalAlignment="Center" FontSize="50" Content="Spline Tool"/>
         <Canvas x:Name="canvas" Width="255" Height="255" Background="White" MouseLeftButtonDown="OnCanvasClick"/>
-        <Button  Content="Calculate Curve" Height="50" Width="100" VerticalAlignment="Bottom"  Background="#FFA3652C" Click="Button_Click"/>
+        <Button  Content="Calculate Curve" Height="50" Width="100" VerticalAlignment="Bottom"  Background="#F8F4E3" Click="Button_Click"/>
 
     </Grid>
 </Window>

@@ -27,9 +27,9 @@ namespace Algorithms.Sections
                 for (int j = 0; j < image.Height; j++)
                 {
                     int b, g, r;
-                    b = image.Data[i, j, 0];
-                    g = image.Data[i, j, 1];
-                    r = image.Data[i, j, 2];
+                    b = image.Data[j, i, 0];
+                    g = image.Data[j, i, 1];
+                    r = image.Data[j, i, 2];
                     blue[b]++;
                     green[g]++;
                     red[r]++;

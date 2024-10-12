@@ -75,6 +75,11 @@ namespace Drawing_App.View
                 LUT=vm.LUT;
                 int g = LUT[0];
             }
+           
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
             this.DialogResult = true;
         }
     }
