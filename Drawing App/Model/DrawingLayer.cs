@@ -15,6 +15,7 @@ using System.Xml.Linq;
 using Brushes = System.Windows.Media.Brushes;
 using Brush = System.Windows.Media.Brush;
 using Emgu.CV.Linemod;
+using System.Security.Cryptography.Xml;
 namespace Drawing_App.Model
 
 {
@@ -41,9 +42,13 @@ namespace Drawing_App.Model
         public ICommand EndStrokeCommand { get; }
         public Brush _currentBrush { get; set; }
         public double thickness { get; set; }
+        public Shape _selectedShape { get; set; }
+        private bool _isDragging = false;
         public override UIElement VisualElement => _canvas;
+        private TranslateTransform _transform;
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
-
+        private Point _dragStartPoint; // Starting point for dragging
+        private double _offsetX, _offsetY;
         public DrawingLayer(ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand ,double opacity = 1.0, bool isVisible = true, string name="Layer")
             : base(opacity, isVisible, name)
         {
@@ -59,6 +64,8 @@ namespace Drawing_App.Model
             _canvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
             _canvas.MouseMove += Canvas_MouseMove;
             _canvas.MouseLeftButtonUp += Canvas_MouseLeftButtonUp;
+            _canvas.MouseRightButtonDown += Canvas_MouseRightButtonDown;
+            _canvas.MouseRightButtonUp += Canvas_MouseRightButtonUp;
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
             _detector = new ShapeDetector();
@@ -90,16 +97,95 @@ namespace Drawing_App.Model
             _isDrawing = true;
             _startPoint = e.GetPosition(_canvas);
             StartStrokeCommand?.Execute(_startPoint);
-            
+           
+
+        }
+        private void Canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Point clickPoint = e.GetPosition(_canvas);
+            double minDistance = double.MaxValue;
+            Shape closestShape = null;
+
+            // Loop through all the shapes in the canvas
+            foreach (UIElement element in _canvas.Children)
+            {
+                if (element is Shape shape)
+                {
+                    Point shapeCenter = GetShapeCenter(shape);
+
+                    // Calculate Euclidean distance between the clicked point and the shape's center
+                    double distance = GetEuclideanDistance(clickPoint, shapeCenter);
+
+                    // Keep track of the shape with the shortest distance
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        closestShape = shape;
+                    }
+                }
+            }
+
+            // If we found a closest shape, select it
+            if (closestShape != null)
+            {
+                // Optionally highlight the selected shape, for example:
+                _selectedShape = closestShape;
+                _isDragging = true;
+
+                // Get the mouse's position relative to the canvas
+                Point mousePosition = e.GetPosition(_canvas);
+
+                // Calculate the offset between the mouse and the shape's position
+                _offsetX = mousePosition.X - Canvas.GetLeft(_selectedShape);
+                _offsetY = mousePosition.Y - Canvas.GetTop(_selectedShape);
+
+                // Capture the mouse to track movements even if it leaves the shape's bounds
+                _canvas.CaptureMouse();
+            }
+
+        }
+        private void Canvas_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _isDragging = false;
+            _canvas.ReleaseMouseCapture();
+            _selectedShape = null;
+
+        }
+        private Point GetShapeCenter(Shape shape)
+        {
+            double left = Canvas.GetLeft(shape);
+            double top = Canvas.GetTop(shape);
+            double centerX = left + (shape.Width / 2);
+            double centerY = top + (shape.Height / 2);
+
+            return new Point(centerX, centerY);
         }
 
+        // Helper method to calculate Euclidean distance
+        private double GetEuclideanDistance(Point point1, Point point2)
+        {
+            double dx = point1.X - point2.X;
+            double dy = point1.Y - point2.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
         // Event handler for continuing a stroke
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_isDrawing)
+            if (_isDrawing&&!_isDragging)
             {
                 Point currentPoint = e.GetPosition(_canvas);
                 ContinueStrokeCommand?.Execute(currentPoint);
+            }
+            else
+            {
+                if (_selectedShape != null)
+                {
+                    Point currentMousePosition = e.GetPosition(_canvas);
+
+                    // Move the shape by adjusting its position
+                    Canvas.SetLeft(_selectedShape, currentMousePosition.X - _offsetX);
+                    Canvas.SetTop(_selectedShape, currentMousePosition.Y - _offsetY);
+                }
             }
         }
         public void StartShape(Point startPoint, ShapeKind shapeType)
@@ -264,6 +350,13 @@ namespace Drawing_App.Model
             ExecuteDrawingAction(_currentShape);
 
             _currentShape = null;
+        }
+        public void RotateShape(Point startPoint, double angle)
+        {
+            if (_currentShape == null) return;
+
+            RotateTransform rotateTransform = new RotateTransform(angle, _currentShape.Width / 2, _currentShape.Height / 2);
+            _currentShape.RenderTransform = rotateTransform;
         }
         // Event handler for ending a stroke
         private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
