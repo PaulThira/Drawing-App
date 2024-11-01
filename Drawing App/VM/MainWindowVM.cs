@@ -160,9 +160,17 @@ namespace Drawing_App.VM
         public ICommand MirrorCommand { get; }
         public ICommand TriangleTCommand { get; }
         public ICommand ThresholdCommand { get; }
+        public ICommand ResizeUpCommand { get; }
+        public ICommand ResizeDownCommand { get; }
+        public ICommand ResizeLeftCommand { get; }
+        public ICommand ResizeRightCommand { get; }
         public MainWindowVM()
 
         {
+            ResizeUpCommand = new DelegateCommand(Up);
+            ResizeDownCommand = new DelegateCommand(Down);
+            ResizeLeftCommand = new DelegateCommand(Left);
+            ResizeRightCommand = new DelegateCommand(Right);
             ThresholdCommand = new DelegateCommand(Thresholding);
             TriangleTCommand = new DelegateCommand(Triangle);
             MirrorCommand = new DelegateCommand<string>(Mirror);
@@ -275,6 +283,34 @@ namespace Drawing_App.VM
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+        }
+        private void Up()
+        {
+            if(SelectedLayer is DrawingLayer d)
+            {
+                d.ResizeShapeWithArrows("Up");
+            }
+        }
+        private void Down()
+        {
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.ResizeShapeWithArrows("Down");
+            }
+        }
+        private void Right()
+        {
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.ResizeShapeWithArrows("Right");
+            }
+        }
+        private void Left()
+        {
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.ResizeShapeWithArrows("Left");
+            }
         }
         public void Thresholding()
         {

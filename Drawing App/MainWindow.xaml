@@ -29,7 +29,10 @@
         <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
         <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
         <KeyBinding Command="{Binding ZoomInCommand}" Key="A" Modifiers="Control" />
-
+        <KeyBinding Command="{Binding ResizeUpCommand}" Key="Up"/>
+        <KeyBinding Command="{Binding ResizeDownCommand}" Key="Down"/>
+        <KeyBinding Command="{Binding ResizeLeftCommand}" Key="Left"/>
+        <KeyBinding Command="{Binding ResizeRightCommand}" Key="Right"/>
         <KeyBinding Command="{Binding ZoomOutCommand}" Key="B" Modifiers="Control" />
 
     </Window.InputBindings>
@@ -52,7 +55,8 @@
                     <DataTemplate>
                         <ContentPresenter Content="{Binding VisualElement}"
                                   Opacity="{Binding Opacity}"
-                                  VerticalAlignment="Top" HorizontalAlignment="Center">
+                                  VerticalAlignment="Top" HorizontalAlignment="Center"
+                                          FocusManager.IsFocusScope="True">
                             <!-- RenderTransform for Zoom Level -->
                             <ContentPresenter.RenderTransform>
                                 <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}" />
