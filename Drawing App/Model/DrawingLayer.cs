@@ -81,7 +81,74 @@ namespace Drawing_App.Model
             thickness = 5;
             _detector = new ShapeDetector();
             corectShapes=true;
+            _canvas.MouseWheel += Canvas_MouseWheel;
+
         }
+        private double _rotationAngle = 0; // Track the cumulative rotation angle
+
+        private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // Only rotate if a shape is selected
+            if (_selectedShape == null) return;
+
+            // Determine the rotation angle increment based on scroll direction
+            double rotationIncrement = 5; // Degrees per scroll tick (adjust as desired)
+            _rotationAngle += e.Delta > 0 ? rotationIncrement : -rotationIncrement;
+
+            // Determine the center of rotation
+            Point rotationCenter;
+            if (_selectedShape is Polygon polygon)
+            {
+                // For polygons, calculate the centroid
+                rotationCenter = GetPolygonCentroid(polygon);
+            }
+            else
+            {
+                // For other shapes, use their center point
+                rotationCenter = new Point(_selectedShape.Width / 2, _selectedShape.Height / 2);
+            }
+
+            // Apply the rotation transformation
+            RotateTransform rotateTransform = new RotateTransform(_rotationAngle, rotationCenter.X, rotationCenter.Y);
+
+            if (_selectedShape.RenderTransform is TransformGroup transformGroup)
+            {
+                // Remove previous rotation and apply the new rotation
+                transformGroup.Children.OfType<RotateTransform>().ToList().ForEach(r => transformGroup.Children.Remove(r));
+                transformGroup.Children.Add(rotateTransform);
+            }
+            else
+            {
+                // Create a TransformGroup if none exists and apply the rotation
+                TransformGroup newTransformGroup = new TransformGroup();
+                newTransformGroup.Children.Add(rotateTransform);
+                _selectedShape.RenderTransform = newTransformGroup;
+            }
+            UpdateBoundingBox(_selectedShape);
+
+            // Optional: Force a visual update
+            _selectedShape.InvalidateVisual();
+            
+        }
+        private Point GetPolygonCentroid(Polygon polygon)
+        {
+            double sumX = 0, sumY = 0;
+            int numPoints = polygon.Points.Count;
+
+            foreach (var point in polygon.Points)
+            {
+                sumX += point.X;
+                sumY += point.Y;
+            }
+
+            // Calculate the average to get the centroid
+            double centerX = sumX / numPoints;
+            double centerY = sumY / numPoints;
+
+            return new Point(centerX, centerY);
+        }
+
+
         private void Canvas_KeyDown(object sender, KeyEventArgs e)
         {
             if (_selectedShape != null)
@@ -381,45 +448,45 @@ namespace Drawing_App.Model
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_isDrawing&&!_isDragging)
+            if (_isDrawing && !_isDragging)
             {
+                // Handle drawing a stroke
                 Point currentPoint = e.GetPosition(_canvas);
                 ContinueStrokeCommand?.Execute(currentPoint);
             }
-            else if (_isResizing && _selectedShape != null)
+            else if (_isDragging && _selectedShape != null)
             {
+                // Get the current mouse position
                 Point currentMousePosition = e.GetPosition(_canvas);
-                
+
+                // Calculate exact new position based on initial drag offset
+                double newX = currentMousePosition.X - _offsetX;
+                double newY = currentMousePosition.Y - _offsetY;
+
+                // Move the shape to follow the cursor closely
+                if (_selectedShape is Polygon polygon)
+                {
+                    var newPoints = new PointCollection();
+                    foreach (var originalPoint in _originalPolygonPoints)
+                    {
+                        newPoints.Add(new Point(originalPoint.X + newX, originalPoint.Y + newY));
+                    }
+                    polygon.Points = newPoints;
+                }
+                else
+                {
+                    Canvas.SetLeft(_selectedShape, newX);
+                    Canvas.SetTop(_selectedShape, newY);
+                }
+
+                // Update the bounding box to reflect the new position
                 UpdateBoundingBox(_selectedShape);
             }
-            else
-            {
-                if (_selectedShape != null)
-                {
-                    Point currentMousePosition = e.GetPosition(_canvas);
-                    if (_selectedShape is Polygon polygon)
-                    {
-                        // Calculate how much the mouse has moved since the original position
-                        double deltaX = currentMousePosition.X - _offsetX;
-                        double deltaY = currentMousePosition.Y - _offsetY;
-
-                        // Move each point of the polygon relative to the original points
-                        for (int i = 0; i < polygon.Points.Count; i++)
-                        {
-                            var originalPoint = _originalPolygonPoints[i];
-                            polygon.Points[i] = new Point(originalPoint.X + deltaX, originalPoint.Y + deltaY);
-                        }
-                    }
-                    else
-                    {
-                        // For other shapes (Rectangle, Ellipse, etc.), use Canvas.SetLeft and SetTop
-                        Canvas.SetLeft(_selectedShape, currentMousePosition.X - _offsetX);
-                        Canvas.SetTop(_selectedShape, currentMousePosition.Y - _offsetY);
-                    }
-                    UpdateBoundingBox(_selectedShape);
-                }
-            }
         }
+
+
+
+
         public void ResizeShapeWithArrows(string direction)
         {
             if (_selectedShape == null) return;

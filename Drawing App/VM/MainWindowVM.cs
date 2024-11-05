@@ -164,9 +164,11 @@ namespace Drawing_App.VM
         public ICommand ResizeDownCommand { get; }
         public ICommand ResizeLeftCommand { get; }
         public ICommand ResizeRightCommand { get; }
+        public ICommand GausianBlurrCommand { get; }
         public MainWindowVM()
 
         {
+            GausianBlurrCommand = new DelegateCommand(Gausian);
             ResizeUpCommand = new DelegateCommand(Up);
             ResizeDownCommand = new DelegateCommand(Down);
             ResizeLeftCommand = new DelegateCommand(Left);
@@ -283,6 +285,13 @@ namespace Drawing_App.VM
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+        }
+        private void Gausian()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                i.GausianBlurr();
+            }
         }
         private void Up()
         {

@@ -226,6 +226,10 @@
                         <MenuItem Header="Value" Command="{Binding ThresholdCommand}"/>
 
                     </MenuItem>
+                    <MenuItem Header="Low Pass">
+                        <MenuItem Header="Gausian Blurr" Command="{Binding GausianBlurrCommand}"/>
+
+                    </MenuItem>
 
                 </MenuItem>
                 <MenuItem Header="Save As">

@@ -32,6 +32,7 @@ namespace Drawing_App.Model
         public BasicOperations basicOperations { get; set; }
         public Thresholding thresholding { get; set; }
         public PointwiseOperations pointwiseOperations { get; set; }
+        public HighPass highPass { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
@@ -58,6 +59,15 @@ namespace Drawing_App.Model
             Point= new Point();
             pointwiseOperations = new PointwiseOperations();
             thresholding = new Thresholding();
+            highPass = new HighPass();
+
+        }
+        public void GausianBlurr()
+        {
+            Image<Bgr,byte> blurr=highPass.GausianBlur(Bgr);
+            var blurs=ConvertToBitmapSource(blurr);
+            ProcessedImage p = new ProcessedImage(blurs);
+            p.Show();
 
         }
         public void GrayscaleConversion()
