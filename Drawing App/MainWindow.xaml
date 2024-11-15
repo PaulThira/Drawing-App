@@ -228,7 +228,11 @@
                     </MenuItem>
                     <MenuItem Header="Low Pass">
                         <MenuItem Header="Gausian Blurr" Command="{Binding GausianBlurrCommand}"/>
-
+                        <MenuItem Header="Fast Median Filter" Command="{Binding FastMedianFilter}"/>
+                    </MenuItem>
+                    <MenuItem Header="Morphological Operations">
+                        <MenuItem Header="Opening" Command="{Binding OpeningCommand}"/>
+                        <MenuItem Header="Closing" Command="{Binding ClosingCommand}"/>
                     </MenuItem>
 
                 </MenuItem>

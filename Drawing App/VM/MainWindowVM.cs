@@ -165,9 +165,15 @@ namespace Drawing_App.VM
         public ICommand ResizeLeftCommand { get; }
         public ICommand ResizeRightCommand { get; }
         public ICommand GausianBlurrCommand { get; }
+        public ICommand FastMedianFilter {  get; }
+        public ICommand OpeningCommand { get; }
+        public ICommand ClosingCommand { get; }
         public MainWindowVM()
 
         {
+            OpeningCommand=new DelegateCommand(Opening);
+            ClosingCommand=new DelegateCommand(Closing);
+            FastMedianFilter = new DelegateCommand(Median);
             GausianBlurrCommand = new DelegateCommand(Gausian);
             ResizeUpCommand = new DelegateCommand(Up);
             ResizeDownCommand = new DelegateCommand(Down);
@@ -286,9 +292,37 @@ namespace Drawing_App.VM
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
         }
-        private void Gausian()
+        private void Opening()
+        {
+            if (SelectedLayer is ImageLayer i)
+
+            {
+                float W = Threshold / 20;
+                i.Opening((int)W);
+            }
+        }
+        private void Closing()
+        {
+            if (SelectedLayer is ImageLayer i)
+
+            {
+                float W = Threshold / 20;
+                i.Closing((int)W);
+            }
+        }
+
+        private void Median()
         {
             if(SelectedLayer is ImageLayer i)
+
+            {
+                float W = Threshold / 10;
+                i.FastMedianFilter((int)W);
+            }
+        }
+        private void Gausian()
+        {
+            if (SelectedLayer is ImageLayer i)
             {
                 i.GausianBlurr();
             }

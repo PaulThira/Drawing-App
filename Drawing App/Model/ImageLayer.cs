@@ -25,14 +25,15 @@ namespace Drawing_App.Model
     {
         private readonly Image _image;
 
-        public Image<Bgr,Byte> Bgr { get; set; }
+        public Image<Bgr, Byte> Bgr { get; set; }
         public Point Point { get; set; }
         public override UIElement VisualElement => _image;
-        public string _filePath {  get; set; }
+        public string _filePath { get; set; }
         public BasicOperations basicOperations { get; set; }
         public Thresholding thresholding { get; set; }
         public PointwiseOperations pointwiseOperations { get; set; }
         public HighPass highPass { get; set; }
+        public MorphologicalOperations morphological {get;set;}
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
@@ -60,7 +61,23 @@ namespace Drawing_App.Model
             pointwiseOperations = new PointwiseOperations();
             thresholding = new Thresholding();
             highPass = new HighPass();
+            morphological = new MorphologicalOperations();
 
+        }
+        public void Opening(int i)
+        {
+            Image<Bgr,byte> o=morphological.Opening(Bgr,i,i);
+            var os=ConvertToBitmapSource(o);
+            ProcessedImage p=new ProcessedImage(os);
+            p.Show();
+
+        }
+        public void Closing(int i)
+        {
+            Image<Bgr, byte> o = morphological.Closing(Bgr, i, i);
+            var os = ConvertToBitmapSource(o);
+            ProcessedImage p = new ProcessedImage(os);
+            p.Show();
         }
         public void GausianBlurr()
         {
@@ -69,6 +86,13 @@ namespace Drawing_App.Model
             ProcessedImage p = new ProcessedImage(blurs);
             p.Show();
 
+        }
+        public void FastMedianFilter(int k)
+        {
+            Image<Bgr, byte> blurr = highPass.FastMedianFilter(Bgr,k);
+            var fm = ConvertToBitmapSource(blurr);
+            ProcessedImage p = new ProcessedImage(fm);
+            p.Show();
         }
         public void GrayscaleConversion()
         {
