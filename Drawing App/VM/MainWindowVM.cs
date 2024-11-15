@@ -29,6 +29,8 @@ using Pen = System.Windows.Media.Pen;
 using Brushes = System.Windows.Media.Brushes;
 using Application = System.Windows.Application;
 using System.Windows.Media.Effects;
+using System.Drawing.Imaging;
+
 
 namespace Drawing_App.VM
 {
@@ -417,7 +419,13 @@ namespace Drawing_App.VM
            var ok= color.ShowDialog();
             if (ok == true)
             {
-                ColorPalettes.Add(color.pallete);
+                ObservableCollection<CustomPallete> palettes = new ObservableCollection<CustomPallete>();
+                for (int i = 0; i < color.pallete.Count; i++)
+                {
+                    CustomPallete c = new CustomPallete(color.pallete[i].ColorBrush, i, ColorSelected);
+                    palettes.Add(c);
+                }
+                ColorPalettes.Add(palettes);
                 MessageBox.Show("Success");
             }
         }
