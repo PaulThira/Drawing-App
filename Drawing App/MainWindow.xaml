@@ -246,6 +246,7 @@
                     <MenuItem Header="Both" Command="{Binding MirrorCommand}" CommandParameter="2"/>
                     <MenuItem Header="Disable" Command="{Binding MirrorCommand}" CommandParameter="3"/>
                 </MenuItem>
+                <MenuItem Header="Brush Engine" Command="{Binding BrushEngineCommand}"/>
 
             </Menu>
         </StackPanel>

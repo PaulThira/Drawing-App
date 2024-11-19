@@ -101,7 +101,7 @@ namespace Drawing_App.VM
         public ICommand PencilCommand { get; }
         public ICommand PenCommand { get; }
         public ICommand MarkerCommand { get; }
-
+        public ICommand BrushEngineCommand { get; }
         public ICommand LayerCheckedCommand { get; }
         public ICommand LayerUncheckedCommand { get; }
         public ICommand ChangeShapeKind { get; }
@@ -220,7 +220,7 @@ namespace Drawing_App.VM
             PencilCommand = new DelegateCommand(PencilCall);
             MarkerCommand = new DelegateCommand(MarkerCall);
             MechanicalCommand = new DelegateCommand(Mechanical);
-         
+            BrushEngineCommand = new DelegateCommand(BrushEngine);
             Layers = new ObservableCollection<Layer>();
             _opacity = 1.0;
             BrushSize = 5;
@@ -293,6 +293,11 @@ namespace Drawing_App.VM
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+        }
+        private void BrushEngine()
+        {
+            CustomBrushes customBrushes = new CustomBrushes();
+            customBrushes.ShowDialog();
         }
         private void Opening()
         {
@@ -426,7 +431,7 @@ namespace Drawing_App.VM
                     palettes.Add(c);
                 }
                 ColorPalettes.Add(palettes);
-                MessageBox.Show("Success");
+               
             }
         }
 
