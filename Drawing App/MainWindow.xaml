@@ -177,7 +177,7 @@
             </StackPanel>
             <TextBlock Text="Thresholding point" HorizontalAlignment="Center"/>
             <Slider Name="Thresholding" Minimum="1" Maximum="255" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" Margin="10" ValueChanged="Thresholding_ValueChanged"/>
-
+            <Button Content="Save Threshold" Width="100" Height="50" Command="{Binding SaveThresholdCommand}" Background="#F8F4E3"/>
 
 
 
@@ -233,6 +233,10 @@
                     <MenuItem Header="Morphological Operations">
                         <MenuItem Header="Opening" Command="{Binding OpeningCommand}"/>
                         <MenuItem Header="Closing" Command="{Binding ClosingCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="High Pass Filters">
+                        <MenuItem Header="Sobel" Command="{Binding SobelCommand}"/>
+                        <MenuItem Header="Canny" Command="{Binding CannyCommand}"/>
                     </MenuItem>
 
                 </MenuItem>

@@ -107,6 +107,7 @@ namespace Drawing_App.VM
         public ICommand LayerUncheckedCommand { get; }
         public ICommand ChangeShapeKind { get; }
         private int _selectedLayerIndex;
+        private byte t1, t2;
         private ObservableCollection<CustomPallete> _selectedPalette;
         public ObservableCollection<CustomPallete> SelectedPalette
         {
@@ -174,9 +175,15 @@ namespace Drawing_App.VM
         public DelegateCommand<int?> BrushClickCommand { get; }
        public ObservableCollection<Model.CustomBrush> _brushes { get; set; }
         public ObservableCollection<String> _brush_names { get; set; }
+        public ICommand SobelCommand { get; }
+        public ICommand SaveThresholdCommand { get; }
+        public ICommand CannyCommand { get; }
         public MainWindowVM()
 
         {
+            CannyCommand=new DelegateCommand(Canny);
+            SaveThresholdCommand = new DelegateCommand(SaveThreshold);
+            SobelCommand = new DelegateCommand(Sobel);
             BrushClickCommand = new DelegateCommand<int?>(BrushClick);
             OpeningCommand=new DelegateCommand(Opening);
             ClosingCommand=new DelegateCommand(Closing);
@@ -300,6 +307,27 @@ namespace Drawing_App.VM
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
+            t1 = (byte)Threshold;
+        }
+        private void Canny()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.Canny(t1, t2);
+            }
+
+        }
+        private void SaveThreshold()
+        {
+            t1 = t2;
+            t2=(byte)Threshold; 
+        }
+        private void Sobel()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                i.Sobel();
+            }
         }
         private void BrushClick(int? i)
         {

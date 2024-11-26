@@ -34,6 +34,7 @@ namespace Drawing_App.Model
         public PointwiseOperations pointwiseOperations { get; set; }
         public HighPass highPass { get; set; }
         public MorphologicalOperations morphological {get;set;}
+        public LowPass lowPass { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
@@ -61,14 +62,30 @@ namespace Drawing_App.Model
             pointwiseOperations = new PointwiseOperations();
             thresholding = new Thresholding();
             highPass = new HighPass();
+            lowPass = new LowPass();
             morphological = new MorphologicalOperations();
 
+        }
+        public void Canny(byte T1,byte T2)
+        {
+            Image<Gray, byte> i = lowPass.Canny(Bgr,T1,T2);
+            var os = ConvertToBitmapSource(i);
+            ProcessedImage p = new ProcessedImage(os);
+            p.Show();
         }
         public void Opening(int i)
         {
             Image<Bgr,byte> o=morphological.Opening(Bgr,i,i);
             var os=ConvertToBitmapSource(o);
             ProcessedImage p=new ProcessedImage(os);
+            p.Show();
+
+        }
+        public void Sobel()
+        {
+            Image<Gray, byte> i = lowPass.Sobel(Bgr);
+            var os = ConvertToBitmapSource(i);
+            ProcessedImage p = new ProcessedImage(os);
             p.Show();
 
         }
