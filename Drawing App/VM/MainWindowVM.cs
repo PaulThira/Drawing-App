@@ -47,6 +47,7 @@ namespace Drawing_App.VM
         private double _brushSize;
         private double _hue;
         private double _saturation;
+        private int selectedCustomBrushIndex=0;
         private double _brightness;
         private double _opacity;
         private DrawingAttributes _drawingAttributes;
@@ -309,6 +310,7 @@ namespace Drawing_App.VM
                 if (SelectedLayer is DrawingLayer d) { 
                     d.SetBrush(_currentBrush,12);
                 }
+                selectedCustomBrushIndex = k;
             }
 
         }
@@ -1370,36 +1372,33 @@ namespace Drawing_App.VM
 
         }
 
+
         public void UpdateColor(int i = 0)
         {
             // Extract the current opacity from the brush
-            double currentOpacity = _currentBrush.Opacity; // Assuming _currentBrush has the current brush settings
+            double currentOpacity = _currentBrush?.Opacity ?? 1.0; // Default to fully opaque if _currentBrush is null
 
-            // Calculate the new color based on the HSV values while preserving the current opacity
-            if (i == 0)
+            // Calculate the new color based on the HSV values
+            CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
+
+            // Apply the current opacity to the new color
+            CurrentColor = Color.FromArgb((byte)(currentOpacity * 255), CurrentColor.R, CurrentColor.G, CurrentColor.B);
+
+            // Update the drawing attributes and the rectangle fill
+            DrawingAttributes.Color = CurrentColor;
+            RectangleFill = new SolidColorBrush(CurrentColor);
+
+            // Update the brush in the selected layer
+            if (SelectedLayer is DrawingLayer drawingLayer)
             {
-                CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
-                CurrentColor = Color.FromArgb((byte)(currentOpacity * 255), CurrentColor.R, CurrentColor.G, CurrentColor.B); // Apply current opacity
-                DrawingAttributes.Color = CurrentColor;
-                RectangleFill = new SolidColorBrush(CurrentColor);
-
-                if (SelectedLayer is DrawingLayer drawingLayer)
+                // Retrieve the updated brush from the selected custom brush
+                if (_brushes != null && selectedCustomBrushIndex >= 0 && selectedCustomBrushIndex < _brushes.Count)
                 {
-                    // Update the brush with the new color
-                    drawingLayer.SetBrush(_currentBrush, BrushSize);
+                    _currentBrush = _brushes[selectedCustomBrushIndex].GetDrawingBrush(CurrentColor.B, CurrentColor.G, CurrentColor.R);
                 }
-            }
-            else
-            {
-                CurrentColor = Color.FromArgb((byte)(currentOpacity * 255), CurrentColor.R, CurrentColor.G, CurrentColor.B); // Apply current opacity
-                DrawingAttributes.Color = CurrentColor;
-                RectangleFill = new SolidColorBrush(CurrentColor);
 
-                if (SelectedLayer is DrawingLayer drawingLayer)
-                {
-                    // Update the brush with the new color
-                    drawingLayer.SetBrush(_currentBrush, BrushSize);
-                }
+                // Apply the updated brush to the layer
+                drawingLayer.SetBrush(_currentBrush, BrushSize);
             }
         }
 

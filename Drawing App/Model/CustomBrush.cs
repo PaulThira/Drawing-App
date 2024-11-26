@@ -34,8 +34,13 @@ namespace Drawing_App.Model
         }
 
         // Method to update the DrawingBrush based on the current properties
-        public void UpdateBrush()
+        public void UpdateBrush(byte b = 0, byte g = 0, byte r = 0)
         {
+            // Preserve the existing brush properties
+            var currentOpacity = Opacity;
+            var currentFlow = Flow;
+            var currentHardness = Hardness;
+
             // Define the gradient brush for the radial effect
             var gradientBrush = new RadialGradientBrush
             {
@@ -45,8 +50,11 @@ namespace Drawing_App.Model
                 RadiusY = 1.0,
                 GradientStops = new GradientStopCollection
         {
-            new GradientStop(Color.FromArgb((byte)(Opacity * 255), 0, 0, 0), 0.0),
-            new GradientStop(Color.FromArgb((byte)(Opacity * Hardness * 255), 0, 0, 0), 1.0)
+            // Center color with flow and opacity applied
+            new GradientStop(Color.FromArgb((byte)(currentOpacity * currentFlow * 255), r, g, b), 0.0),
+            
+            // Edge color with hardness, flow, and opacity applied
+            new GradientStop(Color.FromArgb((byte)(currentOpacity * currentHardness * currentFlow * 255), r, g, b), 1.0)
         }
             };
 
@@ -55,27 +63,45 @@ namespace Drawing_App.Model
             {
                 var textureBrush = new ImageBrush(Texture)
                 {
-                    Opacity = Opacity,
+                    Opacity = currentOpacity,
                     Stretch = Stretch.Uniform
                 };
 
                 gradientBrush = CombineBrushes(gradientBrush, textureBrush);
             }
 
-            // Define geometry for the entire canvas
-            var geometry = new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.5);
+            // Adjust geometry for spacing (simulate spacing between strokes)
+            var adjustedSpacing = Math.Max(Spacing / 100.0, 0.01); // Normalize spacing
+            var geometry = new EllipseGeometry(
+                new Point(0.5 * adjustedSpacing, 0.5 * adjustedSpacing), 0.5, 0.5);
 
-            // Combine the geometry and the brush into a DrawingBrush
+            // Combine the geometry and the gradient brush into a DrawingBrush
             var strokeDrawing = new GeometryDrawing(gradientBrush, null, geometry);
+
+            // Apply blending if needed
+            if (Blending < 1.0)
+            {
+                ApplyBlending(strokeDrawing, Blending);
+            }
 
             // Update the DrawingBrush instance
             _drawingBrush.Drawing = strokeDrawing;
 
-            // Ensure the brush covers the entire canvas
+            // Ensure the brush covers the entire canvas area
             _drawingBrush.TileMode = TileMode.None;
             _drawingBrush.Viewport = new Rect(0, 0, 1, 1);
             _drawingBrush.ViewportUnits = BrushMappingMode.RelativeToBoundingBox;
         }
+
+
+        private void ApplyBlending(GeometryDrawing strokeDrawing, double blendingFactor)
+        {
+            // Implement blending logic here (placeholder for advanced blending algorithms)
+            // This might involve pixel manipulation or custom shader logic to simulate blending
+            // For now, we apply a basic alpha adjustment as a demonstration
+            strokeDrawing.Brush.Opacity = blendingFactor;
+        }
+
 
 
         // Helper method to combine brushes (e.g., gradient + texture)
@@ -87,9 +113,9 @@ namespace Drawing_App.Model
         }
 
         // Expose the DrawingBrush for external use
-        public DrawingBrush GetDrawingBrush()
+        public DrawingBrush GetDrawingBrush(byte b=0,byte g=0,byte r=0)
         {
-            UpdateBrush();
+            UpdateBrush(b,g,r);
             return _drawingBrush;
         }
     }
