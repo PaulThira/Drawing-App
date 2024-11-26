@@ -170,9 +170,13 @@ namespace Drawing_App.VM
         public ICommand FastMedianFilter {  get; }
         public ICommand OpeningCommand { get; }
         public ICommand ClosingCommand { get; }
+        public DelegateCommand<int?> BrushClickCommand { get; }
+       public ObservableCollection<Model.CustomBrush> _brushes { get; set; }
+        public ObservableCollection<String> _brush_names { get; set; }
         public MainWindowVM()
 
         {
+            BrushClickCommand = new DelegateCommand<int?>(BrushClick);
             OpeningCommand=new DelegateCommand(Opening);
             ClosingCommand=new DelegateCommand(Closing);
             FastMedianFilter = new DelegateCommand(Median);
@@ -191,6 +195,8 @@ namespace Drawing_App.VM
             SuperZoomCommand=new DelegateCommand(SuperZoom);
             HistogramEqualisationCommand=new DelegateCommand(HistoEqual);
             MirrorModeEnabled=false;
+            _brushes = new ObservableCollection<Model.CustomBrush>();
+            _brush_names = new ObservableCollection<string>();
             
             ZoomInCommand = new DelegateCommand(ZoomIn);
             ZoomOutCommand = new DelegateCommand(ZoomOut);
@@ -294,10 +300,27 @@ namespace Drawing_App.VM
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
         }
+        private void BrushClick(int? i)
+        {
+            if (i != null)
+            {
+                int k=i.Value;
+                _currentBrush = _brushes[k].GetDrawingBrush();
+                if (SelectedLayer is DrawingLayer d) { 
+                    d.SetBrush(_currentBrush,12);
+                }
+            }
+
+        }
         private void BrushEngine()
         {
             CustomBrushes customBrushes = new CustomBrushes();
-            customBrushes.ShowDialog();
+             var ok=customBrushes.ShowDialog();
+            if (ok == true) {
+                customBrushes._brush.UpdateBrush();
+                _brushes.Add(customBrushes._brush);
+            }
+
         }
         private void Opening()
         {
@@ -1347,38 +1370,43 @@ namespace Drawing_App.VM
 
         }
 
-    public void UpdateColor(int i=0)
-    {
+        public void UpdateColor(int i = 0)
+        {
+            // Extract the current opacity from the brush
+            double currentOpacity = _currentBrush.Opacity; // Assuming _currentBrush has the current brush settings
+
+            // Calculate the new color based on the HSV values while preserving the current opacity
             if (i == 0)
             {
                 CurrentColor = ColorFromHSV(Hue, Saturation, Brightness);
+                CurrentColor = Color.FromArgb((byte)(currentOpacity * 255), CurrentColor.R, CurrentColor.G, CurrentColor.B); // Apply current opacity
                 DrawingAttributes.Color = CurrentColor;
                 RectangleFill = new SolidColorBrush(CurrentColor);
+
                 if (SelectedLayer is DrawingLayer drawingLayer)
                 {
-                    // If it is a DrawingLayer, end the stroke
+                    // Update the brush with the new color
                     drawingLayer.SetBrush(_currentBrush, BrushSize);
                 }
             }
             else
             {
-               
+                CurrentColor = Color.FromArgb((byte)(currentOpacity * 255), CurrentColor.R, CurrentColor.G, CurrentColor.B); // Apply current opacity
                 DrawingAttributes.Color = CurrentColor;
                 RectangleFill = new SolidColorBrush(CurrentColor);
+
                 if (SelectedLayer is DrawingLayer drawingLayer)
                 {
-                    // If it is a DrawingLayer, end the stroke
+                    // Update the brush with the new color
                     drawingLayer.SetBrush(_currentBrush, BrushSize);
                 }
             }
-        
-
-
-
         }
 
 
-    private void UpdateOpacity(double value)
+
+
+        private void UpdateOpacity(double value)
     {
             SelectedLayer.Opacity = value;
         

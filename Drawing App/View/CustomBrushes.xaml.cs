@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Drawing_App.Model;
 using Drawing_App.VM;
 
 namespace Drawing_App.View
@@ -20,7 +21,8 @@ namespace Drawing_App.View
     /// </summary>
     public partial class CustomBrushes : Window
     {
-        private readonly CustomBrushesVM _viewModel;
+        public CustomBrushesVM _viewModel { get; set; }
+        public CustomBrush _brush { get; set; }
         public CustomBrushes()
         {
             InitializeComponent();
@@ -28,14 +30,60 @@ namespace Drawing_App.View
             DataContext = _viewModel;
 
             // Set up event handlers for real-time updates
-            TextureSlider.ValueChanged += (s, e) => _viewModel.TextureScale = TextureSlider.Value;
-            OpacitySlider.ValueChanged += (s, e) => _viewModel.Opacity = OpacitySlider.Value;
-            HardnessSlider.ValueChanged += (s, e) => _viewModel.Hardness = HardnessSlider.Value;
-            SpacingSlider.ValueChanged += (s, e) => _viewModel.Spacing = SpacingSlider.Value;
-            FlowSlider.ValueChanged += (s, e) => _viewModel.Flow = FlowSlider.Value;
-            BlendingSlider.ValueChanged += (s, e) => _viewModel.Blending = BlendingSlider.Value;
+           
 
             BrushNameTextBox.TextChanged += (s, e) => _viewModel.Name = BrushNameTextBox.Text;
+        }
+        private void TextureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+                _viewModel.TextureScale = e.NewValue;
+        }
+
+        private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+                _viewModel.Opacity = e.NewValue;
+        }
+
+        private void HardnessSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+                _viewModel.Hardness = e.NewValue;
+        }
+
+        private void SpacingSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+                _viewModel.Spacing = e.NewValue;
+        }
+
+        private void FlowSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+                _viewModel.Flow = e.NewValue;
+        }
+
+        private void BlendingSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_viewModel != null)
+                _viewModel.Blending = e.NewValue;
+        }
+
+
+        private void SaveBrushButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.SaveBrushCommand.CanExecute())
+            {
+                _viewModel.SaveBrushCommand.Execute();
+            }
+
+            // Retrieve the brush from the ViewModel if needed
+            _brush = _viewModel.CustomBrushy;
+
+            // Close the dialog
+            this.DialogResult = true;
+            this.Close();
         }
     }
 }

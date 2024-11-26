@@ -80,7 +80,7 @@ namespace Drawing_App.Model
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
             _detector = new ShapeDetector();
-            corectShapes=true;
+            corectShapes=false;
             _canvas.MouseWheel += Canvas_MouseWheel;
 
         }

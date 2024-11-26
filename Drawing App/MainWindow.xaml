@@ -246,7 +246,20 @@
                     <MenuItem Header="Both" Command="{Binding MirrorCommand}" CommandParameter="2"/>
                     <MenuItem Header="Disable" Command="{Binding MirrorCommand}" CommandParameter="3"/>
                 </MenuItem>
-                <MenuItem Header="Brush Engine" Command="{Binding BrushEngineCommand}"/>
+                <MenuItem Header="Custom Brushes">
+                    <MenuItem Header="Brush Engine" Command="{Binding BrushEngineCommand}"/>
+                    <MenuItem Header="Custom Brushes" ItemsSource="{Binding _brushes}" AlternationCount="1000">
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Command" Value="{Binding DataContext.BrushClickCommand, RelativeSource={RelativeSource AncestorType=MenuItem}}" />
+                                <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}, Path=(ItemsControl.AlternationIndex)}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                    </MenuItem>
+
+                </MenuItem>
+                
 
             </Menu>
         </StackPanel>

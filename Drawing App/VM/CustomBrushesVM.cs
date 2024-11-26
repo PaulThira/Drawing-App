@@ -1,8 +1,11 @@
-﻿using System;
+﻿using Drawing_App.View;
+using System;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Point = System.Windows.Point;
 using Rect = System.Windows.Rect;
+using Drawing_App.Model;
 namespace Drawing_App.VM
 {
     public class CustomBrushesVM : BindableBase
@@ -15,6 +18,16 @@ namespace Drawing_App.VM
             set
             {
                 SetProperty(ref _opacity, value);
+                UpdateBrushPreview();
+            }
+        }
+        private CustomBrush _customBrush;
+        public CustomBrush CustomBrushy
+        {
+            get => _customBrush;
+            set
+            {
+                SetProperty(ref _customBrush, value);
                 UpdateBrushPreview();
             }
         }
@@ -124,10 +137,43 @@ namespace Drawing_App.VM
 
         private void SaveBrush()
         {
-            // Save the current brush configuration to a file or settings
-            // Implementation depends on your application's requirements
+            try
+            {
+                // Validate that the name is not empty
+                if (string.IsNullOrWhiteSpace(Name))
+                {
+                    MessageBox.Show("Please provide a name for the brush.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Create the brush configuration object
+                var customBrush = new CustomBrush
+                {
+                    Name = Name,
+                    Texture = Texture,
+                    Opacity = Opacity,
+                    Hardness = Hardness,
+                    Spacing = Spacing,
+                    Flow = Flow,
+                    Blending = Blending,
+                    TextureScale = TextureScale
+                };
+
+                CustomBrushy=customBrush;
+                // Save the brush configuration (e.g., to a file or a settings store)
+                
+
+                // Close the dialog
+                CloseDialog?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving the brush: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
+        // Add a delegate to handle dialog closure
+        public Action CloseDialog { get; set; }
         private void PreviewBrush()
         {
             // Trigger a preview of the current brush on the canvas

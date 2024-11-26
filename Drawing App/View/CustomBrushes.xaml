@@ -28,34 +28,91 @@
         <StackPanel Grid.Column="1" Margin="10">
             <!-- Sliders and Controls -->
             <TextBlock Text="Texture Scale" Margin="5" />
-            <Slider Name="TextureSlider" Minimum="1" Maximum="100" Value="10" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <Slider Name="TextureSlider"
+                Minimum="1"
+                Maximum="100"
+                Value="{Binding TextureScale}"
+                TickFrequency="1"
+                IsSnapToTickEnabled="True"
+                ValueChanged="TextureSlider_ValueChanged" />
 
             <TextBlock Text="Opacity" Margin="5" />
-            <Slider Name="OpacitySlider" Minimum="0" Maximum="1" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" />
+            <Slider Name="OpacitySlider"
+                Minimum="0"
+                Maximum="1"
+                Value="{Binding Opacity}"
+                TickFrequency="0.1"
+                IsSnapToTickEnabled="True"
+                ValueChanged="OpacitySlider_ValueChanged" />
 
             <TextBlock Text="Hardness" Margin="5" />
-            <Slider Name="HardnessSlider" Minimum="0" Maximum="1" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" />
+            <Slider Name="HardnessSlider"
+                Minimum="0"
+                Maximum="1"
+                Value="{Binding Hardness}"
+                TickFrequency="0.1"
+                IsSnapToTickEnabled="True"
+                ValueChanged="HardnessSlider_ValueChanged" />
 
             <TextBlock Text="Spacing" Margin="5" />
-            <Slider Name="SpacingSlider" Minimum="1" Maximum="50" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <Slider Name="SpacingSlider"
+                Minimum="1"
+                Maximum="50"
+                Value="{Binding Spacing}"
+                TickFrequency="1"
+                IsSnapToTickEnabled="True"
+                ValueChanged="SpacingSlider_ValueChanged" />
 
             <TextBlock Text="Flow" Margin="5" />
-            <Slider Name="FlowSlider" Minimum="0" Maximum="1" Value="0.5" TickFrequency="0.1" IsSnapToTickEnabled="True" />
+            <Slider Name="FlowSlider"
+                Minimum="0"
+                Maximum="1"
+                Value="{Binding Flow}"
+                TickFrequency="0.1"
+                IsSnapToTickEnabled="True"
+                ValueChanged="FlowSlider_ValueChanged" />
 
             <TextBlock Text="Blending" Margin="5" />
-            <Slider Name="BlendingSlider" Minimum="0" Maximum="1" Value="0.5" TickFrequency="0.1" IsSnapToTickEnabled="True" />
+            <Slider Name="BlendingSlider"
+                Minimum="0"
+                Maximum="1"
+                Value="{Binding Blending}"
+                TickFrequency="0.1"
+                IsSnapToTickEnabled="True"
+                ValueChanged="BlendingSlider_ValueChanged" />
 
             <TextBlock Text="Brush Name" Margin="5" />
             <TextBox Name="BrushNameTextBox" Height="34" Width="200" FontSize="14" Margin="5" />
 
             <!-- Buttons at the Bottom -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,20,10,0" >
-                <Button Background="#D5D0CD" Content="Save" Name="SaveBrushButton" Width="100" Margin="5" Command="{Binding SaveBrushCommand }"/>
-                <Button Background="#D5D0CD" Content="Preview" Name="PreviewBrushButton" Width="100" Margin="5" Command="{Binding PreviewBrushCommand}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,20,10,0">
+                <Button Background="#D5D0CD"
+                    Content="Save"
+                    Name="SaveBrushButton"
+                    Width="100"
+                    Margin="5"
+                    Command="{Binding SaveBrushCommand}"
+                    Click="SaveBrushButton_Click"
+                   />
+                <Button Background="#D5D0CD"
+                    Content="Preview"
+                    Name="PreviewBrushButton"
+                    Width="100"
+                    Margin="5"
+                    Command="{Binding PreviewBrushCommand}"
+                     />
             </StackPanel>
 
-            <Button Background="#D5D0CD" Content="Import Texture" Name="ImportTextureButton" Width="200" Height="40" Margin="5" Command="{Binding ImportTextureCommand}" />
+            <Button Background="#D5D0CD"
+                Content="Import Texture"
+                Name="ImportTextureButton"
+                Width="200"
+                Height="40"
+                Margin="5"
+                Command="{Binding ImportTextureCommand}"
+                 />
         </StackPanel>
     </Grid>
+
 
 </Window>
