@@ -31,6 +31,21 @@ using Application = System.Windows.Application;
 using System.Windows.Media.Effects;
 using System.Drawing.Imaging;
 
+using Emgu.CV.Structure;
+using Emgu.CV;
+
+using System.Drawing;
+using Layer = Drawing_App.Model;
+
+
+using WpfImage = System.Windows.Controls.Image;
+using ImageMagick;
+
+// Ensure this matches your intended type
+
+
+
+
 
 namespace Drawing_App.VM
 {
@@ -70,8 +85,8 @@ namespace Drawing_App.VM
         private Polyline _currentPolyline;
         public Stack<Point> Points = new Stack<Point>();
         public Stack<Point> MirroredPoints = new Stack<Point>();
-        public ObservableCollection<Layer> Layers { get; }
-        private Layer _selectedLayer;
+        public ObservableCollection<Model.Layer> Layers { get; }
+        private Model.Layer _selectedLayer;
         private ObservableCollection<ObservableCollection<CustomPallete>> _colorPalettes;
 
         public ObservableCollection<ObservableCollection<CustomPallete>> ColorPalettes
@@ -81,7 +96,7 @@ namespace Drawing_App.VM
         }
 
         // Property to track the selected layer
-        public Layer SelectedLayer
+        public Model.Layer SelectedLayer
         {
             get => _selectedLayer;
             set => SetProperty(ref _selectedLayer, value);
@@ -178,9 +193,15 @@ namespace Drawing_App.VM
         public ICommand SobelCommand { get; }
         public ICommand SaveThresholdCommand { get; }
         public ICommand CannyCommand { get; }
+        public ICommand WatershedCommand { get; }
+        public ICommand MagicWandCommand { get; }
+        public ICommand SaveAsPSDFile { get; }
         public MainWindowVM()
 
         {
+            SaveAsPSDFile = new DelegateCommand(SaveAsPsd);
+            MagicWandCommand=new DelegateCommand(MagicWand);
+            WatershedCommand=new DelegateCommand(Watershed);
             CannyCommand=new DelegateCommand(Canny);
             SaveThresholdCommand = new DelegateCommand(SaveThreshold);
             SobelCommand = new DelegateCommand(Sobel);
@@ -235,7 +256,7 @@ namespace Drawing_App.VM
             MarkerCommand = new DelegateCommand(MarkerCall);
             MechanicalCommand = new DelegateCommand(Mechanical);
             BrushEngineCommand = new DelegateCommand(BrushEngine);
-            Layers = new ObservableCollection<Layer>();
+            Layers = new ObservableCollection<Model.Layer>();
             _opacity = 1.0;
             BrushSize = 5;
             Hue = 0;
@@ -277,8 +298,8 @@ namespace Drawing_App.VM
             {
                 layer.PropertyChanged += Layer_PropertyChanged;
             }
-            LayerCheckedCommand = new DelegateCommand<Layer>(OnLayerChecked);
-            LayerUncheckedCommand = new DelegateCommand<Layer>(OnLayerUnchecked);
+            LayerCheckedCommand = new DelegateCommand<Model.Layer>(OnLayerChecked);
+            LayerUncheckedCommand = new DelegateCommand<Model.Layer>(OnLayerUnchecked);
             ColorPalettes = new ObservableCollection<ObservableCollection<CustomPallete>>();
             ColorPalettes.Add(new ObservableCollection<CustomPallete>
 {
@@ -308,6 +329,156 @@ namespace Drawing_App.VM
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
             SelectedPalette = ColorPalettes[0];
             t1 = (byte)Threshold;
+            
+        }
+        public void SaveAsPsd()
+        {
+            // Create a SaveFileDialog instance
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Photoshop Files (*.psd)|*.psd", // Restrict file type to PSD
+                Title = "Save As Photoshop File",
+                FileName = "output.psd" // Default file name
+            };
+
+            // Show the SaveFileDialog and check if the user selected a file
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                string filePath = saveFileDialog.FileName; // Get the selected file path
+
+                // Create a new PSD file
+                using (MagickImageCollection psd = new MagickImageCollection())
+                {
+                    foreach (var layer in Layers) // Layers is your list of layers
+                    {
+                        if (layer is ImageLayer imageLayer)
+                        {
+                            // Add ImageLayer as a separate PSD layer
+                            MagickImage image = ConvertToMagickImage(imageLayer.Bgr);
+                            image.Label = imageLayer.Name; // Set layer name
+                            psd.Add(image);
+                        }
+                        else if (layer is DrawingLayer drawingLayer)
+                        {
+                            // Render the DrawingLayer's _canvas to a BitmapSource
+                            BitmapSource canvasBitmapSource = RenderCanvasToBitmap(drawingLayer);
+                            byte[] drawingImageBytes = ConvertToByteArray(canvasBitmapSource);
+                            MagickImage drawingImage = new MagickImage(drawingImageBytes);
+                            drawingImage.Label = drawingLayer.Name; // Set layer name
+                            psd.Add(drawingImage);
+                        }
+                    }
+
+                    // Save the PSD file to the chosen location
+                    psd.Write(filePath);
+                }
+            }
+        }
+
+        // Convert EmguCV Image<Bgr, byte> to MagickImage
+        private byte[] ConvertToByteArray(BitmapSource source)
+        {
+            var encoder = new BmpBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(source));
+
+            using (var stream = new MemoryStream())
+            {
+                encoder.Save(stream);
+                return stream.ToArray();
+            }
+        }
+        private MagickImage ConvertToMagickImage(Image<Bgr, byte> image)
+        {
+            using (var bitmap = image.ToBitmap()) // Use EmguCV's ToBitmap method
+            {
+                using (var stream = new MemoryStream())
+                {
+                    bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+                    return new MagickImage(stream.ToArray());
+                }
+            }
+        }
+        // Render _canvas to a BitmapSource
+        private BitmapSource RenderCanvasToBitmap(DrawingLayer drawingLayer)
+        {
+            if (drawingLayer._canvas == null)
+                throw new InvalidOperationException("The canvas is not initialized.");
+
+            // Render the canvas to a RenderTargetBitmap
+            var renderTarget = new RenderTargetBitmap(
+                (int)drawingLayer._canvas.ActualWidth,
+                (int)drawingLayer._canvas.ActualHeight,
+                96, 96, PixelFormats.Pbgra32);
+
+            // Render the canvas visual
+            var visual = new DrawingVisual();
+            using (var context = visual.RenderOpen())
+            {
+                var brush = new VisualBrush(drawingLayer._canvas);
+                context.DrawRectangle(brush, null, new Rect(new System.Windows.Size(drawingLayer._canvas.ActualWidth, drawingLayer._canvas.ActualHeight)));
+            }
+            renderTarget.Render(visual);
+
+            return renderTarget;
+        }
+
+        // Convert a BitmapSource to System.Drawing.Bitmap for MagickImage
+        private Bitmap ConvertToBitmap(BitmapSource source)
+        {
+            var encoder = new BmpBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(source));
+
+            using (var stream = new MemoryStream())
+            {
+                encoder.Save(stream);
+                stream.Seek(0, SeekOrigin.Begin); // Reset stream position
+                return new Bitmap(stream);
+            }
+        }
+        // Helper Method: Render WPF Canvas to System.Drawing.Bitmap
+        private System.Drawing.Bitmap RenderCanvasToBitmap(System.Windows.Controls.Canvas canvas)
+        {
+            var size = new System.Windows.Size(canvas.ActualWidth, canvas.ActualHeight);
+            var renderBitmap = new RenderTargetBitmap(
+                (int)size.Width, (int)size.Height, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+
+            var visual = new DrawingVisual();
+            using (var context = visual.RenderOpen())
+            {
+                context.DrawRectangle(new System.Windows.Media.VisualBrush(canvas), null, new System.Windows.Rect(size));
+            }
+            renderBitmap.Render(visual);
+
+            // Convert RenderTargetBitmap to System.Drawing.Bitmap
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+            using (var memoryStream = new MemoryStream())
+            {
+                encoder.Save(memoryStream);
+                return new System.Drawing.Bitmap(memoryStream);
+            }
+        }
+
+
+
+
+
+
+
+        private void MagicWand()
+        {
+
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.MagicTool(_currentColor,threshold);
+            }
+        }
+        private void Watershed()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.Watershed();
+            }
         }
         private void Canny()
         {
@@ -793,7 +964,7 @@ namespace Drawing_App.VM
             if (endPoint == null || !(SelectedLayer is DrawingLayer drawingLayer)) return;
             drawingLayer.EndShape(endPoint.Value);
         }
-        private void OnLayerChecked(Layer selectedLayer)
+        private void OnLayerChecked(Model.Layer selectedLayer)
         {
             foreach (var layer in Layers)
             {
@@ -806,14 +977,14 @@ namespace Drawing_App.VM
             SelectedLayer = selectedLayer;
         }
 
-        private void OnLayerUnchecked(Layer deselectedLayer)
+        private void OnLayerUnchecked(Model.Layer deselectedLayer)
         {
             deselectedLayer._isSelected = false;
             SelectedLayer._isSelected = false;
         }
         private void Layer_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Layer._isSelected) && sender is Layer selectedLayer && selectedLayer._isSelected)
+            if (e.PropertyName == nameof(Model.Layer._isSelected) && sender is Model.Layer selectedLayer && selectedLayer._isSelected)
             {
                 // Deselect all other layers when one layer is selected
                 foreach (var layer in Layers)
@@ -1033,90 +1204,120 @@ namespace Drawing_App.VM
         {
           
             
-            if (startPoint == null || SelectedLayer is not DrawingLayer drawingLayer)
-                return;
-            if (startPoint != null)
+           
+            if(SelectedLayer is DrawingLayer drawingLayer)
             {
+                if (startPoint != null)
+                {
+                    Points.Push(startPoint.Value);
+                    var m = GetMirroredPoint(startPoint.Value);
+                    MirroredPoints.Push(m);
+
+
+                }
+
+
+                // Initialize a new polyline to represent the stroke
+                drawingLayer.StartStroke(startPoint.Value);
+
+
+                _usedColors.Add(_currentColor);
+                List<Color> colors = new List<Color>();
+                int i = 0;
+                foreach (var color in _usedColors)
+                {
+
+                    Brush newBrush = new SolidColorBrush(color);
+                    colors.Add(color);
+                    if (i % 8 == 0)
+                    {
+                        Color1 = newBrush;
+                    }
+                    else if (i % 8 == 1)
+                    {
+                        Color2 = newBrush;
+                    }
+                    else if (i % 8 == 2)
+                    {
+                        Color3 = newBrush;
+                    }
+                    else if (i % 8 == 3)
+                    {
+                        Color4 = newBrush;
+                    }
+                    else if (i % 8 == 4)
+                    {
+                        Color5 = newBrush;
+                    }
+                    else if (i % 8 == 5)
+                    {
+                        Color6 = newBrush;
+                    }
+                    else if (i % 8 == 6)
+                    {
+                        Color7 = newBrush;
+                    }
+                    else if (i % 8 == 7)
+                    {
+
+                    }
+                    i++;
+
+                }
+                HSVColours h = new HSVColours(colors);
+                h.ColorHarmony();
+                if (colors.Count >= 2)
+                {
+                    if (h.harmony == true)
+                    {
+                        Harmony = new SolidColorBrush(Colors.Green);
+                    }
+                    else
+                    {
+                        Harmony = new SolidColorBrush(Colors.Red);
+
+                    }
+                }
+            }
+            else if(SelectedLayer is ImageLayer imageLayer)
+            {
+                if (startPoint == null)
+                    return;
+
+                // Clear any existing boundary points
+                Points.Clear();
+
+                // Initialize the selection boundary with the starting point
                 Points.Push(startPoint.Value);
-                var m=GetMirroredPoint(startPoint.Value);
-                MirroredPoints.Push(m);
+               
 
-                
+                // Optionally, render the starting point visually
+                RenderSelectionBoundary(imageLayer);
             }
-            
-
-            // Initialize a new polyline to represent the stroke
-            drawingLayer.StartStroke(startPoint.Value);
-
-
-            _usedColors.Add(_currentColor);
-            List<Color> colors = new List<Color>();
-            int i = 0;
-            foreach (var color in _usedColors)
-            {
-
-                Brush newBrush = new SolidColorBrush(color);
-                colors.Add(color);
-                if (i % 8 == 0)
-                {
-                    Color1 = newBrush;
-                }
-                else if (i % 8 == 1)
-                {
-                    Color2 = newBrush;
-                }
-                else if (i % 8 == 2)
-                {
-                    Color3 = newBrush;
-                }
-                else if (i % 8 == 3)
-                {
-                    Color4 = newBrush;
-                }
-                else if (i % 8 == 4)
-                {
-                    Color5 = newBrush;
-                }
-                else if (i % 8 == 5)
-                {
-                    Color6 = newBrush;
-                }
-                else if (i % 8 == 6)
-                {
-                    Color7 = newBrush;
-                }
-                else if(i % 8 == 7)
-                {
-
-                }
-                i++;
-
-            }
-            HSVColours h = new HSVColours(colors);
-            h.ColorHarmony();
-            if(colors.Count>=2)
-            {
-                if(h.harmony==true)
-                {
-                    Harmony=new SolidColorBrush(Colors.Green);
-                }
-                else
-                {
-                    Harmony = new SolidColorBrush(Colors.Red);
-
-                }
-            }
+           
         }
 
         private void ContinueStroke(Point? currentPoint)
         {
-            if (currentPoint == null || SelectedLayer is not DrawingLayer drawingLayer)
-                return;
+            if (SelectedLayer is DrawingLayer drawingLayer && currentPoint != null)
+            {
+                drawingLayer.ContinueStroke(currentPoint.Value);
+                var m = GetMirroredPoint(currentPoint.Value);
+                MirroredPoints.Push(m);
+            }
+            else if (SelectedLayer is ImageLayer imageLayer ) {
+                if (currentPoint == null)
+                    return;
+
+                // Add the current point to the selection boundary
+                Points.Push(currentPoint.Value);
+
+                // Update the rendered boundary
+                RenderSelectionBoundary(imageLayer);
+            }
 
             // Add the current point to the polyline
-            drawingLayer.ContinueStroke(currentPoint.Value);
-            var m = GetMirroredPoint(currentPoint.Value);
-            MirroredPoints.Push(m);
+        
 
         }
 
@@ -1131,25 +1332,66 @@ namespace Drawing_App.VM
 
             if (SelectedLayer is DrawingLayer drawingLayer)
             {
-                
+
                 // Finalize the stroke
                 drawingLayer.EndStroke();
 
 
-                if (MirrorModeEnabled) {
-                    drawingLayer.StartStroke(MirroredPoints.First(),true);
+                if (MirrorModeEnabled)
+                {
+                    drawingLayer.StartStroke(MirroredPoints.First(), true);
                     foreach (var point in MirroredPoints.Skip(1))
                     {
-                        drawingLayer.ContinueStroke(point,true);
+                        drawingLayer.ContinueStroke(point, true);
                     }
                     drawingLayer.EndStroke(true);
                 }
-                
+
+            }
+            else if (SelectedLayer is ImageLayer imageLayer) {
+                if (Points.Count < 3)
+                    return; // Ensure we have enough points to form a closed boundary
+
+                // Close the boundary by connecting the last point to the first
+                Points.Push(Points.First());
+
+                // Apply the selection boundary (e.g., for cropping or masking)
+                ApplySelectionBoundary(imageLayer);
             }
             
 
             // Clear any temporary data used for tracking mirrored points
            
+        }
+        private void RenderSelectionBoundary(ImageLayer imageLayer)
+        {
+            if (Points.Count < 2)
+                return;
+
+            // Create a geometry from the boundary points
+            PathGeometry geometry = new PathGeometry();
+            PathFigure figure = new PathFigure { StartPoint = Points.First() };
+
+            foreach (var point in Points.Skip(1))
+            {
+                figure.Segments.Add(new LineSegment(point, true));
+            }
+
+            geometry.Figures.Add(figure);
+
+            // Render the geometry as a boundary overlay on the Image Layer
+            imageLayer.RenderBoundary();
+        }
+        private void ApplySelectionBoundary(ImageLayer imageLayer)
+        {
+            if (Points.Count < 3)
+                return;
+
+            // Create a polygon mask from the boundary points
+            PolygonSelectionMask mask = new PolygonSelectionMask(Points);
+
+            // Apply the mask to the Image Layer (e.g., for cropping or filtering)
+            imageLayer.ApplyMask();
         }
 
 

@@ -21,6 +21,7 @@ namespace Drawing_App.View
     /// </summary>
     public partial class ProcessedImage : Window
     {
+        public BitmapImage Image { get; set; }
         public int correctWidth { get; set; } = 0;
         public int correctHeight { get; set; } = 0;
         public ProcessedImage()
@@ -79,6 +80,17 @@ namespace Drawing_App.View
             if (viewModel != null && viewModel.ImageClickCommand.CanExecute(ActualPos))
             {
                 viewModel.ImageClickCommand.Execute(ActualPos);
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = true;
+            var viewModel = DataContext as ProcessedImageVM;
+            if (viewModel != null )
+            {
+                Image=viewModel.CurrentImage;
+                this.Close();
             }
         }
     }

@@ -198,6 +198,7 @@
 
                     <Ellipse Name="harmonious" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Harmony}"></Ellipse>
                     <MenuItem Header="Pallette Generator" Command="{Binding PalletteGeneratorCommand}"/>
+                    <MenuItem Header="Magic Wand" Command="{Binding MagicWandCommand}"/>
                 </MenuItem>
                 <MenuItem Header="Add Shapes">
                     <MenuItem Header="Circle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Circle}"></MenuItem>
@@ -238,10 +239,11 @@
                         <MenuItem Header="Sobel" Command="{Binding SobelCommand}"/>
                         <MenuItem Header="Canny" Command="{Binding CannyCommand}"/>
                     </MenuItem>
+                   
 
                 </MenuItem>
                 <MenuItem Header="Save As">
-                    <MenuItem Header="Photoshop file"></MenuItem>
+                    <MenuItem Header="Photoshop file" Command="{Binding SaveAsPSDFile}"></MenuItem>
                     <MenuItem Header="Image file"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="Mirror Mode">

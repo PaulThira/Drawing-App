@@ -15,7 +15,7 @@ using Emgu.CV.Reg;
 using Emgu.CV.Structure;
 using Drawing_App.View;
 using System.IO;
-using Bitmap = System.Drawing.Bitmap;
+
 using System.Drawing.Imaging;
 using System.Windows.Input;
 
@@ -35,6 +35,7 @@ namespace Drawing_App.Model
         public HighPass highPass { get; set; }
         public MorphologicalOperations morphological {get;set;}
         public LowPass lowPass { get; set; }
+        public Segmentation segmentation { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
@@ -58,27 +59,65 @@ namespace Drawing_App.Model
 
             basicOperations = new BasicOperations();
             _image.MouseDown += Image_MouseDown;
+            _image.MouseMove += Image_MouseMove;
+            _image.MouseUp += Image_MouseUp;
             Point= new Point();
             pointwiseOperations = new PointwiseOperations();
             thresholding = new Thresholding();
             highPass = new HighPass();
             lowPass = new LowPass();
             morphological = new MorphologicalOperations();
+            segmentation = new Segmentation();
 
+        }
+        public void MagicTool(Color color,int T)
+        {
+            Image<Bgr, byte> o = segmentation.MagicTool(Bgr,color,T);
+            var os = ConvertToBitmapSource(o);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+
+        }
+        public void Watershed()
+        {
+            Image<Gray, byte> i = segmentation.Watershed(Bgr);
+            var os = ConvertToBitmapSource(i);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void Canny(byte T1,byte T2)
         {
             Image<Gray, byte> i = lowPass.Canny(Bgr,T1,T2);
             var os = ConvertToBitmapSource(i);
             ProcessedImage p = new ProcessedImage(os);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void Opening(int i)
         {
             Image<Bgr,byte> o=morphological.Opening(Bgr,i,i);
             var os=ConvertToBitmapSource(o);
             ProcessedImage p=new ProcessedImage(os);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
 
         }
         public void Sobel()
@@ -86,7 +125,12 @@ namespace Drawing_App.Model
             Image<Gray, byte> i = lowPass.Sobel(Bgr);
             var os = ConvertToBitmapSource(i);
             ProcessedImage p = new ProcessedImage(os);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
 
         }
         public void Closing(int i)
@@ -94,14 +138,24 @@ namespace Drawing_App.Model
             Image<Bgr, byte> o = morphological.Closing(Bgr, i, i);
             var os = ConvertToBitmapSource(o);
             ProcessedImage p = new ProcessedImage(os);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void GausianBlurr()
         {
             Image<Bgr,byte> blurr=highPass.GausianBlur(Bgr);
             var blurs=ConvertToBitmapSource(blurr);
             ProcessedImage p = new ProcessedImage(blurs);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
 
         }
         public void FastMedianFilter(int k)
@@ -109,14 +163,24 @@ namespace Drawing_App.Model
             Image<Bgr, byte> blurr = highPass.FastMedianFilter(Bgr,k);
             var fm = ConvertToBitmapSource(blurr);
             ProcessedImage p = new ProcessedImage(fm);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void GrayscaleConversion()
         {
             Image<Gray,byte> gray=basicOperations.BgrToGrayscale(Bgr);
             var grays=ConvertToBitmapSource(gray);
             ProcessedImage p = new ProcessedImage(grays);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
 
         }
         public void Thresholding(int g)
@@ -124,21 +188,36 @@ namespace Drawing_App.Model
             Image<Gray, byte> gray = thresholding.InputThresholding(Bgr,g);
             var grays = ConvertToBitmapSource(gray);
             ProcessedImage p = new ProcessedImage(grays);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void TriangleThresholding()
         {
             Image<Gray,byte>gray=thresholding.Triangle(Bgr);
             var grays = ConvertToBitmapSource(gray);
             ProcessedImage p = new ProcessedImage( grays);
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void HistogramEqualisation()
         {
             Image<Bgr,byte> result=basicOperations.HistogramEqualisation(Bgr);
             var results = ConvertToBitmapSource(Bgr);
             ProcessedImage processedImage = new ProcessedImage(results);
-            processedImage.Show();
+            processedImage.ShowDialog();
+            if (processedImage.DialogResult == true)
+            {
+                _image.Source = processedImage.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public static BitmapSource ConvertToBitmapSource(Image<Gray, byte> grayImage)
         {
@@ -163,6 +242,8 @@ namespace Drawing_App.Model
 
             return bitmapSource;
         }
+        private List<Point> _lassoPoints = new List<Point>();
+        private bool _isLassoActive = false;
         public void ApplySplinedTransformation(int[] blue, int[] green, int[] red)
         {
             pointwiseOperations.blue=blue; pointwiseOperations.green=green; pointwiseOperations.red=red;
@@ -205,8 +286,46 @@ namespace Drawing_App.Model
         private void Image_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Point = e.GetPosition((UIElement)sender);
-            
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                // Start the lasso
+                _isLassoActive = true;
+                _lassoPoints.Clear(); // Clear previous selection
+                Point startPoint = e.GetPosition((UIElement)sender);
+                _lassoPoints.Add(startPoint);
+                Console.WriteLine($"Lasso started at: {startPoint}");
+            }
 
+
+        }
+        private void Image_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isLassoActive && e.LeftButton == MouseButtonState.Released)
+            {
+                // Finalize the lasso
+                _isLassoActive = false;
+
+                // Optionally close the loop
+                if (_lassoPoints.Count > 1)
+                {
+                    _lassoPoints.Add(_lassoPoints[0]); // Close the loop
+                }
+
+                Console.WriteLine("Lasso finalized");
+                ApplyMask();
+            }
+        }
+        private void Image_MouseMove(object sender, MouseEventArgs e) {
+            if (_isLassoActive && e.LeftButton == MouseButtonState.Pressed)
+            {
+                // Add points to the lasso path
+                Point currentPoint = e.GetPosition((UIElement)sender);
+                _lassoPoints.Add(currentPoint);
+                Console.WriteLine($"Lasso point added: {currentPoint}");
+
+                // Optional: Render the lasso boundary visually
+                RenderBoundary();
+            }
         }
         public void ZoomedPixels()
         {
@@ -345,6 +464,93 @@ namespace Drawing_App.Model
             }
         }
 
+        public void RenderBoundary()
+        {
+            // Create a DrawingVisual for rendering the boundary
+            DrawingVisual visual = new DrawingVisual();
+            using (DrawingContext context = visual.RenderOpen())
+            {
+                // Create a pen for the boundary (customize color and thickness)
+                Pen boundaryPen = new Pen(Brushes.Red, 2);
+
+                // Draw the boundary polygon
+                PathFigure pathFigure = new PathFigure
+                {
+                    StartPoint = _lassoPoints[0],
+                    IsClosed = true,
+                    IsFilled = false
+                };
+
+                foreach (var point in _lassoPoints.Skip(1))
+                {
+                    pathFigure.Segments.Add(new LineSegment(point, true));
+                }
+
+                PathGeometry geometry = new PathGeometry(new[] { pathFigure });
+                context.DrawGeometry(null, boundaryPen, geometry);
+            }
+
+            // Convert the DrawingVisual to an ImageSource
+            RenderTargetBitmap renderTarget = new RenderTargetBitmap((int)_image.Width, (int)_image.Height, 96, 96, PixelFormats.Pbgra32);
+            renderTarget.Render(visual);
+
+            // Display the boundary as an overlay
+            _image.Source = new DrawingImage(visual.Drawing);
+        }
+
+        public void ApplyMask()
+        {
+            // Create a mask with the same size as the image
+            Image<Gray, byte> mask = new Image<Gray, byte>(Bgr.Size);
+
+            // Convert List<Point> to Emgu.CV.Structure.PointF array
+            var contour = new Emgu.CV.Util.VectorOfPoint(
+                _lassoPoints.Select(p => new System.Drawing.Point((int)p.X, (int)p.Y)).ToArray()
+            );
+
+            // Wrap the contour in a VectorOfVectorOfPoint
+            var contours = new Emgu.CV.Util.VectorOfVectorOfPoint();
+            contours.Push(contour);
+
+            // Fill the mask with white inside the boundary
+            CvInvoke.FillPoly(mask, contours, new Gray(255).MCvScalar);
+
+            // Apply the mask to the image
+            var result = new Image<Bgr, byte>(Bgr.Size);
+
+            for (int y = 0; y < Bgr.Height; y++)
+            {
+                for (int x = 0; x < Bgr.Width; x++)
+                {
+                    // If the mask is white, keep the original pixel
+                    if (mask.Data[y, x, 0] == 255)
+                    {
+                        result.Data[y, x, 0] = Bgr.Data[y, x, 0]; // Blue
+                        result.Data[y, x, 1] = Bgr.Data[y, x, 1]; // Green
+                        result.Data[y, x, 2] = Bgr.Data[y, x, 2]; // Red
+                    }
+                    else
+                    {
+                        // Otherwise, set the pixel to white
+                        result.Data[y, x, 0] = 255; // Blue
+                        result.Data[y, x, 1] = 255; // Green
+                        result.Data[y, x, 2] = 255; // Red
+                    }
+                }
+            }
+
+
+            // Display the masked image
+            ProcessedImage p = new ProcessedImage(ConvertToBitmapSource(result));
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source=p.Image;
+                Bgr=ConvertImageToEmguImage(_image);
+            }
+        }
+
+
 
         private bool IsValidPixel(int x, int y)
         {
@@ -372,29 +578,39 @@ namespace Drawing_App.Model
                 throw new InvalidOperationException("Image source is not a BitmapSource.");
             }
 
-            // Create an empty Image<Bgr, byte> of the same dimensions as the BitmapSource
-            Image<Bgr, byte> emguImage = new Image<Bgr, byte>(bitmapSource.PixelWidth, bitmapSource.PixelHeight);
+            // Get image properties
+            int width = bitmapSource.PixelWidth;
+            int height = bitmapSource.PixelHeight;
+
+            // Calculate the stride (the number of bytes in a single row, including padding)
+            int bytesPerPixel = (bitmapSource.Format.BitsPerPixel + 7) / 8;
+            int stride = width * bytesPerPixel;
 
             // Extract pixel data from BitmapSource
-            byte[] rawPixelData = ExtractPixelData(bitmapSource);
+            byte[] rawPixelData = new byte[height * stride+2];
+            bitmapSource.CopyPixels(rawPixelData, stride, 0);
 
-            // Initialize the Image<Bgr, byte> pixel by pixel
-            for (int y = 0; y < bitmapSource.PixelHeight; y++)
+            // Create an EmguCV Image<Bgr, byte> of the same dimensions
+            Image<Bgr, byte> emguImage = new Image<Bgr, byte>(width, height);
+
+            // Map pixel data to the EmguCV image
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < bitmapSource.PixelWidth; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    int pixelIndex = (y * bitmapSource.PixelWidth + x) * 4; // 4 bytes per pixel (BGR + Alpha)
+                    // Calculate the pixel index considering the stride
+                    int pixelIndex = y * stride + x * bytesPerPixel;
 
-                    // Set the pixel values (BGR) in the EmguCV image
-                    emguImage.Data[y, x, 0] = rawPixelData[pixelIndex];     // Blue channel
-                    emguImage.Data[y, x, 1] = rawPixelData[pixelIndex + 1]; // Green channel
-                    emguImage.Data[y, x, 2] = rawPixelData[pixelIndex + 2]; // Red channel
-                                                                            // Alpha channel (rawPixelData[pixelIndex + 3]) is ignored here
+                    // Set the pixel values (BGR channels) in the EmguCV image
+                    emguImage.Data[y, x, 0] = rawPixelData[pixelIndex];     // Blue
+                    emguImage.Data[y, x, 1] = rawPixelData[pixelIndex + 1]; // Green
+                    emguImage.Data[y, x, 2] = rawPixelData[pixelIndex + 2]; // Red
                 }
             }
 
             return emguImage;
         }
+
         private byte[] ExtractPixelData(BitmapSource bitmapSource)
         {
             // Calculate the stride (the width in bytes of a single row of pixels)

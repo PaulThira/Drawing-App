@@ -32,6 +32,7 @@
             <TextBox Height="20" Width="95" Text="{Binding  Green,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
             <Label  HorizontalAlignment="Center" Content="Blue"/>
             <TextBox Height="20" Width="95" Text="{Binding Blue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Content="Save Image" Command="{Binding PreviousImageCommand}" Width="76" Background="#9A998C" Foreground="Black" Margin="20" Height="33" Click="Button_Click"  />
         </StackPanel>
         <StackPanel x:Name="Stack" Grid.Row="1" Grid.Column="0"  Background="#9A998C" >
             <Image x:Name="Imagery" Source="{Binding CurrentImage}"    MouseLeftButtonDown="Image_MouseLeftButtonDown"/>
