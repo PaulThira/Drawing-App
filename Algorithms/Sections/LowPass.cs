@@ -366,7 +366,12 @@ namespace Algorithms.Sections
         public Image<Gray, byte> Canny(Image<Bgr, byte> image, byte T1, byte T2)
         {
             if (T1 >= T2)
-                throw new ArgumentException("T1 should be less than T2.");
+            {
+                var d = T1;
+                T1 = T2;
+                T2 = T1;
+            }
+           
 
             // Optional: Apply Gaussian smoothing
             Image<Bgr, byte> smoothed = image.SmoothGaussian(3);

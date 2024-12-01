@@ -249,7 +249,12 @@ namespace Drawing_App.Model
             pointwiseOperations.blue=blue; pointwiseOperations.green=green; pointwiseOperations.red=red;
            var result= pointwiseOperations.ApplyLUT(Bgr);
             ProcessedImage p=new ProcessedImage(ConvertToBitmapSource(result));
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void ApplyNegative()
         {

@@ -793,128 +793,220 @@ namespace Drawing_App.Model
         }
 
         // Method to start a new stroke
-        public void StartStroke(Point startPoint,bool mirrored=false)
+        public void StartStroke(Point startPoint, bool enableSymmetry = false)
         {
-            if (mirrored == false)
+            _currentPolyline = new Polyline
             {
-                _currentPolyline = new Polyline
-                {
-                    Stroke = _currentBrush, // Default color, could be set via a method or property
-                    StrokeThickness = thickness, // Default thickness, could be set via a method or property
-                    Points = new PointCollection { startPoint }
-                };
-                _canvas.Children.Add(_currentPolyline);
-                ExecuteDrawingAction(_currentPolyline);
-            }
-            else
+                Stroke = _currentBrush,
+                StrokeThickness = thickness,
+                Points = new PointCollection { startPoint }
+            };
+            _canvas.Children.Add(_currentPolyline);
+
+            if (enableSymmetry)
             {
                 _mirroredPolyline = new Polyline
                 {
-                    Stroke = _currentBrush, // Default color, could be set via a method or property
-                    StrokeThickness = thickness, // Default thickness, could be set via a method or property
-                    Points = new PointCollection { startPoint }
+                    Stroke = _currentBrush,
+                    StrokeThickness = thickness,
+                    Points = new PointCollection { GetMirroredPoint(startPoint) }
                 };
                 _canvas.Children.Add(_mirroredPolyline);
-                ExecuteDrawingAction(_mirroredPolyline);
             }
-            
         }
 
-        // Method to continue the current stroke
-        public void ContinueStroke(Point currentPoint,bool mirrored=false)
+        public void ContinueStroke(Point currentPoint, bool enableSymmetry=false)
         {
-            if (mirrored == false)
+            _currentPolyline?.Points.Add(currentPoint);
+
+            if (enableSymmetry && _mirroredPolyline != null)
             {
+                Point mirroredPoint = GetMirroredPoint(currentPoint);
+                _mirroredPolyline.Points.Add(mirroredPoint);
+            }
+        }
+
+
+        private Point GetMirroredPoint(Point originalPoint)
+        {
+            // Assuming mirroring is based on a vertical axis of symmetry at the center of the canvas
+            double canvasWidth = _canvas.ActualWidth; // Width of the canvas
+            double mirroredX = canvasWidth - originalPoint.X; // Calculate the mirrored X coordinate
+            double mirroredY = originalPoint.Y; // Y-coordinate remains the same for vertical symmetry
+
+            return new Point(mirroredX, mirroredY);
+        }
+        public void EndStroke(bool enableSymmetry=false)
+        {
+            if (enableSymmetry)
+            {
+
+                RenderSymmetry(_currentPolyline.Points.Last(), isEndStroke: true);
+                while (_mirroredPolyline.Points.Count > _currentPolyline.Points.Count)
+                {
+                    _mirroredPolyline.Points.RemoveAt(_mirroredPolyline.Points.Count - 1);
+                }
+
+                while (_currentPolyline.Points.Count > _mirroredPolyline.Points.Count)
+                {
+                    _currentPolyline.Points.RemoveAt(_currentPolyline.Points.Count - 1);
+                }
+
+            }
+            var points = _currentPolyline.Points;
+            if (corectShapes)
+            {
+                if (_detector.IsRectangle(points))
+                {
+                    // Replace the polyline with a rectangle
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Rectangle);
+                    EndShape(furthestPoint);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+
+                else if (_detector.IsEllipse(points))
+                {
+                    // Replace the polyline with an ellipse
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Ellipse);
+                    EndShape(furthestPoint);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+                else if (_detector.IsEquilateralTriangle(points))
+                {
+                    // Replace the polyline with a triangle
+                    DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+            }
+            _currentPolyline = null;
+            _mirroredPolyline = null;
+            _canvas.Children.RemoveAt(_canvas.Children.Count - 1);
+        }
+
+
+        private void RenderSymmetry(Point point, bool isEndStroke)
+        {
+            // Define symmetry axis (vertical symmetry example)
+            double canvasCenterX = _canvas.ActualWidth / 2;
+
+            // Calculate mirrored point
+            Point mirroredPoint = new Point(2 * canvasCenterX - point.X, point.Y);
+
+            if (!isEndStroke)
+            {
+                // Add the mirrored point dynamically
                 if (_currentPolyline != null)
                 {
-                    _currentPolyline.Points.Add(currentPoint);
+                    _currentPolyline.Points.Add(mirroredPoint);
                 }
-            }
-            else {
-                if (_mirroredPolyline != null)
-                {
-                    _mirroredPolyline.Points.Add(currentPoint);
-                }
-            }
-            
-        }
-
-        // Method to finalize the current stroke
-        public void EndStroke(bool mirrored=false)
-        {
-            if (mirrored == false)
-            {
-                var points = _currentPolyline.Points;
-                if (corectShapes)
-                {
-                    if (_detector.IsRectangle(points))
-                    {
-                        // Replace the polyline with a rectangle
-                        var startPoint = points.First();
-                        var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                        StartShape(startPoint, ShapeKind.Rectangle);
-                        EndShape(furthestPoint);
-                        _canvas.Children.Remove(_currentPolyline);
-                    }
-
-                    else if (_detector.IsEllipse(points))
-                    {
-                        // Replace the polyline with an ellipse
-                        var startPoint = points.First();
-                        var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                        StartShape(startPoint, ShapeKind.Ellipse);
-                        EndShape(furthestPoint);
-                        _canvas.Children.Remove(_currentPolyline);
-                    }
-                    else if (_detector.IsEquilateralTriangle(points))
-                    {
-                        // Replace the polyline with a triangle
-                        DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
-                        _canvas.Children.Remove(_currentPolyline);
-                    }
-                }
-                // Detect shapes using the ShapeDetector
-
-
-
-                _currentPolyline = null;
             }
             else
             {
-                var points = _mirroredPolyline.Points;
-                if (corectShapes)
+                // Finalize the mirrored polyline
+                var mirroredPolyline = new Polyline
                 {
-                    if (_detector.IsRectangle(points))
-                    {
-                        // Replace the polyline with a rectangle
-                        var startPoint = points.First();
-                        var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                        StartShape(startPoint, ShapeKind.Rectangle);
-                        EndShape(furthestPoint);
-                        _canvas.Children.Remove(_mirroredPolyline);
-                    }
+                    Stroke = _currentBrush,
+                    StrokeThickness = thickness,
+                    Points = new PointCollection(_currentPolyline.Points.Select(p =>
+                        new Point(2 * canvasCenterX - p.X, p.Y)))
+                };
+                _canvas.Children.Add(mirroredPolyline);
+            }
+        }
 
-                    else if (_detector.IsEllipse(points))
-                    {
-                        // Replace the polyline with an ellipse
-                        var startPoint = points.First();
-                        var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                        StartShape(startPoint, ShapeKind.Ellipse);
-                        EndShape(furthestPoint);
-                        _canvas.Children.Remove(_mirroredPolyline);
-                    }
-                    else if (_detector.IsEquilateralTriangle(points))
-                    {
-                        // Replace the polyline with a triangle
-                        DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
-                        _canvas.Children.Remove(_mirroredPolyline);
-                    }
+        // Method to continue the current stroke
+
+       
+
+        // Helper to clean up redundant children from the canvas
+        private void CleanupCanvas()
+        {
+            var polylines = _canvas.Children.OfType<Polyline>().ToList();
+            foreach (var polyline in polylines)
+            {
+                if (polyline.Points.Count == 0)
+                {
+                    _canvas.Children.Remove(polyline);
                 }
-                // Detect shapes using the ShapeDetector
+            }
+        }
 
 
 
-                _mirroredPolyline = null;
+
+        // Method to finalize the current stroke
+
+        private void FinalizePolyline(Polyline polyline)
+        {
+            if (polyline == null) return;
+
+            var points = polyline.Points;
+
+            if (corectShapes)
+            {
+                if (_detector.IsRectangle(points))
+                {
+                    ReplaceWithRectangle(points);
+                }
+                else if (_detector.IsEllipse(points))
+                {
+                    ReplaceWithEllipse(points);
+                }
+                else if (_detector.IsEquilateralTriangle(points))
+                {
+                    ReplaceWithTriangle(points);
+                }
+            }
+        }
+
+        private void ReplaceWithRectangle(PointCollection points)
+        {
+            var startPoint = points.First();
+            var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+            StartShape(startPoint, ShapeKind.Rectangle);
+            EndShape(furthestPoint);
+            _canvas.Children.Remove(_currentPolyline);
+        }
+
+        private void ReplaceWithEllipse(PointCollection points)
+        {
+            var startPoint = points.First();
+            var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+            StartShape(startPoint, ShapeKind.Ellipse);
+            EndShape(furthestPoint);
+            _canvas.Children.Remove(_currentPolyline);
+        }
+
+        private void ReplaceWithTriangle(PointCollection points)
+        {
+            DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
+            _canvas.Children.Remove(_currentPolyline);
+        }
+
+        private void SyncPolylinePoints()
+        {
+            if (_mirroredPolyline == null || _currentPolyline == null) return;
+
+            var mirroredCount = _mirroredPolyline.Points.Count;
+            var currentCount = _currentPolyline.Points.Count;
+
+            if (mirroredCount < currentCount)
+            {
+                while (_mirroredPolyline.Points.Count < _currentPolyline.Points.Count)
+                {
+                    _mirroredPolyline.Points.Add(_mirroredPolyline.Points.Last());
+                }
+            }
+            else if (currentCount < mirroredCount)
+            {
+                while (_currentPolyline.Points.Count < _mirroredPolyline.Points.Count)
+                {
+                    _currentPolyline.Points.Add(_currentPolyline.Points.Last());
+                }
             }
         }
 
