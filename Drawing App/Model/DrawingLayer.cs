@@ -861,8 +861,40 @@ namespace Drawing_App.Model
                 _mirroredPolyline = null;
 
             }
-            
-            
+            var points = _currentPolyline.Points;
+            if (corectShapes)
+            {
+                if (_detector.IsRectangle(points))
+                {
+                    // Replace the polyline with a rectangle
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Rectangle);
+                    EndShape(furthestPoint);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+
+                else if (_detector.IsEllipse(points))
+                {
+                    // Replace the polyline with an ellipse
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Ellipse);
+                    EndShape(furthestPoint);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+                else if (_detector.IsEquilateralTriangle(points))
+                {
+                    // Replace the polyline with a triangle
+                    DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
+                    _canvas.Children.Remove(_currentPolyline);
+                }
+            }
+            // Detect shapes using the ShapeDetector
+
+
+
+
 
             _currentPolyline = null;
            
