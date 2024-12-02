@@ -17,6 +17,7 @@ using Brush = System.Windows.Media.Brush;
 using Emgu.CV.Linemod;
 using System.Security.Cryptography.Xml;
 using Rectangle = System.Windows.Shapes.Rectangle;
+using SkiaSharp;
 namespace Drawing_App.Model
 
 {
@@ -57,6 +58,11 @@ namespace Drawing_App.Model
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         private Point _dragStartPoint; // Starting point for dragging
         private double _offsetX, _offsetY;
+        private int currentCount;
+        public MirrorAxis _currentSymetryMode {  get; set; }
+
+        private Canvas _mirroredLayer;
+
         public DrawingLayer(ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand ,double opacity = 1.0, bool isVisible = true, string name="Layer")
             : base(opacity, isVisible, name)
         {
@@ -82,6 +88,9 @@ namespace Drawing_App.Model
             _detector = new ShapeDetector();
             corectShapes=false;
             _canvas.MouseWheel += Canvas_MouseWheel;
+            currentCount = 0;
+            _mirroredLayer = new Canvas();
+            _canvas.Children.Add(_mirroredLayer);
 
         }
         private double _rotationAngle = 0; // Track the cumulative rotation angle
@@ -801,23 +810,42 @@ namespace Drawing_App.Model
                 StrokeThickness = thickness,
                 Points = new PointCollection { startPoint }
             };
+
             _canvas.Children.Add(_currentPolyline);
+            currentCount++;
 
             if (enableSymmetry)
             {
+                // Create a mirrored canvas layer
+                _mirroredLayer.Children.Clear();
+
+                // Initialize the mirrored stroke
                 _mirroredPolyline = new Polyline
                 {
-                    Stroke = _currentBrush,
-                    StrokeThickness = thickness,
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 2,
                     Points = new PointCollection { GetMirroredPoint(startPoint) }
                 };
-                _canvas.Children.Add(_mirroredPolyline);
+                _mirroredLayer.Children.Add(_mirroredPolyline);
             }
         }
 
-        public void ContinueStroke(Point currentPoint, bool enableSymmetry=false)
+     
+
+        private Polyline ClonePolyline(Polyline originalPolyline)
+        {
+            return new Polyline
+            {
+                Stroke = originalPolyline.Stroke,
+                StrokeThickness = originalPolyline.StrokeThickness,
+                Points = new PointCollection(originalPolyline.Points) // Clone points
+            };
+        }
+
+        public void ContinueStroke(Point currentPoint, bool enableSymmetry = false)
         {
             _currentPolyline?.Points.Add(currentPoint);
+
 
             if (enableSymmetry && _mirroredPolyline != null)
             {
@@ -826,67 +854,27 @@ namespace Drawing_App.Model
             }
         }
 
+        public void EndStroke(bool enableSymmetry = false)
+        {
+            if (enableSymmetry &&_mirroredPolyline != null)
+            {
+                _mirroredPolyline = null;
 
+            }
+            
+            
+
+            _currentPolyline = null;
+           
+           
+        }
         private Point GetMirroredPoint(Point originalPoint)
         {
-            // Assuming mirroring is based on a vertical axis of symmetry at the center of the canvas
-            double canvasWidth = _canvas.ActualWidth; // Width of the canvas
-            double mirroredX = canvasWidth - originalPoint.X; // Calculate the mirrored X coordinate
-            double mirroredY = originalPoint.Y; // Y-coordinate remains the same for vertical symmetry
+            double canvasCenterX = _canvas.ActualWidth / 2;
+            double mirroredX = 2 * canvasCenterX - originalPoint.X;
 
-            return new Point(mirroredX, mirroredY);
+            return new Point(mirroredX, originalPoint.Y);
         }
-        public void EndStroke(bool enableSymmetry=false)
-        {
-            if (enableSymmetry)
-            {
-
-                RenderSymmetry(_currentPolyline.Points.Last(), isEndStroke: true);
-                while (_mirroredPolyline.Points.Count > _currentPolyline.Points.Count)
-                {
-                    _mirroredPolyline.Points.RemoveAt(_mirroredPolyline.Points.Count - 1);
-                }
-
-                while (_currentPolyline.Points.Count > _mirroredPolyline.Points.Count)
-                {
-                    _currentPolyline.Points.RemoveAt(_currentPolyline.Points.Count - 1);
-                }
-
-            }
-            var points = _currentPolyline.Points;
-            if (corectShapes)
-            {
-                if (_detector.IsRectangle(points))
-                {
-                    // Replace the polyline with a rectangle
-                    var startPoint = points.First();
-                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                    StartShape(startPoint, ShapeKind.Rectangle);
-                    EndShape(furthestPoint);
-                    _canvas.Children.Remove(_currentPolyline);
-                }
-
-                else if (_detector.IsEllipse(points))
-                {
-                    // Replace the polyline with an ellipse
-                    var startPoint = points.First();
-                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                    StartShape(startPoint, ShapeKind.Ellipse);
-                    EndShape(furthestPoint);
-                    _canvas.Children.Remove(_currentPolyline);
-                }
-                else if (_detector.IsEquilateralTriangle(points))
-                {
-                    // Replace the polyline with a triangle
-                    DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
-                    _canvas.Children.Remove(_currentPolyline);
-                }
-            }
-            _currentPolyline = null;
-            _mirroredPolyline = null;
-            _canvas.Children.RemoveAt(_canvas.Children.Count - 1);
-        }
-
 
         private void RenderSymmetry(Point point, bool isEndStroke)
         {

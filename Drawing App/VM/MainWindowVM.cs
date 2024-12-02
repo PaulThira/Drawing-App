@@ -605,19 +605,21 @@ namespace Drawing_App.VM
 
         {
             MirrorModeEnabled = true;
-            if (type == "0")
+            if (type == "1")
             {
                 axis = MirrorAxis.Horizontal;
             }
-            else if (type == "1")
+            else if (type == "2")
             {
                 axis = MirrorAxis.Vertical;
             }
-            else if (type == "2") { 
+            else if (type == "3") { 
                 axis = MirrorAxis.Both;
             }
+            
             else
             {
+                axis = MirrorAxis.None;
                 MirrorModeEnabled = false;
             }
         }
@@ -1209,6 +1211,7 @@ namespace Drawing_App.VM
             {
                 if (startPoint != null)
                 {
+                    MirroredPoints.Clear();
                     Points.Push(startPoint.Value);
                     var m = GetMirroredPoint(startPoint.Value);
                     MirroredPoints.Push(m);
@@ -1302,6 +1305,7 @@ namespace Drawing_App.VM
             if (SelectedLayer is DrawingLayer drawingLayer && currentPoint != null)
             {
                 drawingLayer.ContinueStroke(currentPoint.Value);
+                Points.Push(currentPoint.Value);    
                 var m = GetMirroredPoint(currentPoint.Value);
                 MirroredPoints.Push(m);
             }
@@ -1339,12 +1343,33 @@ namespace Drawing_App.VM
 
                 if (MirrorModeEnabled)
                 {
-                    drawingLayer.StartStroke(MirroredPoints.First(), true);
-                    foreach (var point in MirroredPoints.Skip(1))
+                    // Clear previous mirrored points
+                    MirroredPoints.Clear();
+
+                    // Generate mirrored points based on the current polyline's points
+                    if (Points != null)
                     {
-                        drawingLayer.ContinueStroke(point, true);
+                        foreach (var point in Points)
+                        {
+                            Point mirroredPoint = GetMirroredPoint(point);
+                            MirroredPoints.Push(mirroredPoint);
+                        }
+
+                        // Start the mirrored stroke
+                        drawingLayer.StartStroke(MirroredPoints.First());
+
+                        // Add mirrored points to the mirrored stroke
+                        foreach (var mirroredPoint in MirroredPoints)
+                        {
+                            drawingLayer.ContinueStroke(mirroredPoint);
+                        }
+
+                        // Finalize the mirrored stroke
+                        drawingLayer.EndStroke(true);
                     }
-                    drawingLayer.EndStroke(true);
+                    Points.Clear();
+                    // Clear mirrored points after the mirrored stroke is finalized
+                    MirroredPoints.Clear();
                 }
 
             }

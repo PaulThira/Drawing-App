@@ -19,6 +19,8 @@
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
     <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.1" />
     <PackageReference Include="Prism.Core" Version="9.0.537" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="2.88.9" />
     <PackageReference Include="Syncfusion.Shared.WPF" Version="26.2.13" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
   </ItemGroup>

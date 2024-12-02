@@ -247,10 +247,10 @@
                     <MenuItem Header="Image file"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="Mirror Mode">
-                    <MenuItem Header="Horizontal" Command="{Binding MirrorCommand}" CommandParameter="0"/>
-                    <MenuItem Header="Vertical" Command="{Binding MirrorCommand}" CommandParameter="1"/>
-                    <MenuItem Header="Both" Command="{Binding MirrorCommand}" CommandParameter="2"/>
-                    <MenuItem Header="Disable" Command="{Binding MirrorCommand}" CommandParameter="3"/>
+                    <MenuItem Header="Horizontal" Command="{Binding MirrorCommand}" CommandParameter="1"/>
+                    <MenuItem Header="Vertical" Command="{Binding MirrorCommand}" CommandParameter="2"/>
+                    <MenuItem Header="Both" Command="{Binding MirrorCommand}" CommandParameter="3"/>
+                    <MenuItem Header="Disable" Command="{Binding MirrorCommand}" CommandParameter="0"/>
                 </MenuItem>
                 <MenuItem Header="Custom Brushes">
                     <MenuItem Header="Brush Engine" Command="{Binding BrushEngineCommand}"/>

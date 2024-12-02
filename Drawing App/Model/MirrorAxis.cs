@@ -8,6 +8,6 @@ namespace Drawing_App.Model
 {
     public enum MirrorAxis
     {
-        Vertical, Horizontal,Both
+        None,Vertical, Horizontal,Both
     }
 }
