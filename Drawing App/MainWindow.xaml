@@ -111,6 +111,7 @@
                     <MenuItem Header="Mechanical Pencil" Command="{Binding MechanicalCommand}"/>
                     <MenuItem Header="Gouche" Command="{Binding GoucheCommand}"/>
                     <MenuItem Header="Eraser" Command="{Binding EraserCommand}"/>
+                    <MenuItem Header="T Pen" Command="{Binding StarPen}"/>
                 </MenuItem>
             </Menu>
             <ListBox Height="79" Width="227" ItemsSource="{Binding Layers}"  SelectedIndex="{Binding SelectedLayerIndex, Mode=TwoWay}" Background="#F8F4E3">
@@ -166,7 +167,7 @@
                                     <ControlTemplate TargetType="Button">
                                         <Grid>
                                             <!-- Bind the Ellipse's Fill to ColorBrush from CustomPallete -->
-                                            <Ellipse Width="30" Height="30" Fill="{Binding ColorBrush}" Stroke="Black" StrokeThickness="1"/>
+                                            <Rectangle Width="30" Height="30" Fill="{Binding ColorBrush}" Stroke="Black" StrokeThickness="1"/>
                                         </Grid>
                                     </ControlTemplate>
                                 </Button.Template>

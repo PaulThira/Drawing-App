@@ -196,9 +196,11 @@ namespace Drawing_App.VM
         public ICommand WatershedCommand { get; }
         public ICommand MagicWandCommand { get; }
         public ICommand SaveAsPSDFile { get; }
+        public ICommand StarPen {  get; }
         public MainWindowVM()
 
         {
+            StarPen=new DelegateCommand(PenTextureCall);
             SaveAsPSDFile = new DelegateCommand(SaveAsPsd);
             MagicWandCommand=new DelegateCommand(MagicWand);
             WatershedCommand=new DelegateCommand(Watershed);
@@ -1148,6 +1150,35 @@ namespace Drawing_App.VM
             UpdateBrush();
             _usedColors.Add(_currentColor);
         }
+        private void PenTextureCall()
+        {
+            // Load the pencil texture from resources or a file path
+            var textureUri = new Uri("C:\\Users\\pault\\source\\repos\\Drawing App\\Drawing App\\Textures\\Star.jpg"); // Adjust the path to your texture
+            var bitmapImage = new BitmapImage(textureUri);
+
+            // Create an ImageBrush with the loaded texture
+            var textureBrush = new ImageBrush(bitmapImage)
+            {
+                Opacity = 1.0, // Set opacity
+                Stretch = Stretch.Uniform, // Adjust to your preference (Uniform, UniformToFill, Fill, None)
+                TileMode = TileMode.Tile, // Enable tiling for repeated patterns
+                Viewport = new Rect(0, 0, 0.05, 0.05), // Adjust the size of the texture tiles
+                ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Use relative coordinates for tiling
+            };
+
+            // Assign the texture brush to the current brush
+            _currentBrush = new DrawingBrush
+            {
+                Drawing = new GeometryDrawing(textureBrush, null, new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.5))
+            };
+
+            // Optionally, update the brush properties if needed
+            UpdateBrush();
+
+            // Add the current color to used colors (for tracking or display purposes)
+            _usedColors.Add(_currentColor);
+        }
+
         private void PencilCall()
         {
             Random rand = new Random();

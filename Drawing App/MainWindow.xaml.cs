@@ -118,6 +118,11 @@ namespace Drawing_App
             
         }
 
+        private void HueSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<int> e)
+        {
+
+        }
+
         
     }
 }

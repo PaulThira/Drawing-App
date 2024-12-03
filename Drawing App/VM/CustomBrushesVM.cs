@@ -161,8 +161,8 @@ namespace Drawing_App.VM
 
                 CustomBrushy=customBrush;
                 // Save the brush configuration (e.g., to a file or a settings store)
-                
-
+               
+                CustomBrushy.Texture = Texture;
                 // Close the dialog
                 CloseDialog?.Invoke();
             }
