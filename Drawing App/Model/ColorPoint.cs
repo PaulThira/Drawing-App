@@ -27,5 +27,13 @@ namespace Drawing_App.Model
             Stroked = new SolidColorBrush(Colors.Transparent);
 
         }
+        public ColorPoint( SolidColorBrush colorBrush)
+        {
+            X = 0;
+            Y = 0;
+            Color = colorBrush;
+            Stroked = new SolidColorBrush(Colors.Transparent);
+
+        }
     }
 }

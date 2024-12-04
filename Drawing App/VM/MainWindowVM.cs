@@ -494,6 +494,8 @@ namespace Drawing_App.VM
         {
             t1 = t2;
             t2=(byte)Threshold; 
+            Window1 window = new Window1();
+            window.Show();
         }
         private void Sobel()
         {

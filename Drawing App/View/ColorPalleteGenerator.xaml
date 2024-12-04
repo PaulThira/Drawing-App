@@ -117,8 +117,8 @@
                 <MenuItem Header="Color Schemes" HorizontalAlignment="Center" >
                     <MenuItem Header="Triadic" Command="{Binding ColorSchemeCommand}" CommandParameter="0"/>
                     <MenuItem Header="Split Complementary" Command="{Binding ColorSchemeCommand}" CommandParameter="1"/>
-                    <MenuItem Header="Analogous " Command="{Binding ColorSchemeCommand}" CommandParameter="2"/>
-                    <MenuItem Header="Complementary" Command="{Binding ColorSchemeCommand}" CommandParameter="3"/>
+                    <MenuItem Header="Analogous " Command="{Binding ColorSchemeCommand}" CommandParameter="3"/>
+                    <MenuItem Header="Complementary" Command="{Binding ColorSchemeCommand}" CommandParameter="2"/>
                     <MenuItem Header="Tetradic" Command="{Binding ColorSchemeCommand}" CommandParameter="4"/>
                    
                 </MenuItem>
