@@ -5,42 +5,63 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Drawing_App.View"
         mc:Ignorable="d"
-        Title="Histogram" Height="450" Width="1000">
-    <Grid Background="#F8F4E3" >
-        <Label Content="Histogram" HorizontalAlignment="Center" FontSize="40" Margin="0,-18,0,18"/>
-        <StackPanel  Margin="40,54,40,30" Background="#9A998C" Orientation="Horizontal" HorizontalAlignment="Right" Width="930" >
+        Title="Histogram" Height="600" Width="800">
+    <Grid Background="#2C2C2C">
+        <!-- Title -->
+        <Border Background="#1E1E1E" Height="60" VerticalAlignment="Top">
+            <TextBlock Text="Histogram" FontSize="30" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Border>
 
-            <Canvas x:Name="RedCanvas" Height="100" Background="White" Width="255" Margin="60,0,10,0">
-                <ItemsControl ItemsSource="{Binding RedHistogramBars}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </Canvas>
+        <!-- Histogram Panels -->
+        <StackPanel Margin="20,80,20,20" Orientation="Vertical">
+            <!-- Red Histogram -->
+            <StackPanel Orientation="Vertical" Margin="0,0,0,20">
+                <TextBlock Text="Red Histogram" FontSize="16" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                <Border Background="#1E1E1E" BorderBrush="#444" BorderThickness="1" CornerRadius="5" Padding="5" Width="300" HorizontalAlignment="Center">
+                    <Canvas x:Name="RedCanvas" Height="100" Width="255" Background="#3E3E3E">
+                        <ItemsControl ItemsSource="{Binding RedHistogramBars}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Canvas>
+                </Border>
+            </StackPanel>
 
-            <!-- Bind the Canvas Items to the Green Histogram Bars -->
-            <Canvas x:Name="GreenCanvas" Height="100" Background="White" Width="256" Margin="10,0,10,0">
-                <ItemsControl ItemsSource="{Binding GreenHistogramBars}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </Canvas>
+            <!-- Green Histogram -->
+            <StackPanel Orientation="Vertical" Margin="0,0,0,20">
+                <TextBlock Text="Green Histogram" FontSize="16" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                <Border Background="#1E1E1E" BorderBrush="#444" BorderThickness="1" CornerRadius="5" Padding="5" Width="300" HorizontalAlignment="Center">
+                    <Canvas x:Name="GreenCanvas" Height="100" Width="255" Background="#3E3E3E">
+                        <ItemsControl ItemsSource="{Binding GreenHistogramBars}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Canvas>
+                </Border>
+            </StackPanel>
 
-            <!-- Bind the Canvas Items to the Blue Histogram Bars -->
-            <Canvas x:Name="BlueCanvas" Height="100" Background="White" Width="256" Margin="10,0,10,0">
-                <ItemsControl ItemsSource="{Binding BlueHistogramBars}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </Canvas>
+            <!-- Blue Histogram -->
+            <StackPanel Orientation="Vertical" Margin="0,0,0,20">
+                <TextBlock Text="Blue Histogram" FontSize="16" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,5" />
+                <Border Background="#1E1E1E" BorderBrush="#444" BorderThickness="1" CornerRadius="5" Padding="5" Width="300" HorizontalAlignment="Center">
+                    <Canvas x:Name="BlueCanvas" Height="100" Width="255" Background="#3E3E3E">
+                        <ItemsControl ItemsSource="{Binding BlueHistogramBars}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Canvas>
+                </Border>
+            </StackPanel>
         </StackPanel>
     </Grid>
+
 </Window>
