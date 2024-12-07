@@ -40,6 +40,8 @@ using Layer = Drawing_App.Model;
 
 using WpfImage = System.Windows.Controls.Image;
 using ImageMagick;
+using ColorPoint = Drawing_App.Model.ColorPoint;
+
 
 // Ensure this matches your intended type
 
@@ -58,6 +60,8 @@ namespace Drawing_App.VM
             get => threshold;
             set => SetProperty(ref threshold, value);
         }
+        private const int Radius = 50;
+        private const int ColorCount = 360;
         public MirrorAxis axis {  get; set; }
         private double _brushSize;
         private double _hue;
@@ -110,6 +114,12 @@ namespace Drawing_App.VM
         public ICommand RemoveLayerCommand { get; }
 
         public ObservableCollection<UIElement> DrawingElements { get; }
+        private SolidColorBrush _selectedColor;
+        public SolidColorBrush SelectedColor
+        {
+            get => _selectedColor;
+            set { SetProperty(ref _selectedColor, value); }
+        }
 
         public ICommand StartStrokeCommand { get; }
         public ICommand ContinueStrokeCommand { get; }
@@ -197,9 +207,12 @@ namespace Drawing_App.VM
         public ICommand MagicWandCommand { get; }
         public ICommand SaveAsPSDFile { get; }
         public ICommand StarPen {  get; }
+        public ObservableCollection<Model.ColorPoint> ColorPoints { get; set; }
+        public ICommand ColorSelectedCommand { get; }
         public MainWindowVM()
 
         {
+            ColorPoints = new ObservableCollection<Model.ColorPoint>();
             StarPen=new DelegateCommand(PenTextureCall);
             SaveAsPSDFile = new DelegateCommand(SaveAsPsd);
             MagicWandCommand=new DelegateCommand(MagicWand);
@@ -296,6 +309,7 @@ namespace Drawing_App.VM
             );
             DrawingLayer l=new DrawingLayer(StartStrokeCommand, ContinueStrokeCommand, EndStrokeCommand);
             Layers.Add(l);
+            SelectedLayer = l;
             foreach (var layer in Layers)
             {
                 layer.PropertyChanged += Layer_PropertyChanged;
@@ -329,8 +343,10 @@ namespace Drawing_App.VM
 
             NextPaletteCommand = new DelegateCommand(MoveToNextPalette);
             PreviousPaletteCommand = new DelegateCommand(MoveToPreviousPalette);
+            ColorSelectedCommand = new DelegateCommand<ColorPoint>(OnColorSelected);
             SelectedPalette = ColorPalettes[0];
             t1 = (byte)Threshold;
+            GenerateColorWheel();
             
         }
         public void SaveAsPsd()
@@ -375,6 +391,15 @@ namespace Drawing_App.VM
                     psd.Write(filePath);
                 }
             }
+        }
+        private void OnColorSelected(Model.ColorPoint selectedColorPoint)
+        {
+            // Perform the action when a color is selected
+            SelectedColor = selectedColorPoint.Color;
+            var his = new HSVColours();
+            _hue = (double)his.BGRtoHSV(SelectedColor.Color).Item1;
+            UpdateColor();
+            // Do something with the selected color (e.g., update UI or selected color)
         }
 
         // Convert EmguCV Image<Bgr, byte> to MagickImage
@@ -924,7 +949,34 @@ namespace Drawing_App.VM
             SelectedLayer?.Redo();
         }
 
-        
+        private void GenerateColorWheel()
+        {
+            ColorPoints.Clear();
+
+            // Generate colors based on the HSV color wheel
+            for (int i = 0; i < ColorCount; i++)
+            {
+                // Calculate the angle for placing the color
+                double angle = i * (360.0 / ColorCount);
+                double radians = angle * (Math.PI / 180.0);
+
+                // Position for the color based on angle and radius
+                double x = Radius + (Radius * Math.Cos(radians));
+                double y = Radius + (Radius * Math.Sin(radians));
+                HSVColours h = new HSVColours();
+
+                // Convert the angle to a color in the HSV model
+                var hsvColor = h.ColorFromHSV((double)i, 1.0, 1.0);  // Full saturation, full value for bright colors
+
+                // Add the color and position to the collection
+                ColorPoints.Add(new Model.ColorPoint
+                {
+                    X = x,
+                    Y = y,
+                    Color = new SolidColorBrush(hsvColor)
+                });
+            }
+        }
         public void SetShapeType(ShapeKind? shapeType)
         {
             if (shapeType.HasValue) { 
@@ -1753,6 +1805,7 @@ namespace Drawing_App.VM
         public void OnSaturationChanged(double newValue)
         {
             Saturation = newValue;
+            
             UpdateColor();
         }
 

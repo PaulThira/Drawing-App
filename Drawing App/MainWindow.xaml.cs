@@ -37,9 +37,9 @@ namespace Drawing_App
 
             // Subscribe to the ValueChanged events
             SizeBrush.ValueChanged += SizeBrush_ValueChanged;
-            HueSlider.ValueChanged += HueSlider_ValueChanged;
+           
             SaturationSlider.ValueChanged += SaturationSlider_ValueChanged;
-            BrightnessSlider.ValueChanged += BrightnessSlider_ValueChanged;
+            ValueSlider.ValueChanged += BrightnessSlider_ValueChanged;
             OpacitySlider.ValueChanged += OpacitySlider_ValueChanged;
             
         }

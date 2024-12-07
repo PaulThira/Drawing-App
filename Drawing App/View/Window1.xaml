@@ -3,19 +3,48 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Drawing_App.View" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:Drawing_App.View"
+         xmlns:model="clr-namespace:Drawing_App.Model"
+         xmlns:viewmodel="clr-namespace:Drawing_App.VM"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="Drawing App" Height="800" Width="1200" Background="#2C2C2C">
+        Title="Window1" Height="800" Width="1200">
+    <Window.Resources>
+        <LinearGradientBrush x:Key="HueBackgroundBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FFFF0000" Offset="0.0"/>
+            <GradientStop Color="#FFFFFF00" Offset="0.17"/>
+            <GradientStop Color="#FF00FF00" Offset="0.33"/>
+            <GradientStop Color="#FF00FFFF" Offset="0.5"/>
+            <GradientStop Color="#FF0000FF" Offset="0.67"/>
+            <GradientStop Color="#FFFF00FF" Offset="0.83"/>
+            <GradientStop Color="#FFFF0000" Offset="1.0"/>
+        </LinearGradientBrush>
+
+    </Window.Resources>
+    <Window.DataContext>
+        <viewmodel:MainWindowVM/>
+    </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}" />
+        <KeyBinding Key="Y" Modifiers="Control" Command="{Binding RedoCommand}" />
+        <KeyBinding Command="{Binding ZoomInCommand}" Key="A" Modifiers="Control" />
+        <KeyBinding Command="{Binding ResizeUpCommand}" Key="Up"/>
+        <KeyBinding Command="{Binding ResizeDownCommand}" Key="Down"/>
+        <KeyBinding Command="{Binding ResizeLeftCommand}" Key="Left"/>
+        <KeyBinding Command="{Binding ResizeRightCommand}" Key="Right"/>
+        <KeyBinding Command="{Binding ZoomOutCommand}" Key="B" Modifiers="Control" />
+
+    </Window.InputBindings>
     <Grid>
         <!-- Define Rows and Columns -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="8*"/>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="15*"/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="8*"/>
+            <RowDefinition Height="30*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -23,70 +52,160 @@
         <DockPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Background="#1E1E1E" Height="40">
             <Menu Background="#1E1E1E" Foreground="White">
                 <MenuItem Header="🖌️ Layers">
-                    <MenuItem Header="Add Layer"/>
-                    <MenuItem Header="Remove Layer"/>
-                    <MenuItem Header="Merge Layers"/>
+                    <MenuItem Header="Add Image" Command="{Binding AddImageLayerCommand}"></MenuItem>
+                    <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
+                    <MenuItem Header="Delete Layer" Command="{Binding RemoveLayerCommand}"></MenuItem>
+                    <MenuItem Header="Add References" Command="{Binding ReferencesCommand}"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="🎨 Color Settings">
-                    <MenuItem Header="Adjust Hue"/>
-                    <MenuItem Header="Adjust Saturation"/>
-                    <MenuItem Header="Adjust Brightness"/>
+
+                    <Ellipse Name="harmonious" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Harmony}"></Ellipse>
+                    <MenuItem Header="Pallette Generator" Command="{Binding PalletteGeneratorCommand}"/>
+                    <MenuItem Header="Magic Wand" Command="{Binding MagicWandCommand}"/>
                 </MenuItem>
                 <MenuItem Header="🔷 Add Shapes">
-                    <MenuItem Header="Rectangle"/>
-                    <MenuItem Header="Circle"/>
-                    <MenuItem Header="Line"/>
+                    <MenuItem Header="Circle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Circle}"></MenuItem>
+                    <MenuItem Header="Square" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Square}"></MenuItem>
+                    <MenuItem Header="Heart" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Heart}"></MenuItem>
+                    <MenuItem Header="Elipse" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Ellipse}"></MenuItem>
+                    <MenuItem Header="Rectangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Rectangle}"></MenuItem>
+                    <MenuItem Header="Line" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Line}"></MenuItem>
+                    <MenuItem Header="Triangle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Triangle}"></MenuItem>
+                    <MenuItem Header="ShapeDetect" Command="{ Binding ShapeDetectCommand}" ></MenuItem>
                 </MenuItem>
                 <MenuItem Header="✨ Filters">
-                    <MenuItem Header="Apply Blur"/>
-                    <MenuItem Header="Sharpen"/>
-                    <MenuItem Header="Threshold"/>
-                    <MenuItem Header="Edge Detection"/>
-                    <MenuItem Header="Grayscale"/>
+                    <MenuItem Header="Histogram" Command="{Binding HistoCommand}"/>
+                    <MenuItem Header="Super Zoom" Command="{Binding SuperZoomCommand}"/>
+                    <MenuItem Header="Basic Operations">
+                        <MenuItem Header="Grayscale" Command="{Binding GrayscaleCommand}"/>
+                        <MenuItem Header="Negative" Command="{Binding NegativeFilterCommand}"/>
+
+                    </MenuItem>
+                    <MenuItem Header="Pointwise Operations">
+                        <MenuItem Header="Spline Tool" Command="{Binding Spline}"/>
+                        <MenuItem Header="Histogram Equalisation" Command="{Binding HistogramEqualisationCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="Thresholding">
+                        <MenuItem Header="Triangle" Command="{Binding TriangleTCommand}"/>
+                        <MenuItem Header="Value" Command="{Binding ThresholdCommand}"/>
+                        <MenuItem Header="Save threshold" Command="{Binding SaveThresholdCommand}"/>
+
+                    </MenuItem>
+                    <MenuItem Header="Low Pass">
+                        <MenuItem Header="Gausian Blurr" Command="{Binding GausianBlurrCommand}"/>
+                        <MenuItem Header="Fast Median Filter" Command="{Binding FastMedianFilter}"/>
+                    </MenuItem>
+                    <MenuItem Header="Morphological Operations">
+                        <MenuItem Header="Opening" Command="{Binding OpeningCommand}"/>
+                        <MenuItem Header="Closing" Command="{Binding ClosingCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="High Pass Filters">
+                        <MenuItem Header="Sobel" Command="{Binding SobelCommand}"/>
+                        <MenuItem Header="Canny" Command="{Binding CannyCommand}"/>
+                    </MenuItem>
+
                 </MenuItem>
                 <MenuItem Header="💾 Save As">
-                    <MenuItem Header="Save as JPG"/>
-                    <MenuItem Header="Save as PSD"/>
+                    <MenuItem Header="Photoshop file" Command="{Binding SaveAsPSDFile}"></MenuItem>
+                    <MenuItem Header="Image file"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="🪞 Mirror Mode">
-                    <MenuItem Header="Horizontal"/>
-                    <MenuItem Header="Vertical"/>
+                    <MenuItem Header="Horizontal" Command="{Binding MirrorCommand}" CommandParameter="1"/>
+                    <MenuItem Header="Vertical" Command="{Binding MirrorCommand}" CommandParameter="2"/>
+                    <MenuItem Header="Both" Command="{Binding MirrorCommand}" CommandParameter="3"/>
+                    <MenuItem Header="Disable" Command="{Binding MirrorCommand}" CommandParameter="0"/>
                 </MenuItem>
                 <MenuItem Header="🖍️ Custom Brushes">
-                    <MenuItem Header="Create New Brush"/>
-                    <MenuItem Header="Import Brush"/>
+                    <MenuItem Header="Brush Engine" Command="{Binding BrushEngineCommand}"/>
+                    <MenuItem Header="Custom Brushes" ItemsSource="{Binding _brushes}" AlternationCount="1000">
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Command" Value="{Binding DataContext.BrushClickCommand, RelativeSource={RelativeSource AncestorType=MenuItem}}" />
+                                <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}, Path=(ItemsControl.AlternationIndex)}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                    </MenuItem>
                 </MenuItem>
             </Menu>
         </DockPanel>
 
         <!-- Left Panel: Tool Selection -->
         <DockPanel Grid.Column="0" Grid.Row="1" Background="#3E3E3E">
-            <StackPanel Margin="10">
-                <TextBlock Text="Tool Options" Foreground="White" FontSize="16"/>
-                <!-- Add Tool Buttons or Sliders Here -->
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*">
+
+                    </RowDefinition>
+                    <RowDefinition Height="*">
+
+                    </RowDefinition>
+                </Grid.RowDefinitions>
+
+
+
+                <!-- Brush Size Slider -->
+
+                <Slider x:Name="SizeBrush" Grid.Row="0"  Minimum="1" Maximum="100" Value="50" Margin="0,10,0,43"
+ToolTip="Adjust Brush Size" Background="#444" Orientation="Vertical" HorizontalAlignment="Center"/>
+
+
+                <!-- Layer Opacity Slider -->
+
+                <Slider x:Name="OpacitySlider" Grid.Row="1"  Minimum="0" Maximum="1" Value="1" Margin="0,10,0,10"
+ToolTip="Adjust Layer Opacity" Background="#444" Orientation="Vertical" HorizontalAlignment="Center"/>
+
+
+            </Grid>
+
         </DockPanel>
 
-        <!-- Center: Main Canvas -->
-        <Border Grid.Column="1" Grid.Row="1" Background="White" Margin="10">
-            <Canvas Name="MainCanvas" Background="#EFEFEF"/>
-        </Border>
 
+        <!-- Center: Main Canvas -->
+        <Border Grid.Column="1" Grid.Row="1" Background="Gray" Margin="10">
+            <StackPanel   VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" Height="804" Width="804">
+                <!-- Layers Collection -->
+                <ItemsControl ItemsSource="{Binding Layers}" Background="Transparent" Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=StackPanel}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StackPanel}}">
+                    <!-- Item Template for each Layer -->
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ContentPresenter Content="{Binding VisualElement}"
+                   Opacity="{Binding Opacity}"
+                   VerticalAlignment="Top" HorizontalAlignment="Center"
+                           FocusManager.IsFocusScope="True">
+                                <!-- RenderTransform for Zoom Level -->
+                                <ContentPresenter.RenderTransform>
+                                    <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}" />
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                    <!-- Grid to Stack Layers -->
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Grid />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
         <!-- Right Panel: Color and Layers -->
         <DockPanel Grid.Column="2" Grid.Row="1" Background="#3E3E3E">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="3.05*"/>
+                    <RowDefinition Height="0.75*"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="2*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Color Settings -->
                 <StackPanel Grid.Row="0" Margin="0,0,0,10">
                     <TextBlock Text="Color Settings" Foreground="White" FontSize="16"/>
-                    <Canvas x:Name="ColorWheelCanvas" Width="150" Height="150" HorizontalAlignment="Center" Background="Transparent">
+                    <Canvas x:Name="ColorWheelCanvas" Width="100" Height="100" HorizontalAlignment="Center" Background="Transparent">
                         <ItemsControl ItemsSource="{Binding ColorPoints}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -95,7 +214,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Ellipse Width="50" Height="50" Fill="{Binding Color}" Stroke="{Binding Stroked}" >
+                                    <Ellipse Width="10" Height="10" Fill="{Binding Color}" Stroke="{Binding Stroked}" >
                                         <Ellipse.RenderTransform>
                                             <TranslateTransform X="{Binding X}" Y="{Binding Y}" />
                                         </Ellipse.RenderTransform>
@@ -111,28 +230,57 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Canvas>
+
                 </StackPanel>
 
                 <!-- HSB Sliders -->
-                <StackPanel Grid.Row="1" Margin="0,10,0,10">
-                    <Slider Minimum="0" Maximum="360" Margin="0,10,0,0"/>
-                    <TextBlock Text="Hue" Foreground="White" FontSize="14" Margin="0,5,0,10"/>
-                    <Slider Minimum="0" Maximum="100" Margin="0,10,0,0"/>
-                    <TextBlock Text="Saturation" Foreground="White" FontSize="14" Margin="0,5,0,10"/>
-                    <Slider Minimum="0" Maximum="100" Margin="0,10,0,0"/>
-                    <TextBlock Text="Brightness" Foreground="White" FontSize="14" Margin="0,5,0,10"/>
-                </StackPanel>
+                <StackPanel Grid.Row="1" Margin="0,20,0,1">
 
-                <!-- Brushes Section -->
-                <StackPanel Grid.Row="2" Margin="0,10,0,10">
-                    <TextBlock Text="Brushes" Foreground="White" FontSize="16" Margin="0,10,0,10"/>
-                    <ItemsControl ItemsSource="{Binding Brushes}">
+                    <ItemsControl x:Name="Palette" ItemsSource="{Binding SelectedPalette}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Rectangle Width="40" Height="40" Fill="{Binding BrushColor}" Margin="5"/>
+                                <Button Width="15" Height="15" Margin="2" Command="{Binding PickedColor}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Grid>
+                                                <Rectangle Width="20" Height="20" Fill="{Binding ColorBrush}" Stroke="White" StrokeThickness="1" RadiusX="5" RadiusY="5"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="10">
+                        <Button Content="⟵" Command="{Binding PreviousPaletteCommand}" Width="30" Height="30" Background="#2C2C2C" Foreground="White" BorderBrush="#444" BorderThickness="2" FontSize="18" />
+                        <Button Content="⟶" Command="{Binding NextPaletteCommand}" Width="30" Height="30" Margin="10,0,0,0" Background="#2C2C2C" Foreground="White" BorderBrush="#444" BorderThickness="2" FontSize="18" />
+                    </StackPanel>
+
+                    <Slider x:Name="ValueSlider" Minimum="0" Maximum="1" Margin="10,10,10,0" Background="#444" Foreground="White"/>
+                    <TextBlock Text="Saturation" Foreground="White" FontSize="14" Margin="10,5,10,10" HorizontalAlignment="Center"/>
+                    <Slider x:Name="SaturationSlider" Minimum="0" Maximum="1" Margin="10,10,10,0" Background="#444" Foreground="White"/>
+                    <TextBlock  Text="Brightness" Foreground="White" FontSize="14" Margin="10,5,10,10" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Brushes Section -->
+                <StackPanel Grid.Row="2" Margin="0,10,0,10" Background="#3E3E3E">
+                    <Menu Background="#FF3E3E3E">
+                        <MenuItem Header="Brushes 🖌️" FontSize="20" Background="#3E3E3E" Foreground="White">
+                            <MenuItem Header="Pen" Command="{Binding PencilCommand}"/>
+                            <MenuItem Header="Pencil" Command="{Binding PenCommand}"/>
+                            <MenuItem Header="Marker" Command="{Binding MarkerCommand}"/>
+                            <MenuItem Header="Mechanical Pencil" Command="{Binding MechanicalCommand}"/>
+                            <MenuItem Header="Gouche" Command="{Binding GoucheCommand}"/>
+                            <MenuItem Header="Eraser" Command="{Binding EraserCommand}"/>
+                            <MenuItem Header="Star Pen" Command="{Binding StarPen}"/>
+                        </MenuItem>
+                    </Menu>
+
                 </StackPanel>
 
                 <!-- Layer Management -->
@@ -144,17 +292,43 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="5" />
                                     <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" Content="Visible" Margin="5" />
-                                    <CheckBox IsChecked="{Binding _isSelected, Mode=TwoWay}" Content="Selected" Margin="5"/>
+                                    <CheckBox IsChecked="{Binding _isSelected, Mode=TwoWay}" Content="Selected" Margin="5">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="Checked">
+                                                <i:InvokeCommandAction Command="{Binding DataContext.LayerCheckedCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding }" />
+                                            </i:EventTrigger>
+                                            <i:EventTrigger EventName="Unchecked">
+                                                <i:InvokeCommandAction Command="{Binding DataContext.LayerUncheckedCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </CheckBox>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+                    <Slider Minimum="0" Maximum="100" Margin="10,10,10,0" Background="#444" Foreground="White"/>
+                    <TextBlock Text="Threshold" Foreground="White" FontSize="14" Margin="10,5,10,10" HorizontalAlignment="Center"/>
                 </StackPanel>
+                <StackPanel Grid.Row="4">
+                    <TextBlock Text="Canvas Resize" Foreground="White" FontSize="16" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                        <TextBlock Text="Width:" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="5"/>
+                        <TextBox Width="60" Text="{Binding width}" Margin="5"/>
+                        <TextBlock Text="px" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="5"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                        <TextBlock Text="Height:" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="5"/>
+                        <TextBox Width="60" Text="{Binding height}" Margin="5"/>
+                        <TextBlock Text="px" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="5"/>
+                    </StackPanel>
+                    <Button Content="Apply" Command="{Binding UpdateDimensionsCanvas}" Width="100" Margin="0,10,0,0" HorizontalAlignment="Center" Background="#555" Foreground="White"/>
+                </StackPanel>
+
             </Grid>
         </DockPanel>
 
         <!-- Bottom Panel: Status or Controls -->
-        <DockPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Background="#1E1E1E" Height="40">
+        <DockPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Background="#1E1E1E" Height="20">
             <TextBlock Text="Status Bar: Ready" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10"/>
         </DockPanel>
     </Grid>
