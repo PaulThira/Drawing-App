@@ -61,6 +61,7 @@
                         <MenuItem Header="To Drawing Layer" Command="{Binding ConvertToDrawingLayerCommmand}"/>
                         <MenuItem Header="To Image Layer" Command="{Binding ConvertToImageLayerCommmand}"/>
                     </MenuItem>
+                    <MenuItem Header="Add a PSD file" Command="{Binding LoadPSDFileCommand}"/>
                 </MenuItem>
                 <MenuItem Header="🎨 Color Settings">
 

@@ -211,9 +211,11 @@ namespace Drawing_App.VM
         public ICommand ColorSelectedCommand { get; }
         public ICommand ConvertToDrawingLayerCommmand { get; }
         public ICommand ConvertToImageLayerCommmand { get; }
+        public ICommand LoadPSDFileCommand { get; }
         public MainWindowVM()
 
         {
+            LoadPSDFileCommand = new DelegateCommand(LoadPsdWithFileDialog);
             ConvertToDrawingLayerCommmand = new DelegateCommand(ConvertToDrawingLayer);
             ConvertToImageLayerCommmand = new DelegateCommand(ConvertToImageLayer);
             ColorPoints = new ObservableCollection<Model.ColorPoint>();
@@ -352,6 +354,69 @@ namespace Drawing_App.VM
             t1 = (byte)Threshold;
             GenerateColorWheel();
             
+        }
+        public void LoadPsdWithFileDialog()
+        {
+            // Open File Dialog
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Photoshop Files (*.psd)|*.psd",
+                Title = "Open Photoshop File"
+            };
+            var outputDirectory = "C:\\Users\\pault\\source\\repos\\Drawing App\\Drawing App\\Textures\\";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string psdFilePath = openFileDialog.FileName;
+
+                // Process the PSD file
+                LoadAndDisplayPsdLayers(psdFilePath, outputDirectory);
+            }
+        }
+        public void LoadAndDisplayPsdLayers(string psdFilePath, string outputDirectory)
+        {
+            // Ensure the output directory exists
+            Directory.CreateDirectory(outputDirectory);
+
+            // Load the PSD file
+            using (MagickImageCollection psdLayers = new MagickImageCollection(psdFilePath))
+            {
+                int layerIndex = 0;
+
+                foreach (MagickImage layer in psdLayers)
+                {
+                    // Save each layer as a temporary PNG file
+                    BitmapImage bitmapImage = ConvertMagickImageToBitmapImage(layer);
+
+                    // Convert to BitmapImage
+                   
+
+                    // Add the layer to the canvas
+                    ImageLayer i =new ImageLayer(bitmapImage);
+                    Layers.Add(i);  
+                    
+                    layerIndex++;
+                
+                }
+            }
+        }
+
+        public BitmapImage ConvertMagickImageToBitmapImage(MagickImage magickImage)
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                // Write the MagickImage to a memory stream
+                magickImage.Write(memoryStream, MagickFormat.Png);
+                memoryStream.Position = 0;
+
+                // Convert the memory stream to a BitmapImage
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze();
+                return bitmapImage;
+            }
         }
         private void ConvertToDrawingLayer()
         {
