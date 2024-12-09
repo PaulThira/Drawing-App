@@ -209,9 +209,13 @@ namespace Drawing_App.VM
         public ICommand StarPen {  get; }
         public ObservableCollection<Model.ColorPoint> ColorPoints { get; set; }
         public ICommand ColorSelectedCommand { get; }
+        public ICommand ConvertToDrawingLayerCommmand { get; }
+        public ICommand ConvertToImageLayerCommmand { get; }
         public MainWindowVM()
 
         {
+            ConvertToDrawingLayerCommmand = new DelegateCommand(ConvertToDrawingLayer);
+            ConvertToImageLayerCommmand = new DelegateCommand(ConvertToImageLayer);
             ColorPoints = new ObservableCollection<Model.ColorPoint>();
             StarPen=new DelegateCommand(PenTextureCall);
             SaveAsPSDFile = new DelegateCommand(SaveAsPsd);
@@ -348,6 +352,28 @@ namespace Drawing_App.VM
             t1 = (byte)Threshold;
             GenerateColorWheel();
             
+        }
+        private void ConvertToDrawingLayer()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                DrawingLayer d = i.ConvertToDrawingLayer(StartStrokeCommand, ContinueStrokeCommand, EndStrokeCommand);
+                Layers.Remove(i); 
+                Layers.Add(d);
+                SelectedLayer = d;
+            }
+
+        }
+        private void ConvertToImageLayer()
+        {
+            if (SelectedLayer is DrawingLayer d)
+            {
+                ImageLayer i = d.ConvertToImageLayer();
+                Layers.Remove(d);
+                Layers.Add(i);
+                SelectedLayer = i;
+            }
+
         }
         public void SaveAsPsd()
         {
@@ -497,7 +523,7 @@ namespace Drawing_App.VM
 
             if (SelectedLayer is ImageLayer i)
             {
-                i.MagicTool(_currentColor,threshold);
+                i.MagicTool(_currentColor,Threshold);
             }
         }
         private void Watershed()
@@ -517,10 +543,10 @@ namespace Drawing_App.VM
         }
         private void SaveThreshold()
         {
-            t1 = t2;
-            t2=(byte)Threshold; 
-            Window1 window = new Window1();
-            window.Show();
+         
+            t2 = t1;
+            t1=(byte)Threshold; 
+           
         }
         private void Sobel()
         {

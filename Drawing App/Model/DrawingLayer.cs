@@ -18,6 +18,8 @@ using Emgu.CV.Linemod;
 using System.Security.Cryptography.Xml;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using SkiaSharp;
+using System.IO;
+using System.Windows.Media.Imaging;
 namespace Drawing_App.Model
 
 {
@@ -87,6 +89,31 @@ namespace Drawing_App.Model
             thickness = 5;
             _detector = new ShapeDetector();
             corectShapes=false;
+            _canvas.MouseWheel += Canvas_MouseWheel;
+            currentCount = 0;
+            _mirroredLayer = new Canvas();
+            _canvas.Children.Add(_mirroredLayer);
+
+        }
+        public DrawingLayer(Canvas canvas,ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand, double opacity = 1.0, bool isVisible = true, string name = "Layer")
+            : base(opacity, isVisible, name)
+        {
+            StartStrokeCommand = startStrokeCommand;
+            ContinueStrokeCommand = continueStrokeCommand;
+            EndStrokeCommand = endStrokeCommand;
+            _canvas = canvas;
+            _canvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
+            _canvas.MouseMove += Canvas_MouseMove;
+            _canvas.MouseLeftButtonUp += Canvas_MouseLeftButtonUp;
+            _canvas.MouseRightButtonDown += Canvas_MouseRightButtonDown;
+            _canvas.MouseRightButtonUp += Canvas_MouseRightButtonUp;
+            _canvas.KeyDown += Canvas_KeyDown;
+            _canvas.Focusable = true; // Ensure the canvas can receive key input
+            _canvas.Focus();
+            _currentBrush = new SolidColorBrush(Colors.Black);
+            thickness = 5;
+            _detector = new ShapeDetector();
+            corectShapes = false;
             _canvas.MouseWheel += Canvas_MouseWheel;
             currentCount = 0;
             _mirroredLayer = new Canvas();
@@ -495,7 +522,83 @@ namespace Drawing_App.Model
 
 
 
+        public ImageLayer ConvertToImageLayer()
+        {
+            BitmapImage bitmap = ConvertCanvasToBitmapImage(_canvas);
+            return new ImageLayer(bitmap,_canvas.ActualWidth,_canvas.ActualHeight);
+        }
+        public BitmapImage ConvertCanvasToBitmapImage(Canvas canvas)
+        {
+            // Measure and arrange the canvas to ensure its content is properly rendered
+            System.Windows.Size size = new System.Windows.Size(canvas.ActualWidth, canvas.ActualHeight);
+            canvas.Measure(size);
+            canvas.Arrange(new Rect(size));
 
+            // Render the canvas to a RenderTargetBitmap
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                (int)canvas.ActualWidth,  // Width of the canvas
+                (int)canvas.ActualHeight, // Height of the canvas
+                96d,                      // DPI (horizontal)
+                96d,                      // DPI (vertical)
+                PixelFormats.Pbgra32      // Pixel format
+            );
+            renderBitmap.Render(canvas);
+
+            // Convert RenderTargetBitmap to a BitmapImage
+            BitmapImage bitmapImage = new BitmapImage();
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                // Save the RenderTargetBitmap to a memory stream
+                PngBitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+                encoder.Save(memoryStream);
+
+                // Load the memory stream into the BitmapImage
+                memoryStream.Position = 0; // Reset the stream position
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze(); // Freeze for thread safety
+            }
+
+            return bitmapImage;
+        }
+        public BitmapSource ConvertCanvasToBitmap(Canvas canvas)
+        {
+            // Measure and arrange the canvas to ensure all its content is properly laid out
+            System.Windows.Size size = new System.Windows.Size(canvas.ActualWidth, canvas.ActualHeight);
+            canvas.Measure(size);
+            canvas.Arrange(new Rect(size));
+
+            // Create a RenderTargetBitmap to hold the rendered canvas
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                (int)canvas.ActualWidth,  // Width of the canvas
+                (int)canvas.ActualHeight, // Height of the canvas
+                96d,                      // DPI (horizontal)
+                96d,                      // DPI (vertical)
+                PixelFormats.Pbgra32      // Pixel format
+            );
+
+            // Render the canvas to the RenderTargetBitmap
+            renderBitmap.Render(canvas);
+
+            return renderBitmap;
+        }
+
+        // Example of saving the BitmapSource to a file
+        public void SaveCanvasAsImage(Canvas canvas, string filePath)
+        {
+            BitmapSource bitmap = ConvertCanvasToBitmap(canvas);
+
+            // Encode the BitmapSource to a PNG file
+            using (FileStream stream = new FileStream(filePath, FileMode.Create))
+            {
+                PngBitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                encoder.Save(stream);
+            }
+        }
         public void ResizeShapeWithArrows(string direction)
         {
             if (_selectedShape == null) return;
@@ -698,7 +801,7 @@ namespace Drawing_App.Model
                 PathGeometry heartGeometry = new PathGeometry();
                 heartGeometry.Figures.Add(heartFigure);
 
-                _currentShape = new Path
+                _currentShape = new System.Windows.Shapes.Path
                 {
                     Stroke = _currentBrush,
                     StrokeThickness = 1,

@@ -70,6 +70,29 @@ namespace Drawing_App.Model
             segmentation = new Segmentation();
 
         }
+        public ImageLayer(BitmapImage image, double imageWidth = 665, double imageHeight = 563, double opacity = 1.0, bool isVisible = true, string name = "Layer") : base(opacity, isVisible, name)
+        {
+            _image = new Image
+            {
+                Source = image,
+                Width = imageWidth,
+                Height = imageHeight
+            };
+            _filePath = "";
+            Bgr = ConvertImageToEmguImage(_image);
+
+            basicOperations = new BasicOperations();
+            _image.MouseDown += Image_MouseDown;
+            _image.MouseMove += Image_MouseMove;
+            _image.MouseUp += Image_MouseUp;
+            Point = new Point();
+            pointwiseOperations = new PointwiseOperations();
+            thresholding = new Thresholding();
+            highPass = new HighPass();
+            lowPass = new LowPass();
+            morphological = new MorphologicalOperations();
+            segmentation = new Segmentation();
+        }
         public void MagicTool(Color color,int T)
         {
             Image<Bgr, byte> o = segmentation.MagicTool(Bgr,color,T);
@@ -83,6 +106,41 @@ namespace Drawing_App.Model
             }
 
         }
+        public DrawingLayer ConvertToDrawingLayer(ICommand StartStroke,ICommand ContinueStroke,ICommand EndStroke)
+        {
+            Canvas canvas = ConvertImageToCanvas(_image);
+            return new DrawingLayer(canvas,StartStroke,ContinueStroke,EndStroke);
+
+        }
+        public Canvas ConvertImageToCanvas(Image originalImage)
+        {
+            // Create a new Canvas
+            Image clonedImage = new Image
+            {
+                Source = originalImage.Source, // Copy the source
+                Width = originalImage.Width,
+                Height = originalImage.Height,
+                Stretch = originalImage.Stretch
+            };
+
+            // Create a new Canvas
+            Canvas canvas = new Canvas
+            {
+                Width = clonedImage.Width,  // Set canvas width
+                Height = clonedImage.Height // Set canvas height
+            };
+
+            // Add the cloned Image to the Canvas
+            canvas.Children.Add(clonedImage);
+
+            // Position the Image at the top-left corner of the Canvas
+            Canvas.SetLeft(clonedImage, 0);
+            Canvas.SetTop(clonedImage, 0);
+
+            return canvas;
+        }
+
+
         public void Watershed()
         {
             Image<Gray, byte> i = segmentation.Watershed(Bgr);
