@@ -109,6 +109,10 @@
                         <MenuItem Header="Sobel" Command="{Binding SobelCommand}"/>
                         <MenuItem Header="Canny" Command="{Binding CannyCommand}"/>
                     </MenuItem>
+                    <MenuItem Header="Geometric Operation">
+                        <MenuItem Header="Affine Transformation" Command="{Binding AffineTransformationCommand}"/>
+                     
+                    </MenuItem>
 
                 </MenuItem>
                 <MenuItem Header="💾 Save As">

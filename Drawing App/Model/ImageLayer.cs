@@ -36,6 +36,7 @@ namespace Drawing_App.Model
         public MorphologicalOperations morphological {get;set;}
         public LowPass lowPass { get; set; }
         public Segmentation segmentation { get; set; }
+        public GeometricTransformations geometricTransformations { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public void CalculateHistogram()
         {
@@ -68,6 +69,7 @@ namespace Drawing_App.Model
             lowPass = new LowPass();
             morphological = new MorphologicalOperations();
             segmentation = new Segmentation();
+            geometricTransformations = new GeometricTransformations();
 
         }
         public ImageLayer(BitmapImage image, double imageWidth = 665, double imageHeight = 563, double opacity = 1.0, bool isVisible = true, string name = "Layer") : base(opacity, isVisible, name)
@@ -92,7 +94,43 @@ namespace Drawing_App.Model
             lowPass = new LowPass();
             morphological = new MorphologicalOperations();
             segmentation = new Segmentation();
+            geometricTransformations = new GeometricTransformations();
         }
+        public void AffineTransformation(float[,] matrix)
+        {
+            Image<Bgr,byte> result=geometricTransformations.AffineTransformation(Bgr, matrix);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+
+        }
+        private BitmapImage ConvertImageToBitmapImage(Image<Bgr, byte> image)
+        {
+            // Create a memory stream
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                // Save the Image<Bgr, byte> to the memory stream in BMP format
+                image.ToBitmap().Save(memoryStream, System.Drawing.Imaging.ImageFormat.Bmp);
+
+                // Reset the position of the stream to the beginning
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                // Create a BitmapImage from the memory stream
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.EndInit();
+
+                return bitmapImage;
+            }
+        }
+
         public void MagicTool(Color color,int T)
         {
             Image<Bgr, byte> o = segmentation.MagicTool(Bgr,color,T);

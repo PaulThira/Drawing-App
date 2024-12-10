@@ -212,9 +212,11 @@ namespace Drawing_App.VM
         public ICommand ConvertToDrawingLayerCommmand { get; }
         public ICommand ConvertToImageLayerCommmand { get; }
         public ICommand LoadPSDFileCommand { get; }
+        public ICommand AffineTransformationCommand {  get; }
         public MainWindowVM()
 
         {
+            AffineTransformationCommand = new DelegateCommand(AffineTransformations);
             LoadPSDFileCommand = new DelegateCommand(LoadPsdWithFileDialog);
             ConvertToDrawingLayerCommmand = new DelegateCommand(ConvertToDrawingLayer);
             ConvertToImageLayerCommmand = new DelegateCommand(ConvertToImageLayer);
@@ -354,6 +356,19 @@ namespace Drawing_App.VM
             t1 = (byte)Threshold;
             GenerateColorWheel();
             
+
+        }
+        private void AffineTransformations()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                AffineTransformation a = new AffineTransformation(); 
+                a.ShowDialog();
+                if (a.DialogResult == true)
+                {
+                    i.AffineTransformation(a.Matrix);
+                }
+            }
         }
         public void LoadPsdWithFileDialog()
         {

@@ -37,20 +37,32 @@ namespace Drawing_App.View
         }
         private BitmapImage ConvertBitmapSourceToBitmapImage(BitmapSource source)
         {
-            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(source));
-            using (MemoryStream memoryStream = new MemoryStream())
+            if (source == null)
+                throw new ArgumentNullException(nameof(source), "BitmapSource cannot be null.");
+
+            // Use a MemoryStream to convert the BitmapSource to a BitmapImage
+            using (var memoryStream = new MemoryStream())
             {
+                // Choose a PNG encoder to preserve transparency (if needed)
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(source));
+
+                // Save the BitmapSource to the stream
                 encoder.Save(memoryStream);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                BitmapImage bitmapImage = new BitmapImage();
+
+                // Create a new BitmapImage from the memory stream
+                memoryStream.Seek(0, SeekOrigin.Begin); // Reset stream position
+                var bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.StreamSource = memoryStream;
+                bitmapImage.StreamSource = new MemoryStream(memoryStream.ToArray()); // Use a separate stream to avoid disposal issues
                 bitmapImage.EndInit();
+                bitmapImage.Freeze(); // Make the BitmapImage thread-safe
+
                 return bitmapImage;
             }
         }
+
         public ProcessedImage(BitmapSource zoomedImage)
         {
             InitializeComponent();
@@ -62,8 +74,25 @@ namespace Drawing_App.View
             correctWidth=(int)bitmapImage.Width;
             // Initialize the ViewModel and set the DataContext
             var viewModel = new ProcessedImageVM();
-            viewModel.CurrentImage = bitmapImage;  // Assign converted BitmapImage to the ViewModel
+              // Assign converted BitmapImage to the ViewModel
             DataContext = viewModel;
+            viewModel.CurrentImage = bitmapImage;
+        }
+        public ProcessedImage(BitmapImage image)
+        {
+            InitializeComponent();
+
+            correctHeight = (int)image.Height;
+            correctWidth = (int)image.Width;
+
+            // Initialize the ViewModel and set the DataContext
+            var viewModel = new ProcessedImageVM
+            {
+                CurrentImage = image
+            };
+            DataContext = viewModel;
+
+            // No need to set Imagery dimensions manually
         }
         private void Image_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
