@@ -118,6 +118,70 @@ namespace Algorithms.Sections
             }
             return result;
         }
+        public Image<Gray, byte> OtsuThresholding(Image<Bgr, byte> image)
+        {
+            // Convert the image to grayscale
+            var grays = basicOperations.BgrToGrayscale(image);
+            int numberOfPixels = grays.Width * grays.Height;
+
+            // Initialize histogram
+            int[] histogram = new int[256];
+            for (int i = 0; i < grays.Height; i++)
+            {
+                for (int j = 0; j < grays.Width; j++)
+                {
+                    histogram[grays.Data[i, j, 0]]++;
+                }
+            }
+
+            // Otsu's method variables
+            float maxVariance = float.MinValue;
+            int optimalThreshold = -1;
+
+            // Iterate through all possible thresholds
+            for (int t = 0; t <= 255; t++)
+            {
+                int WB = 0, WV = 0;
+                float sumB = 0, sumV = 0;
+
+                for (int i = 0; i < 256; i++)
+                {
+                    if (i < t)
+                    {
+                        WB += histogram[i];
+                        sumB += i * histogram[i];
+                    }
+                    else
+                    {
+                        WV += histogram[i];
+                        sumV += i * histogram[i];
+                    }
+                }
+
+                float meanB = (WB == 0) ? 0 : sumB / WB;
+                float meanV = (WV == 0) ? 0 : sumV / WV;
+
+                float betweenClassVariance = ((float)WB / numberOfPixels) * ((float)WV / numberOfPixels) * (meanB - meanV) * (meanB - meanV);
+
+                if (betweenClassVariance > maxVariance)
+                {
+                    maxVariance = betweenClassVariance;
+                    optimalThreshold = t;
+                }
+            }
+
+            // Apply the optimal threshold to the grayscale image
+            for (int i = 0; i < grays.Height; i++)
+            {
+                for (int j = 0; j < grays.Width; j++)
+                {
+                    grays.Data[i, j, 0] = (byte)(grays.Data[i, j, 0] > optimalThreshold ? 255 : 0);
+                }
+            }
+
+            return grays;
+        }
+
         public Image<Gray,byte> InputThresholding(Image<Bgr, byte> image,int t)
         {
             var grays = basicOperations.BgrToGrayscale(image);

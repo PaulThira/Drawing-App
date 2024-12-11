@@ -95,6 +95,7 @@
                         <MenuItem Header="Triangle" Command="{Binding TriangleTCommand}"/>
                         <MenuItem Header="Value" Command="{Binding ThresholdCommand}"/>
                         <MenuItem Header="Save threshold" Command="{Binding SaveThresholdCommand}"/>
+                        <MenuItem Header="Otsu" Command="{Binding OtsuThresholdingCommand}"/>
 
                     </MenuItem>
                     <MenuItem Header="Low Pass">

@@ -96,6 +96,18 @@ namespace Drawing_App.Model
             segmentation = new Segmentation();
             geometricTransformations = new GeometricTransformations();
         }
+        public void OtsuThresholding()
+        {
+            Image<Gray, byte> grays = thresholding.OtsuThresholding(Bgr);
+            var os = ConvertToBitmapSource(grays);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
         public void AffineTransformation(float[,] matrix)
         {
             Image<Bgr,byte> result=geometricTransformations.AffineTransformation(Bgr, matrix);

@@ -213,9 +213,11 @@ namespace Drawing_App.VM
         public ICommand ConvertToImageLayerCommmand { get; }
         public ICommand LoadPSDFileCommand { get; }
         public ICommand AffineTransformationCommand {  get; }
+        public ICommand OtsuThresholdingCommand { get; }
         public MainWindowVM()
 
         {
+            OtsuThresholdingCommand=new DelegateCommand(OtsuThresholding);
             AffineTransformationCommand = new DelegateCommand(AffineTransformations);
             LoadPSDFileCommand = new DelegateCommand(LoadPsdWithFileDialog);
             ConvertToDrawingLayerCommmand = new DelegateCommand(ConvertToDrawingLayer);
@@ -357,6 +359,13 @@ namespace Drawing_App.VM
             GenerateColorWheel();
             
 
+        }
+        private void OtsuThresholding()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.OtsuThresholding();
+            }
         }
         private void AffineTransformations()
         {
