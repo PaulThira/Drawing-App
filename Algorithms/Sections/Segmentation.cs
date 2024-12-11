@@ -17,58 +17,54 @@ namespace Algorithms.Sections
     {
         public Image<Gray, byte> Watershed(Image<Bgr, byte> image)
         {
-            HighPass highPass = new HighPass();
-            BasicOperations basicOperations = new BasicOperations();
-            Image<Bgr, byte> blurr = highPass.FastMedianFilter(image, 5);
-            Image<Gray, byte> grays = basicOperations.BgrToGrayscale(blurr);
-            HashSet<Point> watersheds = new HashSet<Point>();
-            HashSet<Point>[] levels = new HashSet<Point>[256];
+            // High-pass filtering and grayscale conversion
+            var highPass = new HighPass();
+            var basicOperations = new BasicOperations();
+            var blurred = highPass.FastMedianFilter(image, 5);
+            var grays = basicOperations.BgrToGrayscale(blurred);
+
+            // Prepare data structures
+            var watersheds = new HashSet<Point>();
+            var levels = new HashSet<Point>[256];
             for (int i = 0; i < 256; i++)
             {
                 levels[i] = new HashSet<Point>();
-
             }
+
+            // Categorize pixels by intensity
             for (int i = 1; i < image.Height - 1; i++)
             {
                 for (int j = 1; j < image.Width - 1; j++)
                 {
                     int pixel = grays.Data[i, j, 0];
-                    levels[pixel].Add(new Point(i, j));
+                    levels[pixel].Add(new Point(j, i)); // Note: swapped x and y
+                }
+            }
 
-                }
-            }
-            var min = -1;
-            var max = 256;
-            for (int k = 0; k < levels.Length; k++)
+            // Find min and max intensity levels
+            int min = Array.FindIndex(levels, set => set.Count > 0);
+            int max = Array.FindLastIndex(levels, set => set.Count > 0);
+
+            // Initialize basins
+            var basins = new List<HashSet<Point>>();
+            for (int k = 0; k <= max; k++)
             {
-                if (levels[k].Count > 0)
-                {
-                    min = k;
-                    break;
-                }
-            }
-            for (int k = levels.Length-1; k >=0; k--)
-            {
-                if (levels[k].Count > 0)
-                {
-                    max = k;
-                    break;
-                }
-            }
-            var lmin = levels[min];
-            var lmax = levels[max];
-            List<HashSet<Point>> basins = new List<HashSet<Point>>();
-           
-            for (int k = 0; k < levels.Length; k++) { 
                 basins.Add(new HashSet<Point>());
             }
+
+            // Initial basin for minimum intensity
             foreach (Point p in levels[min])
+            {
                 basins[min].Add(p);
+            }
+
+            // Watershed algorithm
             for (int level = min + 1; level <= max; level++)
             {
                 foreach (Point p in levels[level])
                 {
-                    List<int> neighborLabels = GetNeighborLabels(basins, p, level);
+                    List<int> neighborLabels = GetNeighborLabels(basins, p, level, image.Height, image.Width);
+
                     if (neighborLabels.Count == 0)
                     {
                         // New basin
@@ -87,46 +83,12 @@ namespace Algorithms.Sections
                 }
             }
 
-            // Convert basins and watersheds to an output image
             return ConvertBasinsToImage(basins, watersheds, grays.Size);
-
-
-
-
         }
-        public Image<Bgr,byte> MagicTool(Image<Bgr,byte> image,System.Windows.Media.Color color,int T)
+
+        private List<int> GetNeighborLabels(List<HashSet<Point>> basins, Point p, int level, int height, int width)
         {
-            Image<Bgr,byte> result=new Image<Bgr,byte>(image.Size);
-            for (int i = 0; i < image.Height; i++)
-            {
-                for (int j = 0; j < image.Width; j++)
-                {
-                    int b = (image.Data[i, j, 0] - color.B);
-                    int g=(image.Data[i, j, 1] - color.G);
-                    int r =(image.Data[i,j, 2] - color.R);  
-                    double value=Math.Sqrt(b*b+g*g+r*r);
-                    if (value <= T)
-                    {
-                        result.Data[i, j, 0] = image.Data[i, j, 0];
-                        result.Data[i, j, 1] = image.Data[i, j, 1];
-                        result.Data[i, j, 2] = image.Data[i, j, 2];
-
-                    }
-                    else {
-                        result.Data[i, j, 0] = 255;
-                        result.Data[i, j, 1] = 255;
-                        result.Data[i, j, 2] = 255;
-
-                    }
-
-                }
-            }
-            return result;
-
-        }
-        private List<int> GetNeighborLabels(List<HashSet<Point>> basins, Point p, int level)
-        {
-            List<int> labels = new List<int>();
+            var labels = new List<int>();
             int[] dx = { -1, 0, 1, -1, 1, -1, 0, 1 };
             int[] dy = { -1, -1, -1, 0, 0, 1, 1, 1 };
 
@@ -135,13 +97,14 @@ namespace Algorithms.Sections
                 int nx = p.X + dx[i];
                 int ny = p.Y + dy[i];
 
-                if (nx >= 0 && nx < basins[level].Count && ny >= 0 && ny < basins[level].Count)
+                // Correct bounds checking
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height)
                 {
-                    foreach (var basin in basins)
+                    for (int basinLevel = 0; basinLevel < basins.Count; basinLevel++)
                     {
-                        if (basin.Contains(new Point(nx, ny)) && !labels.Contains(level))
+                        if (basins[basinLevel].Contains(new Point(nx, ny)) && !labels.Contains(basinLevel))
                         {
-                            labels.Add(level);
+                            labels.Add(basinLevel);
                         }
                     }
                 }
@@ -149,10 +112,9 @@ namespace Algorithms.Sections
             return labels;
         }
 
-        // Convert basins and watersheds to an output image
         private Image<Gray, byte> ConvertBasinsToImage(List<HashSet<Point>> basins, HashSet<Point> watersheds, System.Drawing.Size size)
         {
-            Image<Gray, byte> result = new Image<Gray, byte>(size);
+            var result = new Image<Gray, byte>(size);
 
             // Assign basin labels
             byte label = 1;
@@ -160,17 +122,47 @@ namespace Algorithms.Sections
             {
                 foreach (Point p in basin)
                 {
-                    result.Data[p.X, p.Y, 0] = label;
+                    result.Data[p.Y, p.X, 0] = label; // Note: swapped coordinates
                 }
-                label = (byte)((label + 1) % 255); // Avoid overflow
+                label = (byte)((label + 1) % 255);
             }
 
             // Assign watershed lines
             foreach (Point p in watersheds)
             {
-                result.Data[p.X, p.Y, 0] = 255;
+                result.Data[p.Y, p.X, 0] = 255; // Note: swapped coordinates
             }
 
+            return result;
+        }
+
+        public Image<Bgr, byte> MagicTool(Image<Bgr, byte> image, System.Windows.Media.Color color, int T)
+        {
+            var result = new Image<Bgr, byte>(image.Size);
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
+                {
+                    int b = image.Data[i, j, 0] - color.B;
+                    int g = image.Data[i, j, 1] - color.G;
+                    int r = image.Data[i, j, 2] - color.R;
+
+                    double value = Math.Sqrt(b * b + g * g + r * r);
+
+                    if (value <= T)
+                    {
+                        result.Data[i, j, 0] = image.Data[i, j, 0];
+                        result.Data[i, j, 1] = image.Data[i, j, 1];
+                        result.Data[i, j, 2] = image.Data[i, j, 2];
+                    }
+                    else
+                    {
+                        result.Data[i, j, 0] = 255;
+                        result.Data[i, j, 1] = 255;
+                        result.Data[i, j, 2] = 255;
+                    }
+                }
+            }
             return result;
         }
 

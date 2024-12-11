@@ -113,6 +113,7 @@
                         <MenuItem Header="Affine Transformation" Command="{Binding AffineTransformationCommand}"/>
                      
                     </MenuItem>
+                    <MenuItem Header="Watershed" Command="{Binding WatershedCommand}"/>
 
                 </MenuItem>
                 <MenuItem Header="💾 Save As">
