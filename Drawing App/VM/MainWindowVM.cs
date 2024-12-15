@@ -89,6 +89,7 @@ namespace Drawing_App.VM
         private Polyline _currentPolyline;
         public Stack<Point> Points = new Stack<Point>();
         public Stack<Point> MirroredPoints = new Stack<Point>();
+        private bool lasso {  get; set; }
         public ObservableCollection<Model.Layer> Layers { get; }
         private Model.Layer _selectedLayer;
         private ObservableCollection<ObservableCollection<CustomPallete>> _colorPalettes;
@@ -214,9 +215,13 @@ namespace Drawing_App.VM
         public ICommand LoadPSDFileCommand { get; }
         public ICommand AffineTransformationCommand {  get; }
         public ICommand OtsuThresholdingCommand { get; }
+        public ICommand LassoEnable {  get; }
+        public ICommand MultiplyCommand { get; }
         public MainWindowVM()
 
         {
+            MultiplyCommand = new DelegateCommand<string?>(Multiply);
+            LassoEnable = new DelegateCommand(Lasso);
             OtsuThresholdingCommand=new DelegateCommand(OtsuThresholding);
             AffineTransformationCommand = new DelegateCommand(AffineTransformations);
             LoadPSDFileCommand = new DelegateCommand(LoadPsdWithFileDialog);
@@ -357,8 +362,189 @@ namespace Drawing_App.VM
             SelectedPalette = ColorPalettes[0];
             t1 = (byte)Threshold;
             GenerateColorWheel();
-            
+            lasso=false;
 
+        }
+        private void Multiply(string? p)
+        {
+            if (p == "0")
+            {
+                if(SelectedLayer is ImageLayer i)
+                {
+                    int index=Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer=Layers[index];
+                        if(layer is ImageLayer i2)
+                        {
+                            i.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                           var i3=d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Multiply(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Multiply(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1=d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Multiply(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Multiply(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count-1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Multiply(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Multiply(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count-1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Multiply(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index =0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Multiply(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Lasso()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                lasso=!lasso;
+                i.lasso=lasso;
+            }
         }
         private void OtsuThresholding()
         {
@@ -1482,7 +1668,7 @@ namespace Drawing_App.VM
                     }
                 }
             }
-            else if(SelectedLayer is ImageLayer imageLayer)
+            else if(SelectedLayer is ImageLayer imageLayer && lasso==true)
             {
                 if (startPoint == null)
                     return;
@@ -1509,7 +1695,7 @@ namespace Drawing_App.VM
                 var m = GetMirroredPoint(currentPoint.Value);
                 MirroredPoints.Push(m);
             }
-            else if (SelectedLayer is ImageLayer imageLayer ) {
+            else if (SelectedLayer is ImageLayer imageLayer && lasso==true) {
                 if (currentPoint == null)
                     return;
 
@@ -1573,7 +1759,7 @@ namespace Drawing_App.VM
                 }
 
             }
-            else if (SelectedLayer is ImageLayer imageLayer) {
+            else if (SelectedLayer is ImageLayer imageLayer && lasso == true) {
                 if (Points.Count < 3)
                     return; // Ensure we have enough points to form a closed boundary
 

@@ -17,9 +17,9 @@ namespace Algorithms.Sections
         }
         public Image<Bgr, byte> GausianBlur(Image<Bgr, byte> image)
         {
-            double[] g1 = [0.0625, 0.125, 0.0625];
-            double[] g2 = [0.125, 0.25, 0.125];
-            double[] g3 = [0.0625, 0.125, 0.0625];
+            double[] g1 = [0.0751, 0.1238, 0.0751];
+            double[] g2 = [0.1238, 0.2042, 0.1238];
+            double[] g3 = [0.0751, 0.1238, 0.0751];
             double[,] gfilter = new double[3, 3];
             for (int i = 0; i < 3; i++)
             {

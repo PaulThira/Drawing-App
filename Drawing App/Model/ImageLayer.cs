@@ -37,7 +37,9 @@ namespace Drawing_App.Model
         public LowPass lowPass { get; set; }
         public Segmentation segmentation { get; set; }
         public GeometricTransformations geometricTransformations { get; set; }
+        public BlendingModes blendingMode { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
+        public bool lasso {  get; set; }
         public void CalculateHistogram()
         {
             basicOperations.HistogramCalc(Bgr);
@@ -70,6 +72,8 @@ namespace Drawing_App.Model
             morphological = new MorphologicalOperations();
             segmentation = new Segmentation();
             geometricTransformations = new GeometricTransformations();
+            lasso=false;
+            blendingMode=new BlendingModes();
 
         }
         public ImageLayer(BitmapImage image, double imageWidth = 665, double imageHeight = 563, double opacity = 1.0, bool isVisible = true, string name = "Layer") : base(opacity, isVisible, name)
@@ -95,6 +99,176 @@ namespace Drawing_App.Model
             morphological = new MorphologicalOperations();
             segmentation = new Segmentation();
             geometricTransformations = new GeometricTransformations();
+            lasso=false;
+            blendingMode=new BlendingModes();
+        }
+        public void Multiply(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Multiply(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Screen(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Screen(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Overlay(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Overlay(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Add(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Add(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Substract(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Substract(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Difference(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Difference(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Lighten(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Lighten(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Darken(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Darken(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void SoftLight(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.SoftLight(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void HardLight(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.HardLight(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Divide(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Divide(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void ColorBurn(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.ColorBurn(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void ColorDoge(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.ColorDoge(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Exclusion(ImageLayer layer)
+        {
+            Image<Bgr, byte> result = blendingMode.Exclusion(Bgr, layer.Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void OtsuThresholding()
         {
@@ -399,7 +573,7 @@ namespace Drawing_App.Model
         private void Image_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Point = e.GetPosition((UIElement)sender);
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed&&lasso== true  )
             {
                 // Start the lasso
                 _isLassoActive = true;
@@ -413,7 +587,7 @@ namespace Drawing_App.Model
         }
         private void Image_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (_isLassoActive && e.LeftButton == MouseButtonState.Released)
+            if (_isLassoActive && e.LeftButton == MouseButtonState.Released&&lasso== true)
             {
                 // Finalize the lasso
                 _isLassoActive = false;
@@ -429,7 +603,7 @@ namespace Drawing_App.Model
             }
         }
         private void Image_MouseMove(object sender, MouseEventArgs e) {
-            if (_isLassoActive && e.LeftButton == MouseButtonState.Pressed)
+            if (_isLassoActive && e.LeftButton == MouseButtonState.Pressed&&lasso == true)
             {
                 // Add points to the lasso path
                 Point currentPoint = e.GetPosition((UIElement)sender);
