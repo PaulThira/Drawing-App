@@ -66,9 +66,35 @@
                     <MenuItem Header="Blend Layer with">
                         <MenuItem Header="Layer Above">
                             <MenuItem Header="Multiply" Command="{Binding MultiplyCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Overlay" Command="{Binding OverlayCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Screen" Command="{Binding ScreenCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Add" Command="{Binding AddCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Substract" Command="{Binding SubstractCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Difference" Command="{Binding DifferenceCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Lighten" Command="{Binding LightenCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Darken" Command="{Binding DarkenCommand}" CommandParameter="0"/>
+                            <MenuItem Header="SoftLight" Command="{Binding SoftLightCommand}" CommandParameter="0"/>
+                            <MenuItem Header="HardLight" Command="{Binding HardLightCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Divide" Command="{Binding DivideCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Color Burn" Command="{Binding ColorBurnCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Color Doge" Command="{Binding ColorDogeCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Exclusion" Command="{Binding ExclusionCommand}" CommandParameter="0"/>
                         </MenuItem>
                         <MenuItem Header="Layer Below">
                             <MenuItem Header="Multiply" Command="{Binding MultiplyCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Overlay" Command="{Binding OverlayCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Screen" Command="{Binding ScreenCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Add" Command="{Binding AddCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Substract" Command="{Binding SubstractCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Difference" Command="{Binding DifferenceCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Lighten" Command="{Binding LightenCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Darken" Command="{Binding DarkenCommand}" CommandParameter="1"/>
+                            <MenuItem Header="SoftLight" Command="{Binding SoftLightCommand}" CommandParameter="1"/>
+                            <MenuItem Header="HardLight" Command="{Binding HardLightCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Divide" Command="{Binding DivideCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Color Burn" Command="{Binding ColorBurnCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Color Doge" Command="{Binding ColorDogeCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Exclusion" Command="{Binding ExclusionCommand}" CommandParameter="1"/>
                         </MenuItem>
                     </MenuItem>
                 </MenuItem>

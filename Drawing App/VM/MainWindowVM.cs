@@ -41,6 +41,7 @@ using Layer = Drawing_App.Model;
 using WpfImage = System.Windows.Controls.Image;
 using ImageMagick;
 using ColorPoint = Drawing_App.Model.ColorPoint;
+using System.Security.Cryptography.X509Certificates;
 
 
 // Ensure this matches your intended type
@@ -217,9 +218,36 @@ namespace Drawing_App.VM
         public ICommand OtsuThresholdingCommand { get; }
         public ICommand LassoEnable {  get; }
         public ICommand MultiplyCommand { get; }
+        public ICommand ScreenCommand { get; }
+        public ICommand OverlayCommand { get; }
+        public ICommand AddCommand {  get; }
+        public ICommand SubstractCommand { get; }
+        public ICommand DifferenceCommand { get; }
+        public ICommand LightenCommand { get; }
+        public ICommand DarkenCommand { get; }
+        public ICommand SoftLightCommand { get; }
+        public ICommand HardLightCommand { get; }
+        public ICommand DivideCommand { get; }
+        public ICommand ColorBurnCommand { get; }
+        public ICommand ColorDogeCommand { get; }
+        public ICommand ExclusionCommand { get; }
+
         public MainWindowVM()
 
         {
+            ExclusionCommand = new DelegateCommand<string?>(Exclusion);
+            ColorDogeCommand=new DelegateCommand<string?>(ColorDoge);
+            ColorBurnCommand=new DelegateCommand<string?>(ColorBurn);
+            DivideCommand = new DelegateCommand<string?>(Divide);
+            HardLightCommand=new DelegateCommand<string?>(HardLight);
+            SoftLightCommand = new DelegateCommand<string?>(SoftLight);
+            DarkenCommand=new DelegateCommand<string?>(Darken);
+            LightenCommand = new DelegateCommand<string?>(Lighten);
+            DifferenceCommand = new DelegateCommand<string?>(Difference);
+            SubstractCommand = new DelegateCommand<string?>(Substract);
+            AddCommand=new DelegateCommand<string?>(Add);
+            OverlayCommand = new DelegateCommand<string?>(Overlay);
+            ScreenCommand = new DelegateCommand<string?>(Screen);
             MultiplyCommand = new DelegateCommand<string?>(Multiply);
             LassoEnable = new DelegateCommand(Lasso);
             OtsuThresholdingCommand=new DelegateCommand(OtsuThresholding);
@@ -531,6 +559,2255 @@ namespace Drawing_App.VM
                             var i3 = d2.ConvertToImageLayer();
                             Layers.Remove(d2);
                             d1.Multiply(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Screen(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Screen(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Screen(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Screen(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Screen(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Screen(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Screen(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Screen(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Screen(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Screen(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Overlay(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Overlay(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Overlay(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Overlay(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Overlay(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Overlay(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Overlay(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Overlay(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Overlay(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Overlay(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Add(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Add(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Add(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Add(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Add(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Add(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Add(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Add(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Add(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Add(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Substract(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Substract(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Substract(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Substract(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Substract(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Substract(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Substract(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Substract(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Substract(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Substract(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Difference(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Difference(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Difference(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Difference(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Difference(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Difference(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i3.Difference(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Difference(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Difference(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Difference(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Lighten(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Lighten(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Lighten(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Lighten(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Lighten(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Lighten(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Lighten(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Lighten(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Lighten(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Lighten(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Darken(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Darken(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Darken(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Darken(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Darken(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Darken(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Darken(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Darken(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Darken(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Darken(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void SoftLight(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.SoftLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.SoftLight(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.SoftLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.SoftLight(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.SoftLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Multiply(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.SoftLight(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.SoftLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.SoftLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.SoftLight(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void HardLight(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.HardLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.HardLight(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.HardLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.HardLight(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.HardLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.HardLight(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.HardLight(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.HardLight(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.HardLight(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Divide(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Divide(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Divide(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Divide(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Divide(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Divide(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Divide(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Divide(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Divide(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Divide(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void ColorBurn(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorBurn(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorBurn(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.ColorBurn(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.ColorBurn(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorBurn(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorBurn(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.ColorBurn(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorBurn(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.ColorBurn(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void ColorDoge(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorDoge(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorDoge(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.ColorDoge(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.ColorDoge(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorDoge(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.ColorDoge(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.ColorDoge(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.ColorDoge(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.ColorDoge(i3);
+                        }
+
+                    }
+
+                }
+            }
+        }
+        private void Exclusion(string? p)
+        {
+            if (p == "0")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Exclusion(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Exclusion(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index >= 1)
+                    {
+                        index--;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Exclusion(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = Layers.Count - 1;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Exclusion(i3);
+                        }
+
+                    }
+
+                }
+            }
+            else if (p == "1")
+            {
+                if (SelectedLayer is ImageLayer i)
+                {
+                    int index = Layers.IndexOf(i);
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Exclusion(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            i.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d)
+                        {
+                            var i3 = d.ConvertToImageLayer();
+                            Layers.Remove(d);
+                            i.Exclusion(i3);
+                        }
+
+                    }
+                }
+                else if (SelectedLayer is DrawingLayer d)
+                {
+                    int index = Layers.IndexOf(d);
+                    var d1 = d.ConvertToImageLayer();
+                    if (index < Layers.Count - 1)
+                    {
+                        index++;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d1);
+                            d1.Exclusion(i3);
+                        }
+
+                    }
+                    else
+                    {
+                        index = 0;
+                        var layer = Layers[index];
+                        if (layer is ImageLayer i2)
+                        {
+                            d1.Exclusion(i2);
+                            Layers.Remove(i2);
+
+                        }
+                        else if (layer is DrawingLayer d2)
+                        {
+                            var i3 = d2.ConvertToImageLayer();
+                            Layers.Remove(d2);
+                            d1.Exclusion(i3);
                         }
 
                     }

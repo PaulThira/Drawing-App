@@ -371,9 +371,9 @@ namespace Algorithms.Sections
                 {
                     if (i < image1.Height && i < image2.Height && j < image1.Width && j < image2.Width)
                     {
-                        result.Data[i, j, 0] = (byte)Math.Min((image1.Data[i, j, 0] * 255) / (255-image2.Data[i, j, 0]), 255);
-                        result.Data[i, j, 1] = (byte)Math.Min((image1.Data[i, j, 1] * 255) / (255-image2.Data[i, j, 1]), 255);
-                        result.Data[i, j, 2] = (byte)Math.Min((image1.Data[i, j, 2] * 255) / (255-image2.Data[i, j, 2]), 255);
+                        result.Data[i, j, 0] = (byte)Math.Min((image1.Data[i, j, 0] * 255) / (255-image2.Data[i, j, 0]+0.001), 255);
+                        result.Data[i, j, 1] = (byte)Math.Min((image1.Data[i, j, 1] * 255) / (255-image2.Data[i, j, 1]+0.001), 255);
+                        result.Data[i, j, 2] = (byte)Math.Min((image1.Data[i, j, 2] * 255) / (255 - image2.Data[i, j, 2] + 0.001), 255);
                     }
 
                 }
