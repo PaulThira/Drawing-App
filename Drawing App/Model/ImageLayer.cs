@@ -40,6 +40,9 @@ namespace Drawing_App.Model
         public BlendingModes blendingMode { get; set; }
         public override double ZoomLevel { get => base.ZoomLevel; set => base.ZoomLevel = value; }
         public bool lasso {  get; set; }
+        public bool gradient {  get; set; }
+        public Point first {  get; set; }
+        public Point last { get; set; }
         public void CalculateHistogram()
         {
             basicOperations.HistogramCalc(Bgr);
@@ -74,6 +77,10 @@ namespace Drawing_App.Model
             geometricTransformations = new GeometricTransformations();
             lasso=false;
             blendingMode=new BlendingModes();
+            gradient=false;
+            first=new Point();
+            last=new Point();
+
 
         }
         public ImageLayer(BitmapImage image, double imageWidth = 665, double imageHeight = 563, double opacity = 1.0, bool isVisible = true, string name = "Layer") : base(opacity, isVisible, name)
@@ -101,6 +108,35 @@ namespace Drawing_App.Model
             geometricTransformations = new GeometricTransformations();
             lasso=false;
             blendingMode=new BlendingModes();
+            gradient=false;
+            first=new Point(); last=new Point();
+        }
+        public List<Color> GradientColors()
+        {
+            
+            if (first.X < Bgr.Width && first.Y < Bgr.Height && last.X < Bgr.Width && last.Y < Bgr.Height)
+            {
+                if (first.X >=0 && first.Y >=0 && last.X >=0 && last.Y >=0)
+                {
+                    Bgr c1 = Bgr[(int)first.Y,(int)first.X];
+                    Bgr c2 = Bgr[(int)last.Y, (int)last.X];
+                    List<Color> gradient = new List<Color>();
+
+                    for (int i = 0; i < 5; i++)
+                    {
+                        float t = (float)i / (5 - 1);
+                        byte blue = (byte)(c1.Blue + t * (c2.Blue - c1.Blue));
+                        byte green = (byte)(c1.Green + t * (c2.Green - c1.Green));
+                        byte red = (byte)(c1.Red + t * (c2.Red - c1.Red));
+                        var col = new SolidColorBrush(Color.FromArgb(255, red, green, blue));
+                      
+                        gradient.Add(Color.FromArgb(255, red, green, blue));
+                    }
+                    return gradient;
+                }
+                return null;
+            }
+            return null;
         }
         public void Multiply(ImageLayer layer)
         {
@@ -582,6 +618,12 @@ namespace Drawing_App.Model
                 _lassoPoints.Add(startPoint);
                 Console.WriteLine($"Lasso started at: {startPoint}");
             }
+            if(e.RightButton== MouseButtonState.Pressed&& gradient == true)
+            {
+                last=first;
+                first= e.GetPosition((UIElement)sender);
+            }
+            
 
 
         }

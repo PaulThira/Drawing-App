@@ -103,6 +103,10 @@
                     <Ellipse Name="harmonious" Height="30" Width="30" Margin="3,0,3,0" Fill="{Binding Harmony}"></Ellipse>
                     <MenuItem Header="Pallette Generator" Command="{Binding PalletteGeneratorCommand}"/>
                     <MenuItem Header="Magic Wand" Command="{Binding MagicWandCommand}"/>
+                    <MenuItem Header="Gradient Tool">
+                        <MenuItem Header="Turn On/Off" Command="{Binding TurnOnGradient}"/>
+                        <MenuItem Header="Generate Colors" Command="{Binding GradientToolCommand}"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="🔷 Add Shapes">
                     <MenuItem Header="Circle" Command="{Binding ChangeShapeKind}" CommandParameter="{x:Static model:ShapeKind.Circle}"></MenuItem>

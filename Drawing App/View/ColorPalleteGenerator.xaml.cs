@@ -36,6 +36,7 @@ namespace Drawing_App.View
             {
                 Color color = new Color();
                 color=Color.FromRgb((byte)e.NewValue,vm.SelectedColor.Color.G,vm.SelectedColor.Color.B);
+                vm.CurrentColor=vm.SelectedColor;
                 vm.SelectedColor = new SolidColorBrush(color);
             }
         }
@@ -47,6 +48,7 @@ namespace Drawing_App.View
             {
                 Color color = new Color();
                 color = Color.FromRgb(vm.SelectedColor.Color.R, (byte)e.NewValue, vm.SelectedColor.Color.B);
+                vm.CurrentColor=vm.SelectedColor;
                 vm.SelectedColor = new SolidColorBrush(color);
             }
         }
@@ -58,6 +60,7 @@ namespace Drawing_App.View
             {
                 Color color = new Color();
                 color = Color.FromRgb(vm.SelectedColor.Color.R, vm.SelectedColor.Color.G, (byte)e.NewValue);
+                vm.CurrentColor=vm.SelectedColor;
                 vm.SelectedColor = new SolidColorBrush(color);
             }
 

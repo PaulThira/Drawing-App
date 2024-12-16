@@ -22,6 +22,7 @@ namespace Drawing_App.VM
         private double _value;
         private double _hue;
         private SolidColorBrush _selectedColor;
+        private SolidColorBrush _currentColor;
         private string _h;
         private string _s;
         private string _v;
@@ -48,7 +49,11 @@ namespace Drawing_App.VM
             get  => _selectedColor; 
             set { SetProperty(ref _selectedColor, value); }
         }
-     
+        public SolidColorBrush CurrentColor
+        {
+            get => _currentColor;
+            set { SetProperty(ref _currentColor, value); }
+        }
         public HSVColours HSVColourss { get; set; } = new HSVColours();// Define how many unique colors you want on the wheel
         public ObservableCollection<ColorPoint> ColorPoints { get; set; }
         public DelegateCommand GenerateColorWheelCommand { get; }
@@ -76,8 +81,9 @@ namespace Drawing_App.VM
         public ICommand ColorSelectedCommand { get; }
         public ICommand AddColorCommand { get; }
         public ICommand ColorSchemeCommand { get; }
+        public ICommand ColorGradientCommand { get; }
         public ColorPalleteGeneratorVM() {
-
+            ColorGradientCommand=new DelegateCommand(ColorGradient);
             ColorSchemeCommand = new DelegateCommand<string?>(ColorScheme);
             ColorPoints = new ObservableCollection<ColorPoint>();
             GenerateColorWheelCommand = new DelegateCommand(GenerateColorWheel);
@@ -91,6 +97,21 @@ namespace Drawing_App.VM
             v = "0";
             // Generate color wheel on initialization
             GenerateColorWheel();
+        }
+        private void ColorGradient()
+        {
+            List<Color> gradient = new List<Color>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                float t = (float)i / (5- 1);
+                byte red = (byte)(CurrentColor.Color.R + t * (SelectedColor.Color.R - CurrentColor.Color.R ));
+                byte green = (byte)(CurrentColor.Color.G + t * (SelectedColor.Color.G - CurrentColor.Color.G));
+                byte blue = (byte)(CurrentColor.Color.B + t * (SelectedColor.Color.B - CurrentColor.Color.B));
+                var col = new SolidColorBrush(Color.FromArgb(255, red, green, blue));
+                SelectedPalette.Add(new CustomPallete(col,SelectedPalette.Count));
+                gradient.Add(Color.FromArgb(255, red, green, blue));
+            }
         }
         private void ColorScheme(string? i)
         {
@@ -299,6 +320,7 @@ namespace Drawing_App.VM
         private void OnColorSelected(ColorPoint selectedColorPoint)
         {
             // Perform the action when a color is selected
+            CurrentColor=SelectedColor;
              SelectedColor = selectedColorPoint.Color;
             _hue=(double)HSVColourss.BGRtoHSV(SelectedColor.Color).Item1;
             h = _hue.ToString();
@@ -320,6 +342,7 @@ namespace Drawing_App.VM
            // Set a default hue (you can bind this to your color wheel selection)
 
             // Update the selected color
+            CurrentColor = SelectedColor;
             SelectedColor = new SolidColorBrush(HSVColourss.ColorFromHSV(_hue, _saturation, _value));
         }
         private void GenerateColorWheel()

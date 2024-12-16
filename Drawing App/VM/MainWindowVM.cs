@@ -231,10 +231,13 @@ namespace Drawing_App.VM
         public ICommand ColorBurnCommand { get; }
         public ICommand ColorDogeCommand { get; }
         public ICommand ExclusionCommand { get; }
-
+        public ICommand TurnOnGradient { get; }
+        public ICommand GradientToolCommand { get; }
         public MainWindowVM()
 
         {
+            TurnOnGradient = new DelegateCommand(TurnOn);
+            GradientToolCommand = new DelegateCommand(Gradient);
             ExclusionCommand = new DelegateCommand<string?>(Exclusion);
             ColorDogeCommand=new DelegateCommand<string?>(ColorDoge);
             ColorBurnCommand=new DelegateCommand<string?>(ColorBurn);
@@ -393,6 +396,35 @@ namespace Drawing_App.VM
             lasso=false;
 
         }
+        private void TurnOn()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                i.gradient=!i.gradient;
+            }
+        }
+        private void Gradient()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                if(i.gradient == true)
+                {
+                   List<Color> newColors= i.GradientColors();
+                    var pal = new ObservableCollection<CustomPallete>();
+                    for(int k = 0; k < newColors.Count; k++)
+                    {
+                        pal.Add(new CustomPallete(new SolidColorBrush(newColors[k]),k,ColorSelected));
+                    }
+                    ColorPalettes.Add(pal);
+                }
+            }
+
+        }
+        public static System.Drawing.Color ConvertMediaColorToDrawingColor(System.Windows.Media.Color mediaColor)
+        {
+            return System.Drawing.Color.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B);
+        }
+
         private void Multiply(string? p)
         {
             if (p == "0")
