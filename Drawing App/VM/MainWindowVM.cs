@@ -90,6 +90,7 @@ namespace Drawing_App.VM
         private Polyline _currentPolyline;
         public Stack<Point> Points = new Stack<Point>();
         public Stack<Point> MirroredPoints = new Stack<Point>();
+        public Stack<DrawingBrush> drawingBrushes;
         private bool lasso {  get; set; }
         public ObservableCollection<Model.Layer> Layers { get; }
         private Model.Layer _selectedLayer;
@@ -135,6 +136,7 @@ namespace Drawing_App.VM
         public ICommand ChangeShapeKind { get; }
         private int _selectedLayerIndex;
         private byte t1, t2;
+        public int basicBrushIndex {  get; set; }   
         private ObservableCollection<CustomPallete> _selectedPalette;
         public ObservableCollection<CustomPallete> SelectedPalette
         {
@@ -394,7 +396,8 @@ namespace Drawing_App.VM
             t1 = (byte)Threshold;
             GenerateColorWheel();
             lasso=false;
-
+            drawingBrushes = new Stack<DrawingBrush>();
+            basicBrushIndex=0;
         }
         private void TurnOn()
         {
@@ -3262,27 +3265,49 @@ namespace Drawing_App.VM
                 MirrorModeEnabled = false;
             }
         }
+      
         private void ColorSelected(int selectedIndex)
         {
-            
+
             if (selectedIndex >= 0 && selectedIndex < SelectedPalette.Count)
             {
                 var selectedBrush = SelectedPalette[selectedIndex];
-                CurrentColor=selectedBrush.ColorBrush.Color;
+                CurrentColor = selectedBrush.ColorBrush.Color;
 
-               
+              
                 RectangleFill = selectedBrush.ColorBrush;
                 _currentBrush.Drawing = new GeometryDrawing(
                 brush: new SolidColorBrush(CurrentColor),   // Fill brush
                 pen: new Pen(new SolidColorBrush(CurrentColor), 1), // Outline pen
                 geometry: new RectangleGeometry(new Rect(0, 0, 10, 10))
             );
-                UpdateColor(1);
+                UpdateColor(0);
                 // Perform actions with the selected color (e.g., display a message or update UI)
-
+                if (basicBrushIndex == 0)
+                {
+                    Gouche();
+                }
+                if (basicBrushIndex == 1) {
+                    Mechanical();
+                }
+                if (basicBrushIndex == 2) { 
+                    MarkerCall();
+                }
+                if (basicBrushIndex == 3) { 
+                PenTextureCall();
+                }
+                if (basicBrushIndex == 4) { 
+                PenCall();
+                }
+                if (basicBrushIndex == 5)
+                {
+                    PencilCall();
+                }
                 MessageBox.Show($"You clicked on color at index: {selectedIndex} ");
             }
         }
+
+
         private void OpenPalleteGenerator()
         {
             ColorPalleteGenerator color=new ColorPalleteGenerator();
@@ -3490,10 +3515,11 @@ namespace Drawing_App.VM
                 Viewport = new Rect(0, 0, 1, 1), // Define the size of the brush stroke
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox
             };
-
+            drawingBrushes.Push(drawingBrush);
             // Set the current brush to simulate smooth gouache
             _currentBrush = drawingBrush;
             UpdateBrush();
+            basicBrushIndex = 0;
             _usedColors.Add(CurrentColor);
         }
         private void UpdateCanvas()
@@ -3747,11 +3773,12 @@ namespace Drawing_App.VM
                 Viewport = new Rect(0, 0, 1, 1), // Fill the entire area
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Relative scaling of the brush
             };
-
+            drawingBrushes.Push(drawingBrush);
             // Set the current brush to the mechanical pencil effect brush
             _currentBrush = drawingBrush;
             UpdateBrush();
             _usedColors.Add(CurrentColor);
+            basicBrushIndex = 1;
         }
         private void MarkerCall()
         {
@@ -3783,11 +3810,12 @@ namespace Drawing_App.VM
                 Viewport = new Rect(0, 0, 1, 1), // Fill the entire area
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Relative scaling of the brush
             };
-
+            drawingBrushes.Push(drawingBrush);
             // Set the current brush to the brush marker effect
             _currentBrush = drawingBrush;
             UpdateBrush();
             _usedColors.Add(CurrentColor);
+            basicBrushIndex = 2;
 
         }
         private void PenCall()
@@ -3810,9 +3838,11 @@ namespace Drawing_App.VM
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
                 TileMode = TileMode.None // No tiling for a solid color effect
             };
+            drawingBrushes.Push(drawingBrush);
             _currentBrush = drawingBrush;
             UpdateBrush();
             _usedColors.Add(_currentColor);
+            basicBrushIndex = 3;
         }
         private void PenTextureCall()
         {
@@ -3836,8 +3866,13 @@ namespace Drawing_App.VM
                 Drawing = new GeometryDrawing(textureBrush, null, new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.5))
             };
 
+            drawingBrushes.Push(new DrawingBrush
+            {
+                Drawing = new GeometryDrawing(textureBrush, null, new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.5))
+            });
             // Optionally, update the brush properties if needed
             UpdateBrush();
+            basicBrushIndex = 4;
 
             // Add the current color to used colors (for tracking or display purposes)
             _usedColors.Add(_currentColor);
@@ -3886,11 +3921,17 @@ namespace Drawing_App.VM
                     ViewportUnits = BrushMappingMode.Absolute,
                     Opacity = 0.8
                 };
-
+                drawingBrushes.Push(new DrawingBrush(pencilDrawing)
+                {
+                    TileMode = TileMode.Tile,
+                    Viewport = new Rect(0, 0, 200, 200),  // Adjust the viewport size for desired effect
+                    ViewportUnits = BrushMappingMode.Absolute,
+                    Opacity = 0.8
+                });
                 // Update the brush for drawing
                 UpdateBrush();
             }
-
+            basicBrushIndex = 5;
             // Add the current color to the used color set
             _usedColors.Add(CurrentColor);
 
