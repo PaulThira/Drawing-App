@@ -235,9 +235,11 @@ namespace Drawing_App.VM
         public ICommand ExclusionCommand { get; }
         public ICommand TurnOnGradient { get; }
         public ICommand GradientToolCommand { get; }
+        public ICommand PerspectiveWrapCommand { get; }
         public MainWindowVM()
 
         {
+            PerspectiveWrapCommand = new DelegateCommand(PerspectiveWrap);
             TurnOnGradient = new DelegateCommand(TurnOn);
             GradientToolCommand = new DelegateCommand(Gradient);
             ExclusionCommand = new DelegateCommand<string?>(Exclusion);
@@ -398,6 +400,13 @@ namespace Drawing_App.VM
             lasso=false;
             drawingBrushes = new Stack<DrawingBrush>();
             basicBrushIndex=0;
+        }
+        private void PerspectiveWrap()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.PerspectiveWrap();
+            }
         }
         private void TurnOn()
         {

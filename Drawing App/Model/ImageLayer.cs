@@ -18,6 +18,7 @@ using System.IO;
 
 using System.Drawing.Imaging;
 using System.Windows.Input;
+using Emgu.CV.Dnn;
 
 namespace Drawing_App.Model
 {
@@ -43,6 +44,7 @@ namespace Drawing_App.Model
         public bool gradient {  get; set; }
         public Point first {  get; set; }
         public Point last { get; set; }
+        public List<Point> pointsProjective {  get; set; }
         public void CalculateHistogram()
         {
             basicOperations.HistogramCalc(Bgr);
@@ -80,11 +82,13 @@ namespace Drawing_App.Model
             gradient=false;
             first=new Point();
             last=new Point();
+            pointsProjective = new List<Point>();
 
 
         }
         public ImageLayer(BitmapImage image, double imageWidth = 665, double imageHeight = 563, double opacity = 1.0, bool isVisible = true, string name = "Layer") : base(opacity, isVisible, name)
         {
+            pointsProjective = new List<Point>();
             _image = new Image
             {
                 Source = image,
@@ -110,6 +114,33 @@ namespace Drawing_App.Model
             blendingMode=new BlendingModes();
             gradient=false;
             first=new Point(); last=new Point();
+        }
+        public void PerspectiveWrap()
+        {
+            List<Point> sourcePoints = new List<Point>();
+            List<Point> destinationPoints = new List<Point>();
+            if (pointsProjective.Count >= 8)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    sourcePoints.Add(pointsProjective[i]);
+                    destinationPoints.Add(pointsProjective[i+4]);
+                }
+                Image<Bgr, byte> result = geometricTransformations.PerspectiveWrap(Bgr, sourcePoints, destinationPoints);
+                var os = ConvertImageToBitmapImage(result);
+                ProcessedImage p = new ProcessedImage(os);
+                p.ShowDialog();
+                if (p.DialogResult == true)
+                {
+                    _image.Source = p.Image;
+                    Bgr = ConvertImageToEmguImage(_image);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Pick more points!");
+            }
+            
         }
         public List<Color> GradientColors()
         {
@@ -622,9 +653,10 @@ namespace Drawing_App.Model
             {
                 last=first;
                 first= e.GetPosition((UIElement)sender);
+               
             }
-            
 
+            pointsProjective.Add(e.GetPosition((IInputElement)sender));
 
         }
         private void Image_MouseUp(object sender, MouseButtonEventArgs e)

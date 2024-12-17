@@ -151,7 +151,8 @@
                     </MenuItem>
                     <MenuItem Header="Geometric Operation">
                         <MenuItem Header="Affine Transformation" Command="{Binding AffineTransformationCommand}"/>
-                     
+                        <MenuItem Header="Perspective Wrap" Command="{Binding PerspectiveWrapCommand}"/>
+
                     </MenuItem>
                     <MenuItem Header="Watershed" Command="{Binding WatershedCommand}"/>
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Algorithms.Sections
 {
@@ -110,6 +111,166 @@ namespace Algorithms.Sections
 
             return outputImage;
         }
+        public Image<Bgr, byte> PerspectiveWrap(Image<Bgr, byte> input, List<Point> sourcePoints, List<Point> destinationPoints)
+        {
+            if (sourcePoints.Count < 4 || destinationPoints.Count < 4)
+                throw new ArgumentException("Both source and destination must have exactly 4 points.");
+
+            // Step 1: Compute the transformation matrix A
+            double[,] A = CalculateProjectiveMatrix(sourcePoints, destinationPoints);
+
+            // Step 2: Create an output image based on the destination dimensions
+            int newWidth = input.Width;
+            int newHeight = input.Height;
+            var output = new Image<Bgr, byte>(newWidth, newHeight);
+            output.SetValue(new Bgr(255, 255, 255)); // Default white background
+
+            // Step 3: Map each pixel in the destination back to the source
+            for (int yDest = 0; yDest < newHeight; yDest++)
+            {
+                for (int xDest = 0; xDest < newWidth; xDest++)
+                {
+                    // Map destination pixel (x', y') to source (x, y) using A-inverse
+                    double[] sourceCoords = ApplyTransformationMatrix(A, xDest, yDest);
+                    double xSource = sourceCoords[0];
+                    double ySource = sourceCoords[1];
+
+                    // Step 4: Check bounds and interpolate color
+                    if (xSource >= 0 && xSource < input.Width - 1 && ySource >= 0 && ySource < input.Height - 1)
+                    {
+                        // Bilinear interpolation
+                        output[yDest, xDest] = BilinearInterpolation(input, xSource, ySource);
+                    }
+                }
+            }
+
+            return output;
+        }
+
+        private double[,] CalculateProjectiveMatrix(List<Point> source, List<Point> destination)
+        {
+            double[,] L = new double[8, 8];
+            double[] b = new double[8];
+
+            for (int i = 0; i < 4; i++)
+            {
+                double x = source[i].X;
+                double y = source[i].Y;
+                double xPrime = destination[i].X;
+                double yPrime = destination[i].Y;
+
+                L[2 * i, 0] = x;
+                L[2 * i, 1] = y;
+                L[2 * i, 2] = 1;
+                L[2 * i, 6] = -x * xPrime;
+                L[2 * i, 7] = -y * xPrime;
+                b[2 * i] = xPrime;
+
+                L[2 * i + 1, 3] = x;
+                L[2 * i + 1, 4] = y;
+                L[2 * i + 1, 5] = 1;
+                L[2 * i + 1, 6] = -x * yPrime;
+                L[2 * i + 1, 7] = -y * yPrime;
+                b[2 * i + 1] = yPrime;
+            }
+
+            double[] a = SolveLinearSystem(L, b);
+
+            // Build the 3x3 matrix A
+            double[,] A = {
+        { a[0], a[1], a[2] },
+        { a[3], a[4], a[5] },
+        { a[6], a[7], 1    }
+    };
+
+            return A;
+        }
+
+        private double[] ApplyTransformationMatrix(double[,] A, int x, int y)
+        {
+            double xPrime = A[0, 0] * x + A[0, 1] * y + A[0, 2];
+            double yPrime = A[1, 0] * x + A[1, 1] * y + A[1, 2];
+            double h = A[2, 0] * x + A[2, 1] * y + A[2, 2];
+
+            return new double[] { xPrime / h, yPrime / h };
+        }
+
+        private Bgr BilinearInterpolation(Image<Bgr, byte> input, double x, double y)
+        {
+            int x0 = (int)x;
+            int y0 = (int)y;
+            int x1 = x0 + 1;
+            int y1 = y0 + 1;
+
+            double dx = x - x0;
+            double dy = y - y0;
+
+            // Get the four neighboring pixels
+            var Q11 = input[y0, x0];
+            var Q21 = input[y0, x1];
+            var Q12 = input[y1, x0];
+            var Q22 = input[y1, x1];
+
+            // Perform bilinear interpolation
+            double blue = Q11.Blue * (1 - dx) * (1 - dy) +
+                          Q21.Blue * dx * (1 - dy) +
+                          Q12.Blue * (1 - dx) * dy +
+                          Q22.Blue * dx * dy;
+
+            double green = Q11.Green * (1 - dx) * (1 - dy) +
+                           Q21.Green * dx * (1 - dy) +
+                           Q12.Green * (1 - dx) * dy +
+                           Q22.Green * dx * dy;
+
+            double red = Q11.Red * (1 - dx) * (1 - dy) +
+                         Q21.Red * dx * (1 - dy) +
+                         Q12.Red * (1 - dx) * dy +
+                         Q22.Red * dx * dy;
+
+            return new Bgr(blue, green, red);
+        }
+
+        private double[] SolveLinearSystem(double[,] L, double[] b)
+        {
+            int n = b.Length;
+            double[] x = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                int max = i;
+                for (int k = i + 1; k < n; k++)
+                    if (Math.Abs(L[k, i]) > Math.Abs(L[max, i]))
+                        max = k;
+
+                for (int k = i; k < n; k++)
+                {
+                    double tmp = L[max, k];
+                    L[max, k] = L[i, k];
+                    L[i, k] = tmp;
+                }
+                double t = b[max];
+                b[max] = b[i];
+                b[i] = t;
+
+                for (int k = i + 1; k < n; k++)
+                {
+                    double factor = L[k, i] / L[i, i];
+                    b[k] -= factor * b[i];
+                    for (int j = i; j < n; j++)
+                        L[k, j] -= factor * L[i, j];
+                }
+            }
+
+            for (int i = n - 1; i >= 0; i--)
+            {
+                double sum = 0;
+                for (int j = i + 1; j < n; j++)
+                    sum += L[i, j] * x[j];
+                x[i] = (b[i] - sum) / L[i, i];
+            }
+
+            return x;
+        }
+
 
     }
 }
