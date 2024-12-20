@@ -709,42 +709,46 @@ namespace Drawing_App.Model
 
         public void StartShape(Point startPoint, ShapeKind shapeType)
         {
-            _startPoint = startPoint;
+            if (_canvas.Children[_canvas.Children.Count-1] is Polyline polyline) { 
+                _startPoint=polyline.Points.First();
+                if (shapeType == ShapeKind.Rectangle)
+                {
+                    _currentShape = new System.Windows.Shapes.Rectangle
+                    {
+                        Stroke = _currentBrush,
+                        StrokeThickness = thickness,
+                        Fill = Brushes.Transparent,
+                    };
+                }
+                else if (shapeType == ShapeKind.Ellipse)
+                {
+                    _currentShape = new Ellipse
+                    {
+                        Stroke = _currentBrush,
+                        StrokeThickness = thickness,
+                        Fill = Brushes.Transparent
+                    };
+                }
+                else if (shapeType == ShapeKind.Line)
+                {
+                    _currentShape = new Line
+                    {
+                        Stroke = _currentBrush,
+                        StrokeThickness = thickness,
+                        X1 = startPoint.X,
+                        Y1 = startPoint.Y
+                    };
+                }
 
-            if (shapeType == ShapeKind.Rectangle)
-            {
-                _currentShape = new System.Windows.Shapes.Rectangle
+                if (_currentShape != null)
                 {
-                    Stroke = _currentBrush,
-                    StrokeThickness = thickness,
-                    Fill = Brushes.Transparent
-                };
+
+                    _canvas.Children.Add(_currentShape);
+                }
             }
-            else if (shapeType == ShapeKind.Ellipse)
-            {
-                _currentShape = new Ellipse
-                {
-                    Stroke = _currentBrush,
-                    StrokeThickness = thickness,
-                    Fill = Brushes.Transparent
-                };
-            }
-            else if (shapeType == ShapeKind.Line)
-            {
-                _currentShape = new Line
-                {
-                    Stroke = _currentBrush,
-                    StrokeThickness = thickness,
-                    X1 = startPoint.X,
-                    Y1 = startPoint.Y
-                };
-            }
+            return;
+
            
-            if (_currentShape != null)
-            {
-                
-                _canvas.Children.Add(_currentShape);
-            }
         }
         public void DrawShape(Point startPoint, ShapeKind shapeType,double radius=0)
         {
