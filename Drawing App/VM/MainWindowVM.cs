@@ -1,47 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-using System.Windows.Input;
-using System.Xml.Linq;
-using Prism.Commands;
-using Microsoft.Win32;
-using System.IO;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
-using System.Windows;
-using System.Windows.Ink;
-using Prism.Mvvm;
-using System.Collections.ObjectModel;
-using System.Drawing;
-using Color = System.Windows.Media.Color;
-using Drawing_App.Model;
-using System.Windows.Shapes;
-using Point = System.Windows.Point;
-using System.Security.Cryptography.Xml;
-using System.ComponentModel;
+﻿using Drawing_App.Model;
 using Drawing_App.View;
-using Brush = System.Windows.Media.Brush;
-using Pen = System.Windows.Media.Pen;
-using Brushes = System.Windows.Media.Brushes;
-using Application = System.Windows.Application;
-using System.Windows.Media.Effects;
-using System.Drawing.Imaging;
-
-using Emgu.CV.Structure;
 using Emgu.CV;
-
-using System.Drawing;
-using Layer = Drawing_App.Model;
-
-
-using WpfImage = System.Windows.Controls.Image;
+using Emgu.CV.Structure;
 using ImageMagick;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Ink;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
 using ColorPoint = Drawing_App.Model.ColorPoint;
-using System.Security.Cryptography.X509Certificates;
+using Pen = System.Windows.Media.Pen;
+using Point = System.Windows.Point;
 
 
 // Ensure this matches your intended type
@@ -236,9 +216,27 @@ namespace Drawing_App.VM
         public ICommand TurnOnGradient { get; }
         public ICommand GradientToolCommand { get; }
         public ICommand PerspectiveWrapCommand { get; }
+        public ICommand SepiaCommand { get; }
+        public ICommand AdjustBrightnessCommand { get; }
+        public ICommand AdjustContrastCommand { get; }
+        public ICommand CustomFiltersCommand { get; }
+        public ObservableCollection<Model.CustomFilter> CustomFiltersList { get; set; }
+        private int _selectedIndex;
+        public int SelectedIndex
+        {
+            get => _selectedIndex;
+            set => SetProperty(ref _selectedIndex, value);
+        }
+        public ICommand ApplyFilterCommand { get; }
         public MainWindowVM()
 
         {
+            ApplyFilterCommand = new DelegateCommand<int?>(ApplyFilter);
+            CustomFiltersList = new ObservableCollection<Model.CustomFilter>();
+            CustomFiltersCommand =new DelegateCommand(CustomFilters);
+            AdjustContrastCommand = new DelegateCommand(AdjustContrast);
+            AdjustBrightnessCommand=new DelegateCommand(AdjustBrightness);
+            SepiaCommand=new DelegateCommand(Sepia);
             PerspectiveWrapCommand = new DelegateCommand(PerspectiveWrap);
             TurnOnGradient = new DelegateCommand(TurnOn);
             GradientToolCommand = new DelegateCommand(Gradient);
@@ -401,6 +399,62 @@ namespace Drawing_App.VM
             drawingBrushes = new Stack<DrawingBrush>();
             basicBrushIndex=0;
         }
+        private void ApplyFilter(int? i)
+        {
+            if (i != null&&i.Value>-1&&i.Value<CustomFiltersList.Count)
+            {
+                // Find the index of the selected filter in the CustomFiltersList
+              
+                if(SelectedLayer is ImageLayer i1)
+                {
+                   var bgr= CustomFiltersList[i.Value].ApplyToImage(i1.Bgr);
+
+                    ImageLayer image = new ImageLayer(bgr);
+                    var Result=new ProcessedImage(ImageLayer.ConvertToBitmapSource(i1.Bgr));
+                    Result.ShowDialog();
+                    Layers.Add(image);
+                    Layers.Remove(i1);
+                }
+               
+                // Add logic to apply the filter to the image
+            }
+        }
+        private void CustomFilters()
+        {
+            View.CustomFilter customFilter = new View.CustomFilter();
+            customFilter.ShowDialog();
+            if (customFilter.DialogResult==true)
+            {
+                var filter = customFilter.c;
+                if(SelectedLayer is ImageLayer i)
+                {
+                    filter.ApplyToImage(i.Bgr);
+                }
+               CustomFiltersList.Add(filter);   
+            }
+        }
+        private void AdjustContrast()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.AdjustContrast(Threshold*2.5);
+            }
+        }
+        private void AdjustBrightness()
+        {
+
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.AdjustBrightness(Threshold);
+            }
+        }
+        private void Sepia()
+        {
+            if (SelectedLayer is ImageLayer i)
+            {
+                i.Sepia();
+            }
+        }
         private void PerspectiveWrap()
         {
             if (SelectedLayer is ImageLayer i)
@@ -451,13 +505,13 @@ namespace Drawing_App.VM
                         if(layer is ImageLayer i2)
                         {
                             i.Multiply(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                            var i3=d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                      
                             i.Multiply(i3);
                         }
 
@@ -469,13 +523,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Multiply(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Multiply(i3);
                         }
 
@@ -492,13 +546,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Multiply(i2);
-                            Layers.Remove(i2);
+                    
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                          
                             d1.Multiply(i3);
                         }
 
@@ -510,13 +564,12 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Multiply(i2);
-                            Layers.Remove(i2);
-
+                       
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                    
                             d1.Multiply(i3);
                         }
 
@@ -536,13 +589,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Multiply(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                      
                             i.Multiply(i3);
                         }
 
@@ -554,13 +607,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Multiply(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Multiply(i3);
                         }
 
@@ -577,13 +630,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Multiply(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                      
                             d1.Multiply(i3);
                         }
 
@@ -595,13 +648,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Multiply(i2);
-                            Layers.Remove(i2);
+                      
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                        
                             d1.Multiply(i3);
                         }
 
@@ -624,13 +677,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Screen(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Screen(i3);
                         }
 
@@ -642,13 +695,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Screen(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                       
                             i.Screen(i3);
                         }
 
@@ -665,13 +718,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Screen(i2);
-                            Layers.Remove(i2);
+              
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                      
                             d1.Screen(i3);
                         }
 
@@ -683,13 +736,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Screen(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.Screen(i3);
                         }
 
@@ -709,13 +762,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Screen(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Screen(i3);
                         }
 
@@ -727,13 +780,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Screen(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                     
                             i.Screen(i3);
                         }
 
@@ -750,13 +803,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Screen(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                     
                             d1.Screen(i3);
                         }
 
@@ -768,13 +821,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Screen(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                       
                             d1.Screen(i3);
                         }
 
@@ -797,13 +850,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Overlay(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Overlay(i3);
                         }
 
@@ -815,13 +868,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Overlay(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Overlay(i3);
                         }
 
@@ -838,13 +891,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Overlay(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                          
                             d1.Overlay(i3);
                         }
 
@@ -856,13 +909,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Overlay(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                        
                             d1.Overlay(i3);
                         }
 
@@ -882,13 +935,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Overlay(i2);
-                            Layers.Remove(i2);
+                            
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                        
                             i.Overlay(i3);
                         }
 
@@ -900,13 +953,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Overlay(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Overlay(i3);
                         }
 
@@ -923,13 +976,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Overlay(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                    
                             d1.Overlay(i3);
                         }
 
@@ -941,13 +994,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Overlay(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.Overlay(i3);
                         }
 
@@ -970,13 +1023,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Add(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Add(i3);
                         }
 
@@ -988,13 +1041,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Add(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+              
                             i.Add(i3);
                         }
 
@@ -1011,13 +1064,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Add(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                      
                             d1.Add(i3);
                         }
 
@@ -1029,13 +1082,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Add(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                         
                             d1.Add(i3);
                         }
 
@@ -1055,13 +1108,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Add(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Add(i3);
                         }
 
@@ -1073,13 +1126,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Add(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Add(i3);
                         }
 
@@ -1096,13 +1149,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Add(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                       
                             d1.Add(i3);
                         }
 
@@ -1114,13 +1167,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Add(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.Add(i3);
                         }
 
@@ -1143,13 +1196,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Substract(i2);
-                            Layers.Remove(i2);
+               
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Substract(i3);
                         }
 
@@ -1161,13 +1214,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Substract(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Substract(i3);
                         }
 
@@ -1184,13 +1237,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Substract(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                      
                             d1.Substract(i3);
                         }
 
@@ -1202,13 +1255,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Substract(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.Substract(i3);
                         }
 
@@ -1228,13 +1281,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Substract(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                           
                             i.Substract(i3);
                         }
 
@@ -1246,13 +1299,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Substract(i2);
-                            Layers.Remove(i2);
+                    
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Substract(i3);
                         }
 
@@ -1269,13 +1322,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Substract(i2);
-                            Layers.Remove(i2);
+                  
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                       
                             d1.Substract(i3);
                         }
 
@@ -1287,13 +1340,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Substract(i2);
-                            Layers.Remove(i2);
+                   
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.Substract(i3);
                         }
 
@@ -1316,13 +1369,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Difference(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Difference(i3);
                         }
 
@@ -1334,13 +1387,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Difference(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Difference(i3);
                         }
 
@@ -1357,13 +1410,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Difference(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                         
                             d1.Difference(i3);
                         }
 
@@ -1375,13 +1428,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Difference(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                       
                             d1.Difference(i3);
                         }
 
@@ -1401,13 +1454,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Difference(i2);
-                            Layers.Remove(i2);
+                      
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                        
                             i.Difference(i3);
                         }
 
@@ -1419,13 +1472,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Difference(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i3.Difference(i3);
                         }
 
@@ -1442,13 +1495,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Difference(i2);
-                            Layers.Remove(i2);
+                  
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                      
                             d1.Difference(i3);
                         }
 
@@ -1460,13 +1513,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Difference(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.Difference(i3);
                         }
 
@@ -1489,13 +1542,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Lighten(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                        
                             i.Lighten(i3);
                         }
 
@@ -1507,13 +1560,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Lighten(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                    
                             i.Lighten(i3);
                         }
 
@@ -1530,13 +1583,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Lighten(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                        
                             d1.Lighten(i3);
                         }
 
@@ -1548,13 +1601,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Lighten(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                         
                             d1.Lighten(i3);
                         }
 
@@ -1574,13 +1627,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Lighten(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Lighten(i3);
                         }
 
@@ -1592,13 +1645,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Lighten(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Lighten(i3);
                         }
 
@@ -1615,13 +1668,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Lighten(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                     
                             d1.Lighten(i3);
                         }
 
@@ -1633,13 +1686,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Lighten(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                       
                             d1.Lighten(i3);
                         }
 
@@ -1662,13 +1715,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Darken(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                     
                             i.Darken(i3);
                         }
 
@@ -1680,13 +1733,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Darken(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Darken(i3);
                         }
 
@@ -1703,13 +1756,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Darken(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                        
                             d1.Darken(i3);
                         }
 
@@ -1721,13 +1774,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Darken(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                        
                             d1.Darken(i3);
                         }
 
@@ -1747,13 +1800,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Darken(i2);
-                            Layers.Remove(i2);
+                     
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Darken(i3);
                         }
 
@@ -1765,13 +1818,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Darken(i2);
-                            Layers.Remove(i2);
+                     
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+
                             i.Darken(i3);
                         }
 
@@ -1788,13 +1841,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Darken(i2);
-                            Layers.Remove(i2);
+                     
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                         
                             d1.Darken(i3);
                         }
 
@@ -1806,13 +1859,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Darken(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                         
                             d1.Darken(i3);
                         }
 
@@ -1835,13 +1888,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.SoftLight(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                        
                             i.SoftLight(i3);
                         }
 
@@ -1853,13 +1906,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.SoftLight(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.SoftLight(i3);
                         }
 
@@ -1876,13 +1929,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.SoftLight(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                           
                             d1.SoftLight(i3);
                         }
 
@@ -1894,13 +1947,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.SoftLight(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.SoftLight(i3);
                         }
 
@@ -1920,13 +1973,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.SoftLight(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                           
                             i.SoftLight(i3);
                         }
 
@@ -1938,13 +1991,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Multiply(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.SoftLight(i3);
                         }
 
@@ -1961,13 +2014,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.SoftLight(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                          
                             d1.SoftLight(i3);
                         }
 
@@ -1979,13 +2032,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.SoftLight(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.SoftLight(i3);
                         }
 
@@ -2008,13 +2061,12 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.HardLight(i2);
-                            Layers.Remove(i2);
-
+                         
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                      
                             i.HardLight(i3);
                         }
 
@@ -2026,13 +2078,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.HardLight(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.HardLight(i3);
                         }
 
@@ -2049,13 +2101,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.HardLight(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                        
                             d1.HardLight(i3);
                         }
 
@@ -2067,13 +2119,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.HardLight(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.HardLight(i3);
                         }
 
@@ -2093,13 +2145,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.HardLight(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                      
                             i.HardLight(i3);
                         }
 
@@ -2111,13 +2163,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.HardLight(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                       
                             i.HardLight(i3);
                         }
 
@@ -2134,13 +2186,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.HardLight(i2);
-                            Layers.Remove(i2);
+                      
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                       
                             d1.HardLight(i3);
                         }
 
@@ -2152,13 +2204,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.HardLight(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                       
                             d1.HardLight(i3);
                         }
 
@@ -2181,13 +2233,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Divide(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Divide(i3);
                         }
 
@@ -2199,13 +2251,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Divide(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                    
                             i.Divide(i3);
                         }
 
@@ -2222,13 +2274,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Divide(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                        
                             d1.Divide(i3);
                         }
 
@@ -2240,13 +2292,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Divide(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                      
                             d1.Divide(i3);
                         }
 
@@ -2266,13 +2318,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Divide(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                    
                             i.Divide(i3);
                         }
 
@@ -2284,13 +2336,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Divide(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                       
                             i.Divide(i3);
                         }
 
@@ -2307,13 +2359,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Divide(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                          
                             d1.Divide(i3);
                         }
 
@@ -2325,13 +2377,12 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Divide(i2);
-                            Layers.Remove(i2);
-
+                        
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.Divide(i3);
                         }
 
@@ -2354,13 +2405,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorBurn(i2);
-                            Layers.Remove(i2);
+                            
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.ColorBurn(i3);
                         }
 
@@ -2372,13 +2423,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorBurn(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                           
                             i.ColorBurn(i3);
                         }
 
@@ -2395,13 +2446,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorBurn(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                          
                             d1.ColorBurn(i3);
                         }
 
@@ -2413,13 +2464,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorBurn(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                            
                             d1.ColorBurn(i3);
                         }
 
@@ -2439,13 +2490,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorBurn(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                           
                             i.ColorBurn(i3);
                         }
 
@@ -2457,13 +2508,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorBurn(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.ColorBurn(i3);
                         }
 
@@ -2480,13 +2531,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorBurn(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                           
                             d1.ColorBurn(i3);
                         }
 
@@ -2498,13 +2549,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorBurn(i2);
-                            Layers.Remove(i2);
+                            
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                         
                             d1.ColorBurn(i3);
                         }
 
@@ -2527,13 +2578,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorDoge(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.ColorDoge(i3);
                         }
 
@@ -2545,13 +2596,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorDoge(i2);
-                            Layers.Remove(i2);
+                            
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                           
                             i.ColorDoge(i3);
                         }
 
@@ -2568,13 +2619,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorDoge(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                           
                             d1.ColorDoge(i3);
                         }
 
@@ -2586,13 +2637,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorDoge(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.ColorDoge(i3);
                         }
 
@@ -2612,13 +2663,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorDoge(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.ColorDoge(i3);
                         }
 
@@ -2630,13 +2681,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.ColorDoge(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.ColorDoge(i3);
                         }
 
@@ -2653,13 +2704,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorDoge(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                         
                             d1.ColorDoge(i3);
                         }
 
@@ -2671,13 +2722,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.ColorDoge(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                          
                             d1.ColorDoge(i3);
                         }
 
@@ -2700,13 +2751,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Exclusion(i2);
-                            Layers.Remove(i2);
+                        
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                        
                             i.Exclusion(i3);
                         }
 
@@ -2718,13 +2769,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Exclusion(i2);
-                            Layers.Remove(i2);
+                         
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Exclusion(i3);
                         }
 
@@ -2741,13 +2792,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Exclusion(i2);
-                            Layers.Remove(i2);
+                       
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                          
                             d1.Exclusion(i3);
                         }
 
@@ -2759,13 +2810,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Exclusion(i2);
-                            Layers.Remove(i2);
+                      
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.Exclusion(i3);
                         }
 
@@ -2784,14 +2835,14 @@ namespace Drawing_App.VM
                         var layer = Layers[index];
                         if (layer is ImageLayer i2)
                         {
-                            i.Exclusion(i2);
+                          
                             Layers.Remove(i2);
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                          
                             i.Exclusion(i3);
                         }
 
@@ -2803,13 +2854,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             i.Exclusion(i2);
-                            Layers.Remove(i2);
+                            
 
                         }
                         else if (layer is DrawingLayer d)
                         {
                             var i3 = d.ConvertToImageLayer();
-                            Layers.Remove(d);
+                         
                             i.Exclusion(i3);
                         }
 
@@ -2826,13 +2877,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Exclusion(i2);
-                            Layers.Remove(i2);
+                          
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d1);
+                         
                             d1.Exclusion(i3);
                         }
 
@@ -2844,13 +2895,13 @@ namespace Drawing_App.VM
                         if (layer is ImageLayer i2)
                         {
                             d1.Exclusion(i2);
-                            Layers.Remove(i2);
+                           
 
                         }
                         else if (layer is DrawingLayer d2)
                         {
                             var i3 = d2.ConvertToImageLayer();
-                            Layers.Remove(d2);
+                           
                             d1.Exclusion(i3);
                         }
 
@@ -3290,7 +3341,7 @@ namespace Drawing_App.VM
                 pen: new Pen(new SolidColorBrush(CurrentColor), 1), // Outline pen
                 geometry: new RectangleGeometry(new Rect(0, 0, 10, 10))
             );
-                UpdateColor(0);
+               
                 // Perform actions with the selected color (e.g., display a message or update UI)
                 if (basicBrushIndex == 0)
                 {
@@ -3303,15 +3354,16 @@ namespace Drawing_App.VM
                     MarkerCall();
                 }
                 if (basicBrushIndex == 3) { 
-                PenTextureCall();
+                     PenTextureCall();
                 }
                 if (basicBrushIndex == 4) { 
-                PenCall();
+                    PenCall();
                 }
                 if (basicBrushIndex == 5)
                 {
                     PencilCall();
                 }
+                UpdateColor(1);
                 MessageBox.Show($"You clicked on color at index: {selectedIndex} ");
             }
         }

@@ -192,6 +192,63 @@ namespace Algorithms.Sections
             }
             return gray;
         }
+        public Image<Bgr, byte> ApplySepia(Image<Bgr, byte> input)
+        {
+            var output = input.Copy();
+            for (int i = 0; i < output.Height; i++)
+            {
+                for (int j = 0; j < output.Width; j++)
+                {
+                  
+                    byte r = input.Data[i, j, 2];
+                    byte g = input.Data[i, j, 1];
+                    byte b = input.Data[i, j, 0];
+
+                    output[i, j] = new Bgr(
+                        Math.Min(0.272 * r + 0.534 * g + 0.131 * b, 255),
+                        Math.Min(0.349 * r + 0.686 * g + 0.168 * b, 255),
+                        Math.Min(0.393 * r + 0.769 * g + 0.189 * b, 255)
+                    );
+                }
+            }
+            return output;
+        }
+        public Image<Bgr, byte> AdjustBrightness(Image<Bgr, byte> input, int brightness)
+        {
+            var output = input.Copy();
+            for (int i = 0; i < output.Height; i++)
+            {
+                for (int j = 0; j < output.Width; j++)
+                {
+                    var pixel = input[i, j];
+                    output[i, j] = new Bgr(
+                        Math.Clamp(pixel.Blue + brightness, 0, 255),
+                        Math.Clamp(pixel.Green + brightness, 0, 255),
+                        Math.Clamp(pixel.Red + brightness, 0, 255)
+                    );
+                }
+            }
+            return output;
+        }
+        public Image<Bgr, byte> AdjustContrast(Image<Bgr, byte> input, double contrast)
+        {
+            var output = input.Copy();
+            double factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+            for (int i = 0; i < output.Height; i++)
+            {
+                for (int j = 0; j < output.Width; j++)
+                {
+                    var pixel = input[i, j];
+                    output[i, j] = new Bgr(
+                        Math.Clamp(factor * (pixel.Blue - 128) + 128, 0, 255),
+                        Math.Clamp(factor * (pixel.Green - 128) + 128, 0, 255),
+                        Math.Clamp(factor * (pixel.Red - 128) + 128, 0, 255)
+                    );
+                }
+            }
+            return output;
+        }
+
         public Image<Hsv, byte> BgrToHSV(Image<Bgr, byte> image)
         {
             Image<Hsv, byte> hsv = new Image<Hsv, byte>(image.Width, image.Height);

@@ -124,6 +124,9 @@
                     <MenuItem Header="Basic Operations">
                         <MenuItem Header="Grayscale" Command="{Binding GrayscaleCommand}"/>
                         <MenuItem Header="Negative" Command="{Binding NegativeFilterCommand}"/>
+                        <MenuItem Header="Sepia" Command="{Binding SepiaCommand}"/>
+                        <MenuItem Header="Adjust Brightness" Command="{Binding AdjustBrightnessCommand}"/>
+                        <MenuItem Header="Adjust Contrast" Command="{Binding AdjustContrastCommand}"/>
 
                     </MenuItem>
                     <MenuItem Header="Pointwise Operations">
@@ -155,6 +158,32 @@
 
                     </MenuItem>
                     <MenuItem Header="Watershed" Command="{Binding WatershedCommand}"/>
+                    <MenuItem Header="Custom Filters">
+                        <!-- Static menu item to create new custom filters -->
+                        <MenuItem Header="Create Custom Filters" Command="{Binding CustomFiltersCommand}" />
+
+                        <!-- Dynamic menu items for existing custom filters -->
+                       <MenuItem Header="Custom Filters" ItemsSource="{Binding CustomFiltersList}" AlternationCount="1000">
+    <MenuItem.ItemContainerStyle>
+        <Style TargetType="MenuItem">
+            <!-- Set the Header to the Name property of the filter -->
+            <Setter Property="Header" Value="{Binding Name}" />
+            
+            <!-- Bind the Command to the ApplyFilterCommand in the ViewModel -->
+            <Setter Property="Command" 
+                    Value="{Binding DataContext.ApplyFilterCommand, RelativeSource={RelativeSource AncestorType={x:Type Menu}}}" />
+            
+            <!-- Pass the alternation index as CommandParameter -->
+            <Setter Property="CommandParameter" 
+                    Value="{Binding RelativeSource={RelativeSource Self}, Path=(ItemsControl.AlternationIndex)}" />
+        </Style>
+    </MenuItem.ItemContainerStyle>
+</MenuItem>
+
+
+
+                    </MenuItem>
+
 
                 </MenuItem>
                 <MenuItem Header="💾 Save As">
@@ -224,32 +253,37 @@ ToolTip="Adjust Layer Opacity" Background="#444" Orientation="Vertical" Horizont
 
         <!-- Center: Main Canvas -->
         <Border Grid.Column="1" Grid.Row="1" Background="Gray" Margin="10">
-            <StackPanel   VerticalAlignment="Center" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" Height="804" Width="804">
-                <!-- Layers Collection -->
-                <ItemsControl ItemsSource="{Binding Layers}" Background="Transparent" Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=StackPanel}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StackPanel}}">
-                    <!-- Item Template for each Layer -->
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <ContentPresenter Content="{Binding VisualElement}"
-                   Opacity="{Binding Opacity}"
-                   VerticalAlignment="Top" HorizontalAlignment="Center"
-                           FocusManager.IsFocusScope="True">
-                                <!-- RenderTransform for Zoom Level -->
-                                <ContentPresenter.RenderTransform>
-                                    <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}" />
-                                </ContentPresenter.RenderTransform>
-                            </ContentPresenter>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Grid>
+                    <!-- Layers Collection -->
+                    <ItemsControl ItemsSource="{Binding Layers}" Background="Transparent">
+                        <!-- Item Template for each Layer -->
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentPresenter Content="{Binding VisualElement}"
+                                      Opacity="{Binding Opacity}"
+                                      VerticalAlignment="Top"
+                                      HorizontalAlignment="Center"
+                                      FocusManager.IsFocusScope="True">
+                                    <!-- RenderTransform for Zoom Level -->
+                                    <ContentPresenter.RenderTransform>
+                                        <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}" />
+                                    </ContentPresenter.RenderTransform>
+                                </ContentPresenter>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
 
-                    <!-- Grid to Stack Layers -->
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Grid />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </StackPanel>
+                        <!-- Grid to Stack Layers -->
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Grid />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+
+
         </Border>
         <!-- Right Panel: Color and Layers -->
         <DockPanel Grid.Column="2" Grid.Row="1" Background="#3E3E3E">

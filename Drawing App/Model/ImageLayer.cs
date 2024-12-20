@@ -19,6 +19,8 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Windows.Input;
 using Emgu.CV.Dnn;
+using System.Reflection.Emit;
+using System.Windows.Media.Media3D;
 
 namespace Drawing_App.Model
 {
@@ -114,6 +116,72 @@ namespace Drawing_App.Model
             blendingMode=new BlendingModes();
             gradient=false;
             first=new Point(); last=new Point();
+        }
+        public ImageLayer(Image<Bgr,byte> image, double imageWidth = 665, double imageHeight = 563, double opacity = 1.0, bool isVisible = true, string name = "Layer") : base(opacity, isVisible, name)
+        {
+            pointsProjective = new List<Point>();
+            var k=ConvertToBitmapSource(image);
+            _image = new Image
+            {
+                Source = k,
+                Width = imageWidth,
+                Height = imageHeight
+            };
+            _filePath = "";
+            Bgr = image;
+
+            basicOperations = new BasicOperations();
+            _image.MouseDown += Image_MouseDown;
+            _image.MouseMove += Image_MouseMove;
+            _image.MouseUp += Image_MouseUp;
+            Point = new Point();
+            pointwiseOperations = new PointwiseOperations();
+            thresholding = new Thresholding();
+            highPass = new HighPass();
+            lowPass = new LowPass();
+            morphological = new MorphologicalOperations();
+            segmentation = new Segmentation();
+            geometricTransformations = new GeometricTransformations();
+            lasso = false;
+            blendingMode = new BlendingModes();
+            gradient = false;
+            first = new Point(); last = new Point();
+        }
+        public void AdjustContrast(double contrast)
+        {
+            Image<Bgr, byte> result = basicOperations.AdjustContrast(Bgr, contrast);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void AdjustBrightness(int bright)
+        {
+            Image<Bgr, byte> result = basicOperations.AdjustBrightness(Bgr, bright);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+        }
+        public void Sepia()
+        {
+            Image<Bgr, byte> result = basicOperations.ApplySepia(Bgr);
+            var os = ConvertImageToBitmapImage(result);
+            ProcessedImage p = new ProcessedImage(os);
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
         }
         public void PerspectiveWrap()
         {
