@@ -410,7 +410,7 @@ namespace Drawing_App.VM
                    var bgr= CustomFiltersList[i.Value].ApplyToImage(i1.Bgr);
 
                     ImageLayer image = new ImageLayer(bgr);
-                    var Result=new ProcessedImage(ImageLayer.ConvertToBitmapSource(i1.Bgr));
+                    var Result=new ProcessedImage(ImageLayer.ConvertToBitmapSource(bgr));
                     Result.ShowDialog();
                     Layers.Add(image);
                     Layers.Remove(i1);

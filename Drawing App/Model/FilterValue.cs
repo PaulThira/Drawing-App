@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageMagick;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Drawing_App.Model
 {
-    public class FilterValue
+    public class FilterValue:BindableBase
     {
         private string _value;
 
@@ -16,8 +17,8 @@ namespace Drawing_App.Model
             get => _value;
             set
             {
-                _value = value;
-                IsValid = double.TryParse(_value, out _numericValue);
+                SetProperty(ref _value, value);
+
             }
         }
 

@@ -44,6 +44,9 @@ namespace Drawing_App.Model
             BgrImage = image;   
             if (Kernel != null)
             {
+                Kernel = NormalizeKernel(Kernel);
+              
+
                 image = ApplyKernelManually(image, Kernel);
             }
 
@@ -62,10 +65,34 @@ namespace Drawing_App.Model
 
             if (EdgeIntensity > 0)
             {
-                image = AdjustEdgeIntensity(image, EdgeIntensity);
+                image = SimplifiedEdgeDetection(image, EdgeIntensity);
             }
 
             return image;
+        }
+        private double[,] NormalizeKernel(double[,] kernel)
+        {
+            double sum = 0;
+
+            for (int y = 0; y < kernel.GetLength(0); y++)
+            {
+                for (int x = 0; x < kernel.GetLength(1); x++)
+                {
+                    sum += kernel[y, x];
+                }
+            }
+
+            if (sum == 0) sum = 1; // Prevent division by zero
+
+            for (int y = 0; y < kernel.GetLength(0); y++)
+            {
+                for (int x = 0; x < kernel.GetLength(1); x++)
+                {
+                    kernel[y, x] /= sum;
+                }
+            }
+
+            return kernel;
         }
 
         private Image<Bgr, byte> ApplyKernelManually(Image<Bgr, byte> image, double[,] kernel)
@@ -111,29 +138,36 @@ namespace Drawing_App.Model
         }
         private Image<Bgr, byte> AdjustSharpness(Image<Bgr, byte> image, double sharpness)
         {
-            // Kernel for Laplacian operator
-            double[,] laplacianKernel = {
-        { 0, -1, 0 },
-        { -1, 4, -1 },
-        { 0, -1, 0 }
+            // High-pass kernel
+            double[,] highPassKernel = {
+        { -1, -1, -1 },
+        { -1,  8, -1 },
+        { -1, -1, -1 }
     };
 
-            // Apply Laplacian kernel
-            var edgeImage = ApplyKernelManually(image, laplacianKernel);
+            // Scale kernel with sharpness
+            for (int i = 0; i < highPassKernel.GetLength(0); i++)
+            {
+                for (int j = 0; j < highPassKernel.GetLength(1); j++)
+                {
+                    highPassKernel[i, j] *= sharpness;
+                }
+            }
 
-            // Combine original image with edges
+            var highPassResult = ApplyKernelManually(image, highPassKernel);
             var result = new Image<Bgr, byte>(image.Width, image.Height);
+
             for (int y = 0; y < image.Height; y++)
             {
                 for (int x = 0; x < image.Width; x++)
                 {
                     var originalPixel = image[y, x];
-                    var edgePixel = edgeImage[y, x];
+                    var highPassPixel = highPassResult[y, x];
 
-                    // Adjust sharpness by mixing original and edge image
-                    byte blue = (byte)Math.Min(Math.Max(originalPixel.Blue + sharpness * edgePixel.Blue, 0), 255);
-                    byte green = (byte)Math.Min(Math.Max(originalPixel.Green + sharpness * edgePixel.Green, 0), 255);
-                    byte red = (byte)Math.Min(Math.Max(originalPixel.Red + sharpness * edgePixel.Red, 0), 255);
+                    // Combine original with high-pass result
+                    byte blue = (byte)Math.Min(Math.Max(originalPixel.Blue + highPassPixel.Blue, 0), 255);
+                    byte green = (byte)Math.Min(Math.Max(originalPixel.Green + highPassPixel.Green, 0), 255);
+                    byte red = (byte)Math.Min(Math.Max(originalPixel.Red + highPassPixel.Red, 0), 255);
 
                     result[y, x] = new Bgr(blue, green, red);
                 }
@@ -141,44 +175,38 @@ namespace Drawing_App.Model
 
             return result;
         }
-        private Image<Bgr, byte> ApplyBlur(Image<Bgr, byte> image, double blurRadius)
+
+        private Image<Bgr, byte> ApplyBlur(Image<Bgr, byte> image, double blurIntensity)
         {
-            // Generate Gaussian kernel based on blur radius
-            int size = (int)(2 * blurRadius + 1); // Kernel size based on radius
-            double[,] gaussianKernel = GenerateGaussianKernel(size, blurRadius);
-
-            // Apply Gaussian kernel
-            return ApplyKernelManually(image, gaussianKernel);
-        }
-
-        private double[,] GenerateGaussianKernel(int size, double sigma)
-        {
-            double[,] kernel = new double[size, size];
-            double sum = 0;
-            int halfSize = size / 2;
-
-            for (int y = -halfSize; y <= halfSize; y++)
-            {
-                for (int x = -halfSize; x <= halfSize; x++)
-                {
-                    double value = Math.Exp(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * Math.PI * sigma * sigma);
-                    kernel[y + halfSize, x + halfSize] = value;
-                    sum += value;
-                }
-            }
+            // Simple average kernel for approximation
+            double[,] blurKernel = {
+        { 1, 1, 1 },
+        { 1, 1, 1 },
+        { 1, 1, 1 }
+    };
 
             // Normalize kernel
-            for (int y = 0; y < size; y++)
+            for (int i = 0; i < blurKernel.GetLength(0); i++)
             {
-                for (int x = 0; x < size; x++)
+                for (int j = 0; j < blurKernel.GetLength(1); j++)
                 {
-                    kernel[y, x] /= sum;
+                    blurKernel[i, j] /= 9.0;
                 }
             }
 
-            return kernel;
+            // Scale kernel with blur intensity
+            for (int i = 0; i < blurKernel.GetLength(0); i++)
+            {
+                for (int j = 0; j < blurKernel.GetLength(1); j++)
+                {
+                    blurKernel[i, j] *= blurIntensity;
+                }
+            }
+
+            return ApplyKernelManually(image, blurKernel);
         }
-        private Image<Bgr, byte> AdjustEdgeIntensity(Image<Bgr, byte> image, double edgeIntensity)
+
+        private Image<Bgr, byte> SimplifiedEdgeDetection(Image<Bgr, byte> image, double edgeIntensity)
         {
             // Sobel kernels
             double[,] sobelX = {
@@ -192,12 +220,11 @@ namespace Drawing_App.Model
         { 1,  2,  1 }
     };
 
-            // Apply Sobel kernels
             var gradientX = ApplyKernelManually(image, sobelX);
             var gradientY = ApplyKernelManually(image, sobelY);
 
-            // Combine gradients and scale
             var result = new Image<Bgr, byte>(image.Width, image.Height);
+
             for (int y = 0; y < image.Height; y++)
             {
                 for (int x = 0; x < image.Width; x++)
@@ -205,10 +232,10 @@ namespace Drawing_App.Model
                     var pixelX = gradientX[y, x];
                     var pixelY = gradientY[y, x];
 
-                    // Magnitude of gradient
-                    byte blue = (byte)Math.Min(Math.Max(edgeIntensity * Math.Sqrt(pixelX.Blue * pixelX.Blue + pixelY.Blue * pixelY.Blue), 0), 255);
-                    byte green = (byte)Math.Min(Math.Max(edgeIntensity * Math.Sqrt(pixelX.Green * pixelX.Green + pixelY.Green * pixelY.Green), 0), 255);
-                    byte red = (byte)Math.Min(Math.Max(edgeIntensity * Math.Sqrt(pixelX.Red * pixelX.Red + pixelY.Red * pixelY.Red), 0), 255);
+                    // Compute gradient magnitude
+                    byte blue = (byte)Math.Min(Math.Sqrt(pixelX.Blue * pixelX.Blue + pixelY.Blue * pixelY.Blue) * edgeIntensity, 255);
+                    byte green = (byte)Math.Min(Math.Sqrt(pixelX.Green * pixelX.Green + pixelY.Green * pixelY.Green) * edgeIntensity, 255);
+                    byte red = (byte)Math.Min(Math.Sqrt(pixelX.Red * pixelX.Red + pixelY.Red * pixelY.Red) * edgeIntensity, 255);
 
                     result[y, x] = new Bgr(blue, green, red);
                 }
@@ -216,56 +243,79 @@ namespace Drawing_App.Model
 
             return result;
         }
+
 
         private Image<Bgr, byte> AdjustBrightnessAndContrastManually(Image<Bgr, byte> image, double brightness, double contrast)
         {
             var result = new Image<Bgr, byte>(image.Width, image.Height);
 
+            // Normalize contrast (e.g., 50 means no change, range: 0-100)
+            double contrastFactor = (contrast - 50) / 50.0; // Contrast range (-1 to 1)
+            brightness -= 50; // Brightness range (-50 to 50)
+
             for (int y = 0; y < image.Height; y++)
             {
                 for (int x = 0; x < image.Width; x++)
                 {
-                    var pixelColor = image[y, x];
+                    var pixel = image[y, x];
 
-                    // Apply contrast and brightness adjustments
-                    byte blue = (byte)Math.Min(Math.Max((pixelColor.Blue * contrast) + brightness, 0), 255);
-                    byte green = (byte)Math.Min(Math.Max((pixelColor.Green * contrast) + brightness, 0), 255);
-                    byte red = (byte)Math.Min(Math.Max((pixelColor.Red * contrast) + brightness, 0), 255);
+                    // Apply contrast and brightness
+                    double blue = pixel.Blue / 255.0;
+                    double green = pixel.Green / 255.0;
+                    double red = pixel.Red / 255.0;
 
-                    result[y, x] = new Bgr(blue, green, red);
+                    blue = ((blue - 0.5) * (1 + contrastFactor) + 0.5) * 255 + brightness;
+                    green = ((green - 0.5) * (1 + contrastFactor) + 0.5) * 255 + brightness;
+                    red = ((red - 0.5) * (1 + contrastFactor) + 0.5) * 255 + brightness;
+
+                    // Clamp values to valid range
+                    result[y, x] = new Bgr(
+                        Math.Min(Math.Max(blue, 0), 255),
+                        Math.Min(Math.Max(green, 0), 255),
+                        Math.Min(Math.Max(red, 0), 255)
+                    );
                 }
             }
 
             return result;
         }
+
 
         private Image<Bgr, byte> AdjustSaturationManually(Image<Bgr, byte> image, double saturation)
         {
             var result = new Image<Bgr, byte>(image.Width, image.Height);
 
+            double saturationFactor = saturation / 100.0; // Convert to range 0 to 1
+
             for (int y = 0; y < image.Height; y++)
             {
                 for (int x = 0; x < image.Width; x++)
                 {
-                    var pixelColor = image[y, x];
+                    var pixel = image[y, x];
 
-                    // Convert BGR to grayscale to get luminance
-                    double luminance = 0.299 * pixelColor.Red + 0.587 * pixelColor.Green + 0.114 * pixelColor.Blue;
+                    // Convert to grayscale for luminance
+                    double luminance = 0.299 * pixel.Red + 0.587 * pixel.Green + 0.114 * pixel.Blue;
 
                     // Apply saturation adjustment
-                    byte blue = (byte)Math.Min(Math.Max(luminance + (pixelColor.Blue - luminance) * (1 + saturation / 100.0), 0), 255);
-                    byte green = (byte)Math.Min(Math.Max(luminance + (pixelColor.Green - luminance) * (1 + saturation / 100.0), 0), 255);
-                    byte red = (byte)Math.Min(Math.Max(luminance + (pixelColor.Red - luminance) * (1 + saturation / 100.0), 0), 255);
+                    double blue = luminance + (pixel.Blue - luminance) * (1 + saturationFactor);
+                    double green = luminance + (pixel.Green - luminance) * (1 + saturationFactor);
+                    double red = luminance + (pixel.Red - luminance) * (1 + saturationFactor);
 
-                    result[y, x] = new Bgr(blue, green, red);
+                    // Clamp values
+                    result[y, x] = new Bgr(
+                        Math.Min(Math.Max(blue, 0), 255),
+                        Math.Min(Math.Max(green, 0), 255),
+                        Math.Min(Math.Max(red, 0), 255)
+                    );
                 }
             }
 
             return result;
         }
-    
-    // Optional: Default constructor for serialization/deserialization
-    public CustomFilter() { }
+
+
+        // Optional: Default constructor for serialization/deserialization
+        public CustomFilter() { }
 
         // Method to save the filter to a file
         

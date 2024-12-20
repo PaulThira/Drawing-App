@@ -28,22 +28,27 @@ namespace Drawing_App.View
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var vm = new CustomFilterVM();
-            DataContext= vm;
-            c = new Model.CustomFilter();
+            var vm = DataContext as CustomFilterVM; // Retrieve the existing VM
+            if (vm == null)
+                return;
+
             vm.CheckValidityOfTheFilter();
-            c.Kernel = vm.FilterMatrix;
-            c.BlurRadius = vm.BlurRadius;
-            c.Sharpness = vm.Sharpness;
-            c.Saturation = vm.Saturation;
-            c.Contrast = vm.Contrast;
-            c.Brightness = vm.Brightness;
-            c.EdgeIntensity = vm.EdgeIntensity;
-            c.Name=vm.FilterName;
-            DialogResult=true;
 
-           
+            // Only proceed if the filter is valid
+            c = new Model.CustomFilter
+            {
+                Kernel = vm.FilterMatrix,
+                BlurRadius = vm.BlurRadius,
+                Sharpness = vm.Sharpness,
+                Saturation = vm.Saturation,
+                Contrast = vm.Contrast,
+                Brightness = vm.Brightness,
+                EdgeIntensity = vm.EdgeIntensity,
+                Name = vm.FilterName
+            };
 
+            DialogResult = true; // Close the dialog with success
         }
+
     }
 }

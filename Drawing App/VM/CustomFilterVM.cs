@@ -72,11 +72,9 @@ namespace Drawing_App.VM
         public ICommand LowPassFilterCommand { get; }
         public ICommand HighPassFilterCommand { get; }
         public CustomFilterVM() {
-            FilterValues = new ObservableCollection<FilterValue>();
-            for (int i = 0; i < 49; i++) // 7x7 grid
-            {
-                FilterValues.Add(new FilterValue("0")); // Default value
-            }
+            FilterValues = new ObservableCollection<FilterValue>(
+       Enumerable.Range(0, 49).Select(_ => new FilterValue(" ")) // Initialize with default values
+   );
             Brightness = 50;
             Contrast = 50;
             Saturation = 50;
@@ -127,7 +125,7 @@ namespace Drawing_App.VM
         
         public void CheckValidityOfTheFilter()
         {
-            int count = FilterValues.Count(e => e.Value != "null");
+            int count = FilterValues.Count(e => e.Value != " ");
 
             // Validate count first
             if (count != 9 && count != 25 && count != 49)
@@ -171,7 +169,7 @@ namespace Drawing_App.VM
 
             foreach (var index in relativePositions)
             {
-                if (FilterValues[index].Value != "null")
+                if (FilterValues[index].Value != " ")
                 {
                     if (int.TryParse(FilterValues[index].Value, out _))
                     {
