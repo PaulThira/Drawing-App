@@ -44,6 +44,7 @@ namespace Drawing_App.Model
         private Point lastPoint;
         private Point? secondLastPoint;
         private int ResizeDistanceThreshold = 55;
+        public bool EraserMode {  get; set; }   
         public bool corectShapes {  get; set; }
 
         // Commands to interact with the ViewModel
@@ -93,6 +94,7 @@ namespace Drawing_App.Model
             currentCount = 0;
             _mirroredLayer = new Canvas();
             _canvas.Children.Add(_mirroredLayer);
+            EraserMode=false;
 
         }
         public DrawingLayer(Canvas canvas,ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand, double opacity = 1.0, bool isVisible = true, string name = "Layer")
@@ -118,6 +120,7 @@ namespace Drawing_App.Model
             currentCount = 0;
             _mirroredLayer = new Canvas();
             _canvas.Children.Add(_mirroredLayer);
+            EraserMode=false;
 
         }
         private double _rotationAngle = 0; // Track the cumulative rotation angle
@@ -719,6 +722,7 @@ namespace Drawing_App.Model
                         StrokeThickness = thickness,
                         Fill = Brushes.Transparent,
                     };
+                    _undoStack.Push(_currentShape);
                 }
                 else if (shapeType == ShapeKind.Ellipse)
                 {
@@ -728,6 +732,7 @@ namespace Drawing_App.Model
                         StrokeThickness = thickness,
                         Fill = Brushes.Transparent
                     };
+                    _undoStack.Push(_currentShape);
                 }
                 else if (shapeType == ShapeKind.Line)
                 {
@@ -738,6 +743,7 @@ namespace Drawing_App.Model
                         X1 = startPoint.X,
                         Y1 = startPoint.Y
                     };
+                    _undoStack.Push(_currentShape);
                 }
 
                 if (_currentShape != null)
@@ -769,6 +775,7 @@ namespace Drawing_App.Model
                     Height = size, // Diameter
                     Fill = Brushes.Transparent
                 };
+                _undoStack.Push(_currentShape);
             }
             else if (shapeType == ShapeKind.Square)
             {
@@ -780,6 +787,7 @@ namespace Drawing_App.Model
                     Height = size, // Side length
                     Fill = Brushes.Transparent
                 };
+                _undoStack.Push(_currentShape);
             }
             else if (shapeType == ShapeKind.Heart)
             {
@@ -814,6 +822,7 @@ namespace Drawing_App.Model
                 };
 
                 _canvas.Children.Add(_currentShape);
+                _undoStack.Push(_currentShape);
             }
             else if (shapeType == ShapeKind.Triangle)
             {
@@ -835,6 +844,7 @@ namespace Drawing_App.Model
 
                 // Add the triangle to the canvas
                 _canvas.Children.Add(_currentShape);
+                _undoStack.Push(_currentShape);
             }
 
             if (_currentShape != null && shapeType != ShapeKind.Heart&& shapeType != ShapeKind.Triangle)
@@ -842,6 +852,7 @@ namespace Drawing_App.Model
                 Canvas.SetLeft(_currentShape, startPoint.X - size / 2);
                 Canvas.SetTop(_currentShape, startPoint.Y - size / 2);
                 _canvas.Children.Add(_currentShape);
+                _undoStack.Push(_currentShape);
             }
             if (_currentShape != null)
             {
@@ -849,7 +860,31 @@ namespace Drawing_App.Model
             }
 
         }
+        public void ApplyEraseMode(Point erasePoint)
+        {
+            // Iterate through all the children of the canvas
+            foreach (var child in _canvas.Children)
+            {
+                if (child is Shape shape)
+                {
+                    // Get the center of the shape
+                    Point shapeCenter = GetShapeCenter(shape);
 
+                    // Calculate the Euclidean distance between the erase point and the shape center
+                    double distance = GetEuclideanDistance(erasePoint, shapeCenter);
+
+                    // If the shape is within the erase radius, erase it
+                    if (distance <= 50)
+                    {
+                        shape.Stroke = _currentBrush;
+                        shape.Fill = _currentBrush;
+                    }
+                }
+            }
+        }
+
+        // Helper method to calculate the Euclidean distance between two points
+        
         public void EndShape(Point endPoint)
         {
             if (_currentShape == null) return;
@@ -919,7 +954,12 @@ namespace Drawing_App.Model
             };
 
             _canvas.Children.Add(_currentPolyline);
+            _undoStack.Push(_currentPolyline);
             currentCount++;
+            if(EraserMode == true)
+            {
+                ApplyEraseMode(startPoint);
+            }
 
             if (enableSymmetry)
             {
@@ -934,6 +974,7 @@ namespace Drawing_App.Model
                     Points = new PointCollection { GetMirroredPoint(startPoint) }
                 };
                 _mirroredLayer.Children.Add(_mirroredPolyline);
+                _undoStack.Push(_mirroredPolyline);
             }
         }
 
@@ -953,7 +994,10 @@ namespace Drawing_App.Model
         {
             _currentPolyline?.Points.Add(currentPoint);
 
-
+            if (EraserMode == true)
+            {
+                ApplyEraseMode(currentPoint);
+            }
             if (enableSymmetry && _mirroredPolyline != null)
             {
                 Point mirroredPoint = GetMirroredPoint(currentPoint);
@@ -967,6 +1011,10 @@ namespace Drawing_App.Model
             {
                 _mirroredPolyline = null;
 
+            }
+            if (EraserMode == true)
+            {
+                ApplyEraseMode(_currentPolyline.Points.Last());
             }
             var points = _currentPolyline.Points;
             if (corectShapes)

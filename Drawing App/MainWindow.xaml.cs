@@ -43,7 +43,7 @@ namespace Drawing_App
             OpacitySlider.ValueChanged += OpacitySlider_ValueChanged;
             
         }
-
+       
         private void Ellipse_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Ellipse clickedEllipse = sender as Ellipse;

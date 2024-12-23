@@ -678,7 +678,13 @@ namespace Drawing_App.Model
             var result=basicOperations.Negative(Bgr);
 
             ProcessedImage p = new ProcessedImage(ConvertToBitmapSource(result));
-            p.Show();
+            p.ShowDialog();
+            if (p.DialogResult == true)
+            {
+                _image.Source = p.Image;
+                Bgr = ConvertImageToEmguImage(_image);
+            }
+
         }
         public static BitmapSource ConvertToBitmapSource(Image<Bgr, byte> bgrImage)
         {

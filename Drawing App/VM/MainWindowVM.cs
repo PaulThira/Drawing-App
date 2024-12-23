@@ -4,6 +4,7 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using ImageMagick;
 using Microsoft.Win32;
+using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -3210,6 +3211,7 @@ namespace Drawing_App.VM
                 _currentBrush = _brushes[k].GetDrawingBrush();
                 if (SelectedLayer is DrawingLayer d) { 
                     d.SetBrush(_currentBrush,12);
+                    d.EraserMode=false;
                 }
                 selectedCustomBrushIndex = k;
             }
@@ -3582,6 +3584,10 @@ namespace Drawing_App.VM
             UpdateBrush();
             basicBrushIndex = 0;
             _usedColors.Add(CurrentColor);
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode = false;
+            }
         }
         private void UpdateCanvas()
         {
@@ -3840,6 +3846,10 @@ namespace Drawing_App.VM
             UpdateBrush();
             _usedColors.Add(CurrentColor);
             basicBrushIndex = 1;
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode = false;
+            }
         }
         private void MarkerCall()
         {
@@ -3877,6 +3887,10 @@ namespace Drawing_App.VM
             UpdateBrush();
             _usedColors.Add(CurrentColor);
             basicBrushIndex = 2;
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode = false;
+            }
 
         }
         private void PenCall()
@@ -3904,6 +3918,10 @@ namespace Drawing_App.VM
             UpdateBrush();
             _usedColors.Add(_currentColor);
             basicBrushIndex = 3;
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode = false;
+            }
         }
         private void PenTextureCall()
         {
@@ -3935,6 +3953,10 @@ namespace Drawing_App.VM
             UpdateBrush();
             basicBrushIndex = 4;
 
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode = false;
+            }
             // Add the current color to used colors (for tracking or display purposes)
             _usedColors.Add(_currentColor);
         }
@@ -3995,7 +4017,10 @@ namespace Drawing_App.VM
             basicBrushIndex = 5;
             // Add the current color to the used color set
             _usedColors.Add(CurrentColor);
-
+            if (SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode = false;
+            }
             // Run only the heavy 'for' loop in a background task
 
         }
@@ -4344,23 +4369,38 @@ namespace Drawing_App.VM
         {
             var ellipseGeometry = new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.5);
 
-            // Define the brush and pen for the geometry
-            var fillBrush = new SolidColorBrush(Colors.White);
+            // Create a transparent fill brush for the eraser
+            var fillBrush = new SolidColorBrush(Colors.White); // Erase with white (or replace with transparent if supported)
+
+            // Create a pen for the outline (optional)
             var outlinePen = new Pen(new SolidColorBrush(Colors.White), 0.05);
 
-            // Create the GeometryDrawing using the fill brush, outline pen, and geometry
+            // Define the GeometryDrawing using the fill brush, outline pen, and geometry
             var geometryDrawing = new GeometryDrawing(fillBrush, outlinePen, ellipseGeometry);
 
-            // Create the DrawingBrush with the GeometryDrawing
+            // Create a DrawingBrush for the eraser
             var drawingBrush = new DrawingBrush(geometryDrawing)
             {
                 TileMode = TileMode.Tile, // Repeat the drawing in both directions
                 Viewport = new Rect(0, 0, 1, 1), // Define the size of one tile
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Size relative to the area being filled
             };
+
+            // Assign the DrawingBrush to the current brush
             _currentBrush = drawingBrush;
+            if(SelectedLayer is DrawingLayer d)
+            {
+                d.EraserMode= true;
+            }
             UpdateBrush();
+            // Set the brush to transparent (acts as an eraser)
+           
         }
+
+       
+
+
+
 
         private void SaveCall(ItemsControl itemsControl)
         {
