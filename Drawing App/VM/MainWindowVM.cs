@@ -3213,7 +3213,9 @@ namespace Drawing_App.VM
                     d.SetBrush(_currentBrush,12);
                     d.EraserMode=false;
                 }
+                
                 selectedCustomBrushIndex = k;
+                basicBrushIndex = -1;
             }
 
         }
@@ -3364,6 +3366,10 @@ namespace Drawing_App.VM
                 if (basicBrushIndex == 5)
                 {
                     PencilCall();
+                }
+                if (basicBrushIndex == -1) { 
+                    _currentBrush=_brushes[selectedCustomBrushIndex].GetDrawingBrush(CurrentColor.B,CurrentColor.G,CurrentColor.R);
+                    UpdateBrush();
                 }
                 UpdateColor(1);
                 MessageBox.Show($"You clicked on color at index: {selectedIndex} ");

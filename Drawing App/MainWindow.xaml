@@ -388,7 +388,7 @@ ToolTip="Adjust Layer Opacity" Background="#444" Orientation="Vertical" Horizont
 
                     <!-- Scrollable Layers -->
                     <ScrollViewer VerticalScrollBarVisibility="Visible" 
-                 HorizontalScrollBarVisibility="Disabled">
+                 HorizontalScrollBarVisibility="Visible">
                         <ItemsControl ItemsSource="{Binding Layers}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
