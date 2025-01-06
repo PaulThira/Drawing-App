@@ -65,6 +65,7 @@ namespace Drawing_App.Model
         public MirrorAxis _currentSymetryMode {  get; set; }
 
         private Canvas _mirroredLayer;
+        public bool RepairMirrorMode { get; set; }
 
         public DrawingLayer(ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand ,double opacity = 1.0, bool isVisible = true, string name="Layer")
             : base(opacity, isVisible, name)
@@ -95,6 +96,7 @@ namespace Drawing_App.Model
             _mirroredLayer = new Canvas();
             _canvas.Children.Add(_mirroredLayer);
             EraserMode=false;
+            RepairMirrorMode = false;
 
         }
         public DrawingLayer(Canvas canvas,ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand, double opacity = 1.0, bool isVisible = true, string name = "Layer")
@@ -121,6 +123,7 @@ namespace Drawing_App.Model
             _mirroredLayer = new Canvas();
             _canvas.Children.Add(_mirroredLayer);
             EraserMode=false;
+            RepairMirrorMode = false;
 
         }
         private double _rotationAngle = 0; // Track the cumulative rotation angle
@@ -975,6 +978,7 @@ namespace Drawing_App.Model
                 };
                 _mirroredLayer.Children.Add(_mirroredPolyline);
                 _undoStack.Push(_mirroredPolyline);
+          
             }
         }
 
@@ -1016,35 +1020,38 @@ namespace Drawing_App.Model
             {
                 ApplyEraseMode(_currentPolyline.Points.Last());
             }
-            var points = _currentPolyline.Points;
-            if (corectShapes)
-            {
-                if (_detector.IsRectangle(points))
+            if (_currentPolyline != null) {
+                var points = _currentPolyline.Points;
+                if (corectShapes)
                 {
-                    // Replace the polyline with a rectangle
-                    var startPoint = points.First();
-                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                    StartShape(startPoint, ShapeKind.Rectangle);
-                    EndShape(furthestPoint);
-                    _canvas.Children.Remove(_currentPolyline);
-                }
+                    if (_detector.IsRectangle(points))
+                    {
+                        // Replace the polyline with a rectangle
+                        var startPoint = points.First();
+                        var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                        StartShape(startPoint, ShapeKind.Rectangle);
+                        EndShape(furthestPoint);
+                        _canvas.Children.Remove(_currentPolyline);
+                    }
 
-                else if (_detector.IsEllipse(points))
-                {
-                    // Replace the polyline with an ellipse
-                    var startPoint = points.First();
-                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                    StartShape(startPoint, ShapeKind.Ellipse);
-                    EndShape(furthestPoint);
-                    _canvas.Children.Remove(_currentPolyline);
-                }
-                else if (_detector.IsEquilateralTriangle(points))
-                {
-                    // Replace the polyline with a triangle
-                    DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
-                    _canvas.Children.Remove(_currentPolyline);
+                    else if (_detector.IsEllipse(points))
+                    {
+                        // Replace the polyline with an ellipse
+                        var startPoint = points.First();
+                        var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                        StartShape(startPoint, ShapeKind.Ellipse);
+                        EndShape(furthestPoint);
+                        _canvas.Children.Remove(_currentPolyline);
+                    }
+                    else if (_detector.IsEquilateralTriangle(points))
+                    {
+                        // Replace the polyline with a triangle
+                        DrawShape(points.First(), ShapeKind.Triangle, _detector.radius);
+                        _canvas.Children.Remove(_currentPolyline);
+                    }
                 }
             }
+            
             // Detect shapes using the ShapeDetector
 
 

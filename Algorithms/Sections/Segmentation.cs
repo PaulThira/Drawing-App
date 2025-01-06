@@ -124,7 +124,8 @@ namespace Algorithms.Sections
                 {
                     result.Data[p.Y, p.X, 0] = label; // Note: swapped coordinates
                 }
-                label = (byte)((label + 1) % 255);
+                label = (byte)(label + 1);
+                if (label == 255) label = 1; // Avoid using the watershed label (255)
             }
 
             // Assign watershed lines

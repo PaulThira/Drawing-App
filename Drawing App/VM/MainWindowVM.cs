@@ -228,6 +228,7 @@ namespace Drawing_App.VM
             get => _selectedIndex;
             set => SetProperty(ref _selectedIndex, value);
         }
+        public bool RepairMirrorMode {  get; set; } 
         public ICommand ApplyFilterCommand { get; }
         public MainWindowVM()
 
@@ -3314,19 +3315,35 @@ namespace Drawing_App.VM
             if (type == "1")
             {
                 axis = MirrorAxis.Horizontal;
+                if(SelectedLayer is DrawingLayer d)
+                {
+                    d.RepairMirrorMode=true;
+                }
             }
             else if (type == "2")
             {
                 axis = MirrorAxis.Vertical;
+                if (SelectedLayer is DrawingLayer d)
+                {
+                    d.RepairMirrorMode = true;
+                }
             }
             else if (type == "3") { 
                 axis = MirrorAxis.Both;
+                if (SelectedLayer is DrawingLayer d)
+                {
+                    d.RepairMirrorMode = true;
+                }
             }
             
             else
             {
                 axis = MirrorAxis.None;
                 MirrorModeEnabled = false;
+                if (SelectedLayer is DrawingLayer d)
+                {
+                    d.RepairMirrorMode = false;
+                }
             }
         }
       
@@ -3371,7 +3388,7 @@ namespace Drawing_App.VM
                     _currentBrush=_brushes[selectedCustomBrushIndex].GetDrawingBrush(CurrentColor.B,CurrentColor.G,CurrentColor.R);
                     UpdateBrush();
                 }
-                UpdateColor(1);
+             
                 MessageBox.Show($"You clicked on color at index: {selectedIndex} ");
             }
         }

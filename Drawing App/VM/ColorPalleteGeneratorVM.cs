@@ -82,6 +82,7 @@ namespace Drawing_App.VM
         public ICommand AddColorCommand { get; }
         public ICommand ColorSchemeCommand { get; }
         public ICommand ColorGradientCommand { get; }
+        public ICommand DeleteColorCommand { get; }
         public ColorPalleteGeneratorVM() {
             ColorGradientCommand=new DelegateCommand(ColorGradient);
             ColorSchemeCommand = new DelegateCommand<string?>(ColorScheme);
@@ -91,12 +92,21 @@ namespace Drawing_App.VM
             SelectedColor = new SolidColorBrush(Colors.Cyan);
             AddColorCommand = new DelegateCommand(AddColor);
             SelectedPalette = new ObservableCollection<CustomPallete>();
+            DeleteColorCommand=new DelegateCommand(DeleteColor);    
             
             h = "0";
             s = "0";
             v = "0";
             // Generate color wheel on initialization
             GenerateColorWheel();
+        }
+        private void DeleteColor()
+        {
+            if (SelectedPalette.Count > 0)
+            {
+                SelectedPalette.RemoveAt(SelectedPalette.Count-1);
+
+            }
         }
         private void ColorGradient()
         {

@@ -15,7 +15,6 @@ namespace Algorithms.Sections
         {
             var width = image.Width;
             var height = image.Height;
-
             // Define the corners of the original image
             float[,] corners =
             {
@@ -45,8 +44,9 @@ namespace Algorithms.Sections
             int newHeight = (int)Math.Ceiling(yMax - yMin);
 
             // Calculate the translation to center the transformed image
-            float xTranslation = (newWidth - width) / 2.0f - xMin;
-            float yTranslation = (newHeight - height) / 2.0f - yMin;
+            // Fixed centering calculation
+            float xTranslation = -xMin;
+            float yTranslation = -yMin;
 
             // Create a new matrix with centering translation
             float[,] centeredMatrix = (float[,])matrix.Clone();
@@ -55,9 +55,11 @@ namespace Algorithms.Sections
 
             // Create the output image with a white background
             var outputImage = new Image<Bgr, byte>(newWidth, newHeight);
-            outputImage.SetValue(new Bgr(255, 255, 255)); // Set background to white
+            outputImage.SetValue(new Bgr(255, 255, 255));
 
             // Perform the transformation with inverse mapping
+            float det = centeredMatrix[0, 0] * centeredMatrix[1, 1] - centeredMatrix[0, 1] * centeredMatrix[1, 0];
+
             for (int y = 0; y < outputImage.Height; y++)
             {
                 for (int x = 0; x < outputImage.Width; x++)
@@ -65,12 +67,11 @@ namespace Algorithms.Sections
                     // Compute source coordinates using matrix inverse
                     float sourceX = (x * centeredMatrix[1, 1] - y * centeredMatrix[0, 1] +
                                     centeredMatrix[0, 1] * centeredMatrix[1, 2] -
-                                    centeredMatrix[1, 1] * centeredMatrix[0, 2]) /
-                                    (centeredMatrix[0, 0] * centeredMatrix[1, 1] -
-                                     centeredMatrix[0, 1] * centeredMatrix[1, 0]);
+                                    centeredMatrix[1, 1] * centeredMatrix[0, 2]) / det;
 
-                    float sourceY = (y - centeredMatrix[1, 0] * sourceX - centeredMatrix[1, 2]) /
-                                    centeredMatrix[1, 1];
+                    float sourceY = (-x * centeredMatrix[1, 0] + y * centeredMatrix[0, 0] -
+                                    centeredMatrix[0, 0] * centeredMatrix[1, 2] +
+                                    centeredMatrix[1, 0] * centeredMatrix[0, 2]) / det;
 
                     // Check if source coordinates are within image bounds
                     if (sourceX >= 0 && sourceX < width &&
