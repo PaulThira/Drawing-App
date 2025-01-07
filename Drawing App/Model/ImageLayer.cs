@@ -793,7 +793,7 @@ namespace Drawing_App.Model
 
             // Display the zoomed view
             var zoomWindow = new ProcessedImage(zoomedBitmap);
-            zoomWindow.Show();
+            zoomWindow.ShowDialog();
 
             // Display the zoomed view
 

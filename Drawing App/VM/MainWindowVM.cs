@@ -3317,7 +3317,9 @@ namespace Drawing_App.VM
                 axis = MirrorAxis.Horizontal;
                 if(SelectedLayer is DrawingLayer d)
                 {
+                    d._previousSymmetryState=d.RepairMirrorMode;
                     d.RepairMirrorMode=true;
+                  
                 }
             }
             else if (type == "2")
@@ -3325,14 +3327,18 @@ namespace Drawing_App.VM
                 axis = MirrorAxis.Vertical;
                 if (SelectedLayer is DrawingLayer d)
                 {
+                    d._previousSymmetryState = d.RepairMirrorMode;
                     d.RepairMirrorMode = true;
+                   
+                   
                 }
             }
             else if (type == "3") { 
                 axis = MirrorAxis.Both;
                 if (SelectedLayer is DrawingLayer d)
-                {
+                {d._previousSymmetryState = d.RepairMirrorMode;
                     d.RepairMirrorMode = true;
+                  
                 }
             }
             
@@ -3342,6 +3348,7 @@ namespace Drawing_App.VM
                 MirrorModeEnabled = false;
                 if (SelectedLayer is DrawingLayer d)
                 {
+                    d._previousSymmetryState = d.RepairMirrorMode;
                     d.RepairMirrorMode = false;
                 }
             }
@@ -3837,7 +3844,7 @@ namespace Drawing_App.VM
         }
         private void Mechanical()
         {
-            var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1)); // Rectangular geometry for consistent stroke
+            var rectGeometry = new RectangleGeometry(new Rect(0, 0, 1, 1)); // Keep the original size for consistent stroke
 
             // Create a linear gradient for a consistent but slightly textured look
             var linearGradientBrush = new LinearGradientBrush
@@ -3845,12 +3852,12 @@ namespace Drawing_App.VM
                 StartPoint = new Point(0, 0),
                 EndPoint = new Point(1, 1),
                 GradientStops = new GradientStopCollection
-    {
-        // Solid mechanical pencil-like color with subtle texture
-        new GradientStop(CurrentColor, 0.0),
-        new GradientStop(Color.FromArgb(230, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.5), // Slightly lighter in the middle
-        new GradientStop(CurrentColor, 1.0)
-    }
+        {
+            // Reduce opacity by lowering alpha values
+            new GradientStop(Color.FromArgb(150, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.0), // Starting color with reduced opacity
+            new GradientStop(Color.FromArgb(100, CurrentColor.R, CurrentColor.G, CurrentColor.B), 0.5), // Lighter and more transparent in the middle
+            new GradientStop(Color.FromArgb(150, CurrentColor.R, CurrentColor.G, CurrentColor.B), 1.0) // Ending color with reduced opacity
+        }
             };
 
             // Create the GeometryDrawing using the linear gradient brush and rectangle geometry
@@ -3860,20 +3867,24 @@ namespace Drawing_App.VM
             var drawingBrush = new DrawingBrush(geometryDrawing)
             {
                 TileMode = TileMode.None, // No tiling for a smooth, mechanical pencil stroke
-                Viewport = new Rect(0, 0, 1, 1), // Fill the entire area
+                Viewport = new Rect(0, 0, 1, 1), // Fill the entire area (no size change)
                 ViewportUnits = BrushMappingMode.RelativeToBoundingBox // Relative scaling of the brush
             };
+
             drawingBrushes.Push(drawingBrush);
+
             // Set the current brush to the mechanical pencil effect brush
             _currentBrush = drawingBrush;
             UpdateBrush();
             _usedColors.Add(CurrentColor);
             basicBrushIndex = 1;
+
             if (SelectedLayer is DrawingLayer d)
             {
                 d.EraserMode = false;
             }
         }
+
         private void MarkerCall()
         {
             var ellipseGeometry = new EllipseGeometry(new Point(0.5, 0.5), 0.5, 0.3); // Elliptical shape for a brush marker tip

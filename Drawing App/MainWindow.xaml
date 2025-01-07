@@ -207,9 +207,9 @@
                             </Style>
                         </MenuItem.ItemContainerStyle>
                     </MenuItem>
-                    <MenuItem Header="Brushes 🖌️" FontSize="15" Background="#3E3E3E" Foreground="Gray" Height="21" >
-                        <MenuItem Header="Pen" Command="{Binding PencilCommand}"/>
-                        <MenuItem Header="Pencil" Command="{Binding PenCommand}"/>
+                    <MenuItem Header="Brushes 🖌️" FontSize="15"  Foreground="Gray" Height="21" >
+                        <MenuItem Header="Pencil" Command="{Binding PencilCommand}"/>
+                        <MenuItem Header="Pen" Command="{Binding PenCommand}"/>
                         <MenuItem Header="Marker" Command="{Binding MarkerCommand}"/>
                         <MenuItem Header="Mechanical Pencil" Command="{Binding MechanicalCommand}"/>
                         <MenuItem Header="Gouche" Command="{Binding GoucheCommand}"/>
