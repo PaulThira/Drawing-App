@@ -69,7 +69,7 @@ namespace Drawing_App.VM
         private Brush _color8;
         private Brush harmony;
         private Polyline _currentPolyline;
-        public Stack<Point> Points = new Stack<Point>();
+        public List<Point> Points = new List<Point>();
         public Stack<Point> MirroredPoints = new Stack<Point>();
         public Stack<DrawingBrush> drawingBrushes;
         private bool lasso {  get; set; }
@@ -3712,24 +3712,24 @@ namespace Drawing_App.VM
         }
         public void SetShapeType(ShapeKind? shapeType)
         {
-            if (shapeType.HasValue) { 
+            if (shapeType.HasValue && SelectedLayer is DrawingLayer d) { 
                 _selectedShapeType= shapeType.Value;
                 if (Points.Count >= 2)
                 {
-                    Point? p1 = Points.Pop();
-                    Point? p2 = Points.Pop();
+                    Point? p1 = Points[0];
+                    Point? p2 = Points.Last();
                     if (_selectedShapeType == ShapeKind.Heart||_selectedShapeType==ShapeKind.Triangle)
                     {
-                        DrawShape((p2, _selectedShapeType));
+                        d.DrawShape(p2.Value, _selectedShapeType);
                     }
                     else if (_selectedShapeType == ShapeKind.Square || _selectedShapeType == ShapeKind.Circle)
                     {
-                        DrawShape((p2, _selectedShapeType));
+                        d.DrawShape(p2.Value, _selectedShapeType);
                     }
                     else
                     {
-                        StartShape((p1, _selectedShapeType));
-                        EndShape(p2);
+                        d.StartShape(p1.Value, _selectedShapeType);
+                        d.EndShape(p2.Value);
                     }
                 }
                 
@@ -4068,7 +4068,7 @@ namespace Drawing_App.VM
                 if (startPoint != null)
                 {
                     MirroredPoints.Clear();
-                    Points.Push(startPoint.Value);
+                    Points.Add(startPoint.Value);
                     var m = GetMirroredPoint(startPoint.Value);
                     MirroredPoints.Push(m);
 
@@ -4147,7 +4147,7 @@ namespace Drawing_App.VM
                 Points.Clear();
 
                 // Initialize the selection boundary with the starting point
-                Points.Push(startPoint.Value);
+                Points.Add(startPoint.Value);
                
 
                 // Optionally, render the starting point visually
@@ -4161,7 +4161,7 @@ namespace Drawing_App.VM
             if (SelectedLayer is DrawingLayer drawingLayer && currentPoint != null)
             {
                 drawingLayer.ContinueStroke(currentPoint.Value);
-                Points.Push(currentPoint.Value);    
+                Points.Add(currentPoint.Value);    
                 var m = GetMirroredPoint(currentPoint.Value);
                 MirroredPoints.Push(m);
             }
@@ -4170,7 +4170,7 @@ namespace Drawing_App.VM
                     return;
 
                 // Add the current point to the selection boundary
-                Points.Push(currentPoint.Value);
+                Points.Add(currentPoint.Value);
 
                 // Update the rendered boundary
                 RenderSelectionBoundary(imageLayer);
@@ -4234,7 +4234,7 @@ namespace Drawing_App.VM
                     return; // Ensure we have enough points to form a closed boundary
 
                 // Close the boundary by connecting the last point to the first
-                Points.Push(Points.First());
+                Points.Add(Points.First());
 
                 // Apply the selection boundary (e.g., for cropping or masking)
                 ApplySelectionBoundary(imageLayer);

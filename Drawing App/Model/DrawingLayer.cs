@@ -46,6 +46,7 @@ namespace Drawing_App.Model
         private int ResizeDistanceThreshold = 55;
         public bool EraserMode {  get; set; }   
         public bool corectShapes {  get; set; }
+        public List<Point> Points { get; set; }
 
         // Commands to interact with the ViewModel
         public ICommand StartStrokeCommand { get; }
@@ -97,6 +98,7 @@ namespace Drawing_App.Model
             _canvas.Children.Add(_mirroredLayer);
             EraserMode=false;
             RepairMirrorMode = false;
+            Points = new List<Point>();
 
         }
         public DrawingLayer(Canvas canvas,ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand, double opacity = 1.0, bool isVisible = true, string name = "Layer")
@@ -124,6 +126,7 @@ namespace Drawing_App.Model
             _canvas.Children.Add(_mirroredLayer);
             EraserMode=false;
             RepairMirrorMode = false;
+            Points = new List<Point>();
 
         }
         private double _rotationAngle = 0; // Track the cumulative rotation angle
@@ -134,7 +137,7 @@ namespace Drawing_App.Model
             if (_selectedShape == null) return;
 
             // Determine the rotation angle increment based on scroll direction
-            double rotationIncrement = 5; // Degrees per scroll tick (adjust as desired)
+            double rotationIncrement = 1; // Degrees per scroll tick (adjust as desired)
             _rotationAngle += e.Delta > 0 ? rotationIncrement : -rotationIncrement;
 
             // Determine the center of rotation
@@ -144,13 +147,35 @@ namespace Drawing_App.Model
                 // For polygons, calculate the centroid
                 rotationCenter = GetPolygonCentroid(polygon);
             }
+            else if (_selectedShape is Line line)
+            {
+                // For lines, calculate the midpoint
+                rotationCenter = new Point(
+                    (line.X1 + line.X2) / 2,
+                    (line.Y1 + line.Y2) / 2
+                );
+
+                // Rotate the endpoints of the line
+                Point rotatedStart = RotatePoint(new Point(line.X1, line.Y1), rotationCenter, _rotationAngle);
+                Point rotatedEnd = RotatePoint(new Point(line.X2, line.Y2), rotationCenter, _rotationAngle);
+
+                line.X1 = rotatedStart.X;
+                line.Y1 = rotatedStart.Y;
+                line.X2 = rotatedEnd.X;
+                line.Y2 = rotatedEnd.Y;
+
+                // Update the bounding box for the line
+                UpdateBoundingBox(_selectedShape);
+
+                return; // No need for further transformations for lines
+            }
             else
             {
                 // For other shapes, use their center point
                 rotationCenter = new Point(_selectedShape.Width / 2, _selectedShape.Height / 2);
             }
 
-            // Apply the rotation transformation
+            // Apply the rotation transformation for other shapes
             RotateTransform rotateTransform = new RotateTransform(_rotationAngle, rotationCenter.X, rotationCenter.Y);
 
             if (_selectedShape.RenderTransform is TransformGroup transformGroup)
@@ -166,12 +191,27 @@ namespace Drawing_App.Model
                 newTransformGroup.Children.Add(rotateTransform);
                 _selectedShape.RenderTransform = newTransformGroup;
             }
+
             UpdateBoundingBox(_selectedShape);
 
             // Optional: Force a visual update
             _selectedShape.InvalidateVisual();
-            
         }
+        private Point RotatePoint(Point point, Point center, double angle)
+        {
+            double radians = angle * Math.PI / 180;
+            double cosTheta = Math.Cos(radians);
+            double sinTheta = Math.Sin(radians);
+
+            double dx = point.X - center.X;
+            double dy = point.Y - center.Y;
+
+            double rotatedX = cosTheta * dx - sinTheta * dy + center.X;
+            double rotatedY = sinTheta * dx + cosTheta * dy + center.Y;
+
+            return new Point(rotatedX, rotatedY);
+        }
+
         private Point GetPolygonCentroid(Polygon polygon)
         {
             double sumX = 0, sumY = 0;
@@ -232,16 +272,33 @@ namespace Drawing_App.Model
             Point clickPoint = e.GetPosition(_canvas);
             double minDistance = double.MaxValue;
             Shape closestShape = null;
-            
+            Points.Clear();
+            Points.Add(clickPoint);
+
             // Loop through all the shapes in the canvas
             foreach (UIElement element in _canvas.Children)
             {
                 if (element is Shape shape)
                 {
-                    Point shapeCenter = GetShapeCenter(shape);
+                    double distance;
 
-                    // Calculate Euclidean distance between the clicked point and the shape's center
-                    double distance = GetEuclideanDistance(clickPoint, shapeCenter);
+                    if (shape is Line line)
+                    {
+                        // Get the closest point on the line to the clicked point
+                        Point closestPointOnLine = GetClosestPointOnLine(
+                            new Point(line.X1, line.Y1),
+                            new Point(line.X2, line.Y2),
+                            clickPoint
+                        );
+                        // Calculate distance from the clicked point to the closest point on the line
+                        distance = GetEuclideanDistance(clickPoint, closestPointOnLine);
+                    }
+                    else
+                    {
+                        // For other shapes, calculate distance to the shape's center
+                        Point shapeCenter = GetShapeCenter(shape);
+                        distance = GetEuclideanDistance(clickPoint, shapeCenter);
+                    }
 
                     // Keep track of the shape with the shortest distance
                     if (distance < minDistance)
@@ -251,38 +308,66 @@ namespace Drawing_App.Model
                     }
                 }
             }
-           
+
             // If we found a closest shape, select it
             if (closestShape != null)
             {
-                // Optionally highlight the selected shape, for example:
                 _selectedShape = closestShape;
                 _isDragging = true;
-                _boundingBox = GetBoundingBox(_selectedShape);
-                _canvas.Children.Add(_boundingBox);
-                // Get the mouse's position relative to the canvas
-                Point mousePosition = e.GetPosition(_canvas);
-                if (_selectedShape is Polygon polygon)
+
+                if (_selectedShape is Line line)
+                {
+                    // Store the offset relative to the closest point on the line
+                    Point closestPointOnLine = GetClosestPointOnLine(
+                        new Point(line.X1, line.Y1),
+                        new Point(line.X2, line.Y2),
+                        clickPoint
+                    );
+                    _offsetX = clickPoint.X - closestPointOnLine.X;
+                    _offsetY = clickPoint.Y - closestPointOnLine.Y;
+                }
+                else if (_selectedShape is Polygon polygon)
                 {
                     // Store the original points of the polygon before dragging
                     _originalPolygonPoints = polygon.Points.ToList();
-                    Point mousePos = e.GetPosition(_canvas);
-                    _offsetX = mousePos.X;
-                    _offsetY = mousePos.Y;
+                    _offsetX = clickPoint.X;
+                    _offsetY = clickPoint.Y;
                 }
                 else
                 {
-                    _offsetX = mousePosition.X - Canvas.GetLeft(_selectedShape);
-                    _offsetY = mousePosition.Y - Canvas.GetTop(_selectedShape);
+                    // Calculate the offset for other shapes
+                    _offsetX = clickPoint.X - Canvas.GetLeft(_selectedShape);
+                    _offsetY = clickPoint.Y - Canvas.GetTop(_selectedShape);
                 }
-                // Calculate the offset between the mouse and the shape's position
-                
-               
+
+                // Create a bounding box around the selected shape (if needed)
+                _boundingBox = GetBoundingBox(_selectedShape);
+                _canvas.Children.Add(_boundingBox);
+
                 // Capture the mouse to track movements even if it leaves the shape's bounds
                 _canvas.CaptureMouse();
             }
-
         }
+        private Point GetClosestPointOnLine(Point start, Point end, Point point)
+        {
+            double dx = end.X - start.X;
+            double dy = end.Y - start.Y;
+
+            if (dx == 0 && dy == 0)
+            {
+                // The line segment is a point
+                return start;
+            }
+
+            // Calculate the projection of the point onto the line (clamped to the segment)
+            double t = ((point.X - start.X) * dx + (point.Y - start.Y) * dy) / (dx * dx + dy * dy);
+            t = Math.Max(0, Math.Min(1, t)); // Clamp t to the range [0, 1]
+
+            // Return the closest point on the line segment
+            return new Point(start.X + t * dx, start.Y + t * dy);
+        }
+
+
 
         private void StartResizing(Shape shape, Point clickPoint)
         {
@@ -347,6 +432,7 @@ namespace Drawing_App.Model
         {
             if (_isDragging)
             {
+                
                 _isDragging = false;
                 _canvas.ReleaseMouseCapture();
 
@@ -498,9 +584,10 @@ namespace Drawing_App.Model
             }
             else if (_isDragging && _selectedShape != null)
             {
+               
                 // Get the current mouse position
                 Point currentMousePosition = e.GetPosition(_canvas);
-
+                Points.Add(currentMousePosition);
                 // Calculate exact new position based on initial drag offset
                 double newX = currentMousePosition.X - _offsetX;
                 double newY = currentMousePosition.Y - _offsetY;
@@ -514,6 +601,16 @@ namespace Drawing_App.Model
                         newPoints.Add(new Point(originalPoint.X + newX, originalPoint.Y + newY));
                     }
                     polygon.Points = newPoints;
+                }
+                else if (_selectedShape is Line line&&Points.Count>=2)
+                {
+                    double deltaX = currentMousePosition.X - Points[Points.Count-2].X;
+                    double deltaY = currentMousePosition.Y - Points[Points.Count - 2].Y;
+
+                    line.X1 += deltaX;
+                    line.Y1 += deltaY;
+                    line.X2 += deltaX;
+                    line.Y2 += deltaY;
                 }
                 else
                 {
@@ -631,7 +728,7 @@ namespace Drawing_App.Model
             }
             else if (_selectedShape is Polygon polygon)
             {
-                Point center =GetShapeCenter(polygon);
+                Point center = GetShapeCenter(polygon);
 
                 // Adjust the scale factor based on direction
                 double scaleFactorX = 1.0, scaleFactorY = 1.0;
@@ -653,10 +750,42 @@ namespace Drawing_App.Model
 
                 ScalePolygon(polygon, center, scaleFactorX, scaleFactorY);
             }
+            else if (_selectedShape is Line line)
+            {
+                // Calculate the slope of the line
+                double slope = (line.Y2 - line.Y1) / (line.X2 - line.X1);
+                double dx = resizeAmount; // Increment on the X-axis
+                double dy = slope * dx;  // Increment on the Y-axis
+
+                switch (direction)
+                {
+                    case "Left":
+                        // Extend at the start point (X1, Y1)
+                        line.X1 -= dx;
+                        line.Y1 -= dy;
+                        break;
+
+                    case "Right":
+                        // Extend at the end point (X2, Y2)
+                        line.X2 += dx;
+                        line.Y2 += dy;
+                        break;
+                    case "Up": // Shrink the first point (X1, Y1)
+                        line.X1 += dx;
+                        line.Y1 += dy;
+                        break;
+
+                    case "Down": // Shrink the last point (X2, Y2)
+                        line.X2 -= dx;
+                        line.Y2 -= dy;
+                        break;
+                }
+            }
 
             // Update the bounding box to match the resized shape
             UpdateBoundingBox(_selectedShape);
         }
+
 
         private void ScalePolygon(Polygon polygon, Point center, double scaleFactorX, double scaleFactorY)
         {
