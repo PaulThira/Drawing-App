@@ -19,7 +19,7 @@ namespace Drawing_App.Model
     {
         private readonly double _tolerance;
 
-        public ShapeDetector(double tolerance = 0.1)
+        public ShapeDetector(double tolerance = 0.5)
         {
             _tolerance = tolerance;
         }

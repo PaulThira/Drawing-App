@@ -10,7 +10,7 @@
     <Window.DataContext>
         <viewmodel:CustomBrushesVM/>
     </Window.DataContext>
-    <Grid Background="#2C2C2C">
+    <Grid Background="#2C2C2C" Margin="0,0,0,-6">
         <!-- Define two columns: Left for preview, Right for controls -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*" />

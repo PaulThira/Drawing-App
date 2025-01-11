@@ -885,7 +885,6 @@ namespace Drawing_App.Model
                 }
             }
             return;
-
            
         }
         public void DrawShape(Point startPoint, ShapeKind shapeType,double radius=0)
@@ -902,7 +901,7 @@ namespace Drawing_App.Model
                 _currentShape = new Ellipse
                 {
                     Stroke = _currentBrush,
-                    StrokeThickness = 1, // You can set this differently if needed
+                    StrokeThickness = thickness, // You can set this differently if needed
                     Width = size,  // Diameter
                     Height = size, // Diameter
                     Fill = Brushes.Transparent
@@ -914,7 +913,7 @@ namespace Drawing_App.Model
                 _currentShape = new System.Windows.Shapes.Rectangle
                 {
                     Stroke = _currentBrush,
-                    StrokeThickness = 1, // You can set this differently if needed
+                    StrokeThickness = thickness, // You can set this differently if needed
                     Width = size,  // Side length
                     Height = size, // Side length
                     Fill = Brushes.Transparent
@@ -1020,24 +1019,27 @@ namespace Drawing_App.Model
         public void EndShape(Point endPoint)
         {
             if (_currentShape == null) return;
+            if (_canvas.Children[_canvas.Children.Count - 2] is Polyline p) {
+                endPoint=p.Points.Last();
+                if (_currentShape is System.Windows.Shapes.Rectangle || _currentShape is Ellipse)
+                {
+                    double width = Math.Abs(endPoint.X - _startPoint.X);
+                    double height = Math.Abs(endPoint.Y - _startPoint.Y);
 
-            if (_currentShape is System.Windows.Shapes.Rectangle || _currentShape is Ellipse)
-            {
-                double width = Math.Abs(endPoint.X - _startPoint.X);
-                double height = Math.Abs(endPoint.Y - _startPoint.Y);
+                    _currentShape.Width = width;
+                    _currentShape.Height = height;
 
-                _currentShape.Width = width;
-                _currentShape.Height = height;
-
-                Canvas.SetLeft(_currentShape, Math.Min(_startPoint.X, endPoint.X));
-                Canvas.SetTop(_currentShape, Math.Min(_startPoint.Y, endPoint.Y));
+                    Canvas.SetLeft(_currentShape, Math.Min(_startPoint.X, endPoint.X));
+                    Canvas.SetTop(_currentShape, Math.Min(_startPoint.Y, endPoint.Y));
+                }
+                else if (_currentShape is Line line)
+                {
+                    line.X2 = endPoint.X;
+                    line.Y2 = endPoint.Y;
+                }
+                ExecuteDrawingAction(_currentShape);
             }
-            else if (_currentShape is Line line)
-            {
-                line.X2 = endPoint.X;
-                line.Y2 = endPoint.Y;
-            }
-            ExecuteDrawingAction(_currentShape);
+            
 
             _currentShape = null;
         }
