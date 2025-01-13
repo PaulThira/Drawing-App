@@ -12,8 +12,8 @@
     </Window.DataContext>
     <Grid Background="#FF405068">
         <!-- Left Side: Grid of Rectangles -->
-        <Border CornerRadius="10" Background="#2e2e3e"  BorderBrush="#6e6efe" >
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" >
+        <Border Background="#2e2e3e" BorderBrush="#6e6efe">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding PixelGrid}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -22,8 +22,8 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Rectangle Width="20" Height="20" Stroke="#ffffff" StrokeThickness="1"
-                               Fill="{Binding Color}" />
+                            <Button Width="35" Height="35" 
+                               Background="{Binding Colorz}" Command="{Binding Click }" CommandParameter="{Binding DataContext.CurrentColor ,RelativeSource={RelativeSource AncestorType=Window} }"  />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -31,8 +31,9 @@
         </Border>
 
 
+
         <!-- Right Side: Control Panel -->
-        <StackPanel Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10">
+        <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="10,10,10,0" Height="389">
             <!-- Sliders for Hue, Saturation, and Value -->
             <TextBlock Text="Hue" Margin="0,5,0,0" FontSize="14" FontWeight="Bold" />
             <Slider x:Name="HueSlider" Minimum="0" Maximum="360" TickFrequency="1" IsSnapToTickEnabled="True" Background="#3e3e4e" Foreground="#6e6efe" Value="{Binding Hue,Mode=TwoWay}" />
@@ -58,7 +59,8 @@
             </StackPanel>
 
             <!-- Apply Changes Button -->
-            <Button x:Name="ApplyChangesButton" Content="Apply Changes" Margin="0,10,0,0" Width="120" HorizontalAlignment="Left" Background="#6e6efe" Foreground="White" BorderBrush="#4e4e5e" BorderThickness="0" />
+            <Button x:Name="ApplyChangesButton" Content="Apply Changes" Margin="0,10,0,0" Width="120" HorizontalAlignment="Left" Background="#6e6efe" Foreground="White" BorderBrush="#4e4e5e" BorderThickness="5" Command="{Binding ApplyChangesCommand}" />
+            <Button x:Name="ApplyChangesButton_Copy" Content="Save as picture" Width="120" Background="#6e6efe" Foreground="White" BorderBrush="#4e4e5e" BorderThickness="0" Command="{Binding SaveGridAsImageCommand}" Height="31" />
         </StackPanel>
 
         <!-- Define Grid Columns -->

@@ -1,13 +1,17 @@
 ﻿using Drawing_App.Model;
 using ImageMagick;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Drawing_App.VM
 {
@@ -25,7 +29,14 @@ namespace Drawing_App.VM
             get => _rows;
             set => SetProperty(ref _rows, value);
         }
+        private Color _currentColor;
 
+        // Property with notification support
+        public Color CurrentColor
+        {
+            get => _currentColor;
+            set => SetProperty(ref _currentColor, value); // Notify UI of changes
+        }
         public string Columns
         {
             get => _columns;
@@ -77,12 +88,113 @@ namespace Drawing_App.VM
         public int colz { get; set; } = 16;
         public ICommand ApplyChangesCommand { get; }
         public ObservableCollection<Pixelz> PixelGrid { get; set; }
+        public ICommand ChangeColorCommand { get; set; }
+        public ICommand SaveGridAsImageCommand { get;  }
         public PixelArtVM()
         {
             ApplyChangesCommand = new DelegateCommand(OnApplyChanges);
             PixelGrid = new ObservableCollection<Pixelz>();
             UpdateSelectedColor();
             GeneratePixelGrid();
+            ChangeColorCommand = new DelegateCommand<Tuple<int?, int?>>(ChangeColor);
+            SaveGridAsImageCommand = new DelegateCommand(SaveGridAsImage);
+
+        }
+        private void SaveGridAsImage()
+        {
+            int pixelWidth = colz * 10; // Width of the image (10px per cell)
+            int pixelHeight = rowz * 10; // Height of the image (10px per cell)
+            var dpi = 96;
+
+            // Create a WriteableBitmap
+            var bitmap = new WriteableBitmap(pixelWidth, pixelHeight, dpi, dpi, PixelFormats.Pbgra32, null);
+
+            // Lock the bitmap for writing
+            bitmap.Lock();
+
+            foreach (var pixel in PixelGrid)
+            {
+                if (pixel.X.HasValue && pixel.Y.HasValue)
+                {
+                    int x = pixel.X.Value * 10;
+                    int y = pixel.Y.Value * 10;
+
+                    // Get the color from the PixelGrid
+                    Color color = pixel.Colorz.Color;
+
+                    // Fill the corresponding area with the color
+                    for (int i = 0; i < 10; i++) // Cell size 10x10
+                    {
+                        for (int j = 0; j < 10; j++)
+                        {
+                            int pixelX = x + i;
+                            int pixelY = y + j;
+
+                            if (pixelX < pixelWidth && pixelY < pixelHeight)
+                            {
+                                // Calculate pixel address
+                                IntPtr pBackBuffer = bitmap.BackBuffer + pixelY * bitmap.BackBufferStride + pixelX * 4;
+
+                                // Set pixel color
+                                int colorData = (color.A << 24) | (color.R << 16) | (color.G << 8) | color.B;
+                                System.Runtime.InteropServices.Marshal.WriteInt32(pBackBuffer, colorData);
+                            }
+                        }
+                    }
+                }
+            }
+
+            bitmap.AddDirtyRect(new System.Windows.Int32Rect(0, 0, pixelWidth, pixelHeight));
+            bitmap.Unlock();
+
+            // Save the bitmap
+            SaveBitmapToFile(bitmap);
+        }
+
+        private void SaveBitmapToFile(WriteableBitmap bitmap)
+        {
+            // Open Save File Dialog
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp",
+                Title = "Save PixelGrid as Image",
+                FileName = "PixelGrid"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                string filePath = saveFileDialog.FileName;
+
+                // Choose encoder based on file extension
+                BitmapEncoder encoder = null;
+                if (filePath.EndsWith(".png"))
+                    encoder = new PngBitmapEncoder();
+                else if (filePath.EndsWith(".jpg"))
+                    encoder = new JpegBitmapEncoder();
+                else if (filePath.EndsWith(".bmp"))
+                    encoder = new BmpBitmapEncoder();
+
+                if (encoder != null)
+                {
+                    // Encode the WriteableBitmap
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        encoder.Save(fileStream);
+                    }
+
+                    MessageBox.Show("Image saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Unsupported file format.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        private void ChangeColor(Tuple<int?,int?> pos)
+        {
+            PixelGrid[pos.Item1.Value * rowz + pos.Item2.Value].Colorz = new SolidColorBrush(CurrentColor);
         }
         private void GeneratePixelGrid()
         {
@@ -94,15 +206,53 @@ namespace Drawing_App.VM
             {
                 for (int col = 0; col < c; col++)
                 {
-                    PixelGrid.Add(new Pixelz { X = row, Y = col, Colorz = new SolidColorBrush(Colors.White) });
+                    PixelGrid.Add(new Pixelz { X = row, Y = col, Colorz = new SolidColorBrush(CurrentColor) });
+
                 }
             }
         }
+
         private void OnApplyChanges()
         {
-            // Handle logic for applying changes to the grid dimensions
-            // This could involve notifying the view to redraw the grid
+            rowz = int.Parse(Rows); // Convert Rows to integer
+            colz = int.Parse(Columns); // Convert Columns to integer
+
+            // Create a copy of the current PixelGrid as a list
+            List<Pixelz> pixels = PixelGrid.ToList();
+
+            // Clear the existing PixelGrid
+            PixelGrid.Clear();
+
+            // Populate the new grid
+            for (int row = 0; row < rowz; row++)
+            {
+                for (int col = 0; col < colz; col++)
+                {
+                    int index = row * colz + col; // Calculate the index in the original list
+                    if (index < pixels.Count)
+                    {
+                        // Use the existing pixel's color
+                        PixelGrid.Add(new Pixelz
+                        {
+                            X = row,
+                            Y = col,
+                            Colorz = new SolidColorBrush(pixels[index].Colorz.Color)
+                        });
+                    }
+                    else
+                    {
+                        // Use the default CurrentColor for new pixels
+                        PixelGrid.Add(new Pixelz
+                        {
+                            X = row,
+                            Y = col,
+                            Colorz = new SolidColorBrush(CurrentColor)
+                        });
+                    }
+                }
+            }
         }
+
 
         private void UpdateSelectedColor()
         {
@@ -110,6 +260,7 @@ namespace Drawing_App.VM
             var sat=double.Parse(Saturation);
             var val=double.Parse(Value);
             SelectedColor = new SolidColorBrush(ColorFromHSV(h, sat, val));
+            CurrentColor=ColorFromHSV(h, sat, val);
         }
 
         private Color ColorFromHSV(double hue, double saturation, double value)
