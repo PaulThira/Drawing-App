@@ -2,7 +2,10 @@
 using Drawing_App.View;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using FFMpegCore;
 using ImageMagick;
+using ImageMagick.Drawing;
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using SkiaSharp;
 using System.Collections.ObjectModel;
@@ -17,13 +20,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Xabe.FFmpeg;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using ColorPoint = Drawing_App.Model.ColorPoint;
 using Pen = System.Windows.Media.Pen;
 using Point = System.Windows.Point;
-
+using FFMpegCore;
 
 // Ensure this matches your intended type
 
@@ -230,9 +234,19 @@ namespace Drawing_App.VM
         }
         public bool RepairMirrorMode {  get; set; } 
         public ICommand ApplyFilterCommand { get; }
+        public DelegateCommand<string> AnimationTypeCommand { get; }
+        private string _selectedAnimationType;
+        public string SelectedAnimationType
+        {
+            get => _selectedAnimationType;
+            set => SetProperty(ref _selectedAnimationType, value);
+        }
+        public ICommand PixelToolCommand { get; }
         public MainWindowVM()
 
         {
+            PixelToolCommand = new DelegateCommand(PixelTool);
+            AnimationTypeCommand = new DelegateCommand<string>(ExecuteAnimationTypeCommand);
             ApplyFilterCommand = new DelegateCommand<int?>(ApplyFilter);
             CustomFiltersList = new ObservableCollection<Model.CustomFilter>();
             CustomFiltersCommand =new DelegateCommand(CustomFilters);
@@ -400,6 +414,118 @@ namespace Drawing_App.VM
             lasso=false;
             drawingBrushes = new Stack<DrawingBrush>();
             basicBrushIndex=0;
+        }
+        private void PixelTool()
+        {
+            PixelArt pixelArt= new PixelArt();
+            pixelArt.ShowDialog();
+        }
+        private void ExecuteAnimationTypeCommand(string animationType)
+        {
+            SelectedAnimationType = animationType;
+            if(animationType == "GIF")
+            {
+                try
+                {
+                    // Initialize SaveFileDialog
+                    var saveFileDialog = new SaveFileDialog
+                    {
+                        Title = "Save Animation as GIF",
+                        Filter = "GIF Files (*.gif)|*.gif",
+                        DefaultExt = "gif",
+                        FileName = "Animation"
+                    };
+
+                    // Show the dialog and get the file path
+                    if (saveFileDialog.ShowDialog() == true)
+                    {
+                        string filePath = saveFileDialog.FileName;
+
+                        // Create a MagickImageCollection for the GIF
+                        using var gifCollection = new MagickImageCollection();
+
+                        // Filter visible layers
+                        var frames = Layers.Where(l => l.IsVisible && l is ImageLayer i);
+
+                        // Loop through visible layers
+                        foreach (var layer in frames)
+                        {
+                            // Convert layer to bitmap or render it
+                            var i = (ImageLayer)layer;
+                            var bitmap = ConvertToBitmap(i.Bgr); // Implement this method to render the layer to a Bitmap
+
+                            // Convert Bitmap to MagickImage (do not use 'using' here)
+                            var magickImage = new MagickImage(BitmapToByteArray(bitmap));
+
+                            // Set frame delay (adjust as needed)
+                            magickImage.AnimationDelay = 10; // Delay between frames in centiseconds
+
+                            // Add the frame to the GIF collection
+                            gifCollection.Add(magickImage);
+                        }
+
+                        // Set the GIF to loop indefinitely
+                        gifCollection[0].AnimationIterations = 0;
+
+                        // Write the GIF to the selected file path
+                        gifCollection.Write(filePath);
+
+                        // Dispose of all frames after saving
+                        gifCollection.Dispose();
+
+                        // Notify user
+                        MessageBox.Show($"GIF saved successfully to {filePath}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save GIF: {ex.Message}");
+                }
+            }
+            
+           
+
+        }
+
+
+       
+
+        private Bitmap ConvertToBitmap(Image<Bgr, byte> inputImage)
+        {
+            return inputImage.ToBitmap();
+        }
+        public MagickImageCollection ConvertToMagickCollection(List<MagickImage> images, int delay = 10)
+        {
+            var collection = new MagickImageCollection();
+
+            foreach (var image in images)
+            {
+                // Clone the image to avoid modifying the original
+                var frame = image.Clone();
+
+                // Set the animation delay (in centiseconds, 10 = 1 second)
+                frame.AnimationDelay = (uint)delay;
+
+                // Add the frame to the collection
+                collection.Add(frame);
+            }
+
+            return collection;
+        }
+        public MagickImage ConvertToMagickImage(Image<Bgr, byte> emguImage)
+        {
+            using (var bitmap = emguImage.ToBitmap())
+            {
+                return new MagickImage(BitmapToByteArray(bitmap));
+            }
+        }
+        public byte[] BitmapToByteArray(Bitmap bitmap)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                bitmap.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png); // Save as PNG or another format
+                return memoryStream.ToArray();
+            }
         }
         private void ApplyFilter(int? i)
         {
@@ -3089,7 +3215,7 @@ namespace Drawing_App.VM
                 return stream.ToArray();
             }
         }
-        private MagickImage ConvertToMagickImage(Image<Bgr, byte> image)
+        private MagickImage ConvertToMagickImagery(Image<Bgr, byte> image)
         {
             using (var bitmap = image.ToBitmap()) // Use EmguCV's ToBitmap method
             {

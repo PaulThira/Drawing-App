@@ -87,7 +87,7 @@ namespace Drawing_App.Model
                 double ellipseEquation = Math.Pow(point.X - center.X, 2) / Math.Pow(a, 2) +
                                          Math.Pow(point.Y - center.Y, 2) / Math.Pow(b, 2);
 
-                if (Math.Abs(ellipseEquation - 1) > _tolerance*100)  // Use a small tolerance for approximation
+                if (Math.Abs(ellipseEquation - 1) > _tolerance*10)  // Use a small tolerance for approximation
                 {
                     return false;
                 }

@@ -90,7 +90,7 @@ namespace Drawing_App.Model
             _canvas.Focus();
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
-            _detector = new ShapeDetector();
+            _detector = new ShapeDetector(10);
             corectShapes=false;
             _canvas.MouseWheel += Canvas_MouseWheel;
             currentCount = 0;
@@ -118,7 +118,7 @@ namespace Drawing_App.Model
             _canvas.Focus();
             _currentBrush = new SolidColorBrush(Colors.Black);
             thickness = 5;
-            _detector = new ShapeDetector();
+            _detector = new ShapeDetector(10);
             corectShapes = false;
             _canvas.MouseWheel += Canvas_MouseWheel;
             currentCount = 0;
@@ -1122,19 +1122,20 @@ namespace Drawing_App.Model
 
             if (corectShapes)
             {
-                if (_detector.IsRectangle(points))
-                {
-                    var startPoint = points.First();
-                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
-                    StartShape(startPoint, ShapeKind.Rectangle);
-                    EndShape(furthestPoint);
-                    shapeDetected = true;
-                }
-                else if (_detector.IsEllipse(points))
+                if (_detector.IsEllipse(points))
                 {
                     var startPoint = points.First();
                     var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
                     StartShape(startPoint, ShapeKind.Ellipse);
+                    EndShape(furthestPoint);
+                    shapeDetected = true;
+                }
+
+                else if(_detector.IsRectangle(points))
+                {
+                    var startPoint = points.First();
+                    var furthestPoint = points.OrderByDescending(p => _detector.Distance(startPoint, p)).First();
+                    StartShape(startPoint, ShapeKind.Rectangle);
                     EndShape(furthestPoint);
                     shapeDetected = true;
                 }

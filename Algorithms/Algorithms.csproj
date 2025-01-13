@@ -12,7 +12,10 @@
     <PackageReference Include="Emgu.CV" Version="4.9.0.5494" />
     <PackageReference Include="Emgu.CV.Bitmap" Version="4.9.0.5494" />
     <PackageReference Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
+    <PackageReference Include="FFMpegCore" Version="5.1.0" />
     <PackageReference Include="Magick.NET.Core" Version="14.2.0" />
+    <PackageReference Include="Xabe.FFmpeg" Version="5.2.6" />
   </ItemGroup>
 
 </Project>
