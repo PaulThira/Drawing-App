@@ -28,6 +28,7 @@ using ColorPoint = Drawing_App.Model.ColorPoint;
 using Pen = System.Windows.Media.Pen;
 using Point = System.Windows.Point;
 using FFMpegCore;
+using Xceed.Wpf.Toolkit.Core.Converters;
 
 // Ensure this matches your intended type
 
@@ -242,9 +243,13 @@ namespace Drawing_App.VM
             set => SetProperty(ref _selectedAnimationType, value);
         }
         public ICommand PixelToolCommand { get; }
+        public ICommand SaveAsPNGCommand {  get; }
+        public ICommand DuplicateLayerCommand { get; }
         public MainWindowVM()
 
         {
+            DuplicateLayerCommand=new DelegateCommand(DuplicateLayer);
+            SaveAsPNGCommand = new DelegateCommand(SaveMergedImageWithDialog);
             PixelToolCommand = new DelegateCommand(PixelTool);
             AnimationTypeCommand = new DelegateCommand<string>(ExecuteAnimationTypeCommand);
             ApplyFilterCommand = new DelegateCommand<int?>(ApplyFilter);
@@ -415,6 +420,75 @@ namespace Drawing_App.VM
             drawingBrushes = new Stack<DrawingBrush>();
             basicBrushIndex=0;
         }
+        private void DuplicateLayer()
+        {
+            if(SelectedLayer is ImageLayer i)
+            {
+                var n = new ImageLayer(i.Bgr);
+                Layers.Insert(0,n);  
+                SelectedLayer = Layers.First();
+            }
+            if(SelectedLayer is DrawingLayer d)
+            {
+                var n =d.ConvertToImageLayer();
+                DrawingLayer b = n.ConvertToDrawingLayer(StartStrokeCommand,ContinueStrokeCommand,EndStrokeCommand);
+                Layers.Insert(0, b);
+                SelectedLayer = Layers.First();
+
+            }
+        }
+        public void SaveMergedImageWithDialog()
+        {
+            // Create SaveFileDialog
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG Image|*.png",
+                Title = "Save Merged Image",
+                FileName = "merged_image.png"
+            };
+
+            // Show the dialog and get the result
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                string filePath = saveFileDialog.FileName;
+
+                try
+                {
+                    Image<Bgr, byte> im = new Image<Bgr, byte>(int.Parse(width), int.Parse(height));
+                    for (int i = 0; i < Layers.Count-1; i++) { 
+                        var l1= Layers[i];
+                        var l2= Layers[i+1];
+                        ImageLayer i1;
+                        if(l1 is DrawingLayer d)
+                        {
+                            i1 = d.ConvertToImageLayer();
+                        }
+                        else
+                        {
+                            i1 = (ImageLayer)l1;
+                        }
+                        ImageLayer i2;
+                        if (l2 is DrawingLayer d1)
+                        {
+                            i2 = d1.ConvertToImageLayer();
+                        }
+                        else
+                        {
+                            i2 = (ImageLayer)l2;
+                        }
+                        im = i1.blendingMode.MergeLayers(i1.Bgr, i2.Bgr);
+                    }
+                    im.Save(filePath);
+                    MessageBox.Show("Image saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error saving image: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
         private void PixelTool()
         {
             PixelArt pixelArt= new PixelArt();
@@ -445,13 +519,24 @@ namespace Drawing_App.VM
                         using var gifCollection = new MagickImageCollection();
 
                         // Filter visible layers
-                        var frames = Layers.Where(l => l.IsVisible && l is ImageLayer i);
+                        var frames = Layers.Where(l => l.IsVisible );
 
                         // Loop through visible layers
                         foreach (var layer in frames)
                         {
                             // Convert layer to bitmap or render it
-                            var i = (ImageLayer)layer;
+                            ImageLayer i;
+                            if (layer is ImageLayer i1)
+                            {
+                                i = i1;
+                            }
+                            else if (layer is DrawingLayer d) {
+                                i=d.ConvertToImageLayer();
+                            }
+                            else
+                            {
+                                i=new ImageLayer(new BitmapImage());
+                            }
                             var bitmap = ConvertToBitmap(i.Bgr); // Implement this method to render the layer to a Bitmap
 
                             // Convert Bitmap to MagickImage (do not use 'using' here)
@@ -3361,8 +3446,13 @@ namespace Drawing_App.VM
             if (SelectedLayer is ImageLayer i)
 
             {
-                float W = Threshold / 20;
-                i.Opening((int)W);
+                float W = Threshold / 10;
+                var p = (int)W;
+                if (p % 2 == 0)
+                {
+                    p++;
+                }
+                i.Opening((int)p);
             }
         }
         private void Closing()
@@ -3370,8 +3460,14 @@ namespace Drawing_App.VM
             if (SelectedLayer is ImageLayer i)
 
             {
-                float W = Threshold / 20;
-                i.Closing((int)W);
+              
+                float W = Threshold / 10;
+                var p = (int)W;
+                if (p % 2 == 0)
+                {
+                    p++;
+                }
+                i.Closing((int)p);
             }
         }
 

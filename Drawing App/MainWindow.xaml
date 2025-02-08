@@ -55,6 +55,7 @@
                 <MenuItem Header="🖌️ Layers">
                     <MenuItem Header="Add Image" Command="{Binding AddImageLayerCommand}"></MenuItem>
                     <MenuItem Header="Add Blank Layer" Command="{Binding AddDrawingLayerCommand}"></MenuItem>
+                    <MenuItem Header="Duplicate Layer" Command="{Binding DuplicateLayerCommand}"/>
                     <MenuItem Header="Delete Layer" Command="{Binding RemoveLayerCommand}"></MenuItem>
                     <MenuItem Header="Add References" Command="{Binding ReferencesCommand}"></MenuItem>
                     <MenuItem Header="Change Layer Type">
@@ -190,7 +191,7 @@
                 </MenuItem>
                 <MenuItem Header="💾 Save As">
                     <MenuItem Header="Photoshop file" Command="{Binding SaveAsPSDFile}"></MenuItem>
-                    <MenuItem Header="Image file"></MenuItem>
+                    <MenuItem Header="Image file" Command="{Binding SaveAsPNGCommand}"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="🎞 Animation Type">
                     <MenuItem Header="GIF" Command="{Binding AnimationTypeCommand}" CommandParameter="GIF"/>

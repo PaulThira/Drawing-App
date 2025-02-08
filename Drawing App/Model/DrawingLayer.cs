@@ -99,6 +99,9 @@ namespace Drawing_App.Model
             EraserMode=false;
             RepairMirrorMode = false;
             Points = new List<Point>();
+            _canvas.StylusDown += CanvasStylusDown;
+            _canvas.StylusUp += CanvasStylusUp;
+            _canvas.StylusMove += CanvasStylusMove;
 
         }
         public DrawingLayer(Canvas canvas,ICommand startStrokeCommand, ICommand continueStrokeCommand, ICommand endStrokeCommand, double opacity = 1.0, bool isVisible = true, string name = "Layer")
@@ -127,8 +130,75 @@ namespace Drawing_App.Model
             EraserMode=false;
             RepairMirrorMode = false;
             Points = new List<Point>();
+            _canvas.StylusDown += CanvasStylusDown;
+            _canvas.StylusUp += CanvasStylusUp;
+            _canvas.StylusMove += CanvasStylusMove;
 
         }
+
+        private void CanvasStylusUp(object sender, StylusEventArgs e)
+        {
+            _isDrawing = false;
+            EndStrokeCommand?.Execute(null);
+        }
+
+        private void CanvasStylusDown(object sender, StylusDownEventArgs e)
+        {
+            _isDrawing = true;
+            _startPoint = e.GetPosition(_canvas);
+            StartStrokeCommand?.Execute(_startPoint);
+        }
+
+        private void CanvasStylusMove(object sender, StylusEventArgs e)
+        {
+            if (_isDrawing && !_isDragging)
+            {
+                // Handle drawing a stroke
+                Point currentPoint = e.GetPosition(_canvas);
+                ContinueStrokeCommand?.Execute(currentPoint);
+            }
+            else if (_isDragging && _selectedShape != null)
+            {
+
+                // Get the current mouse position
+                Point currentMousePosition = e.GetPosition(_canvas);
+                Points.Add(currentMousePosition);
+                // Calculate exact new position based on initial drag offset
+                double newX = currentMousePosition.X - _offsetX;
+                double newY = currentMousePosition.Y - _offsetY;
+
+                // Move the shape to follow the cursor closely
+                if (_selectedShape is Polygon polygon)
+                {
+                    var newPoints = new PointCollection();
+                    foreach (var originalPoint in _originalPolygonPoints)
+                    {
+                        newPoints.Add(new Point(originalPoint.X + newX, originalPoint.Y + newY));
+                    }
+                    polygon.Points = newPoints;
+                }
+                else if (_selectedShape is Line line && Points.Count >= 2)
+                {
+                    double deltaX = currentMousePosition.X - Points[Points.Count - 2].X;
+                    double deltaY = currentMousePosition.Y - Points[Points.Count - 2].Y;
+
+                    line.X1 += deltaX;
+                    line.Y1 += deltaY;
+                    line.X2 += deltaX;
+                    line.Y2 += deltaY;
+                }
+                else
+                {
+                    Canvas.SetLeft(_selectedShape, newX);
+                    Canvas.SetTop(_selectedShape, newY);
+                }
+
+                // Update the bounding box to reflect the new position
+                UpdateBoundingBox(_selectedShape);
+            }
+
+        }
+
         private double _rotationAngle = 0; // Track the cumulative rotation angle
 
         private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -622,7 +692,7 @@ namespace Drawing_App.Model
                 UpdateBoundingBox(_selectedShape);
             }
         }
-
+       
 
 
         public ImageLayer ConvertToImageLayer()

@@ -87,7 +87,7 @@ namespace Drawing_App.Model
                 double ellipseEquation = Math.Pow(point.X - center.X, 2) / Math.Pow(a, 2) +
                                          Math.Pow(point.Y - center.Y, 2) / Math.Pow(b, 2);
 
-                if (Math.Abs(ellipseEquation - 1) > _tolerance*10)  // Use a small tolerance for approximation
+                if (Math.Abs(ellipseEquation - 1) > _tolerance)  // Use a small tolerance for approximation
                 {
                     return false;
                 }
@@ -140,7 +140,7 @@ namespace Drawing_App.Model
 
             // Step 4: Identify the third point (it should be the point that is closest to equidistant from both start and furthest points)
             Point thirdPoint = points.FirstOrDefault(p => p != startPoint && p != furthestPoint &&
-                Math.Abs(Distance(startPoint, p) - Distance(furthestPoint, p)) < _tolerance);
+                Math.Abs(Distance(startPoint, p) - Distance(furthestPoint, p)) < _tolerance*100);
 
             if (thirdPoint == null)
                 return false;

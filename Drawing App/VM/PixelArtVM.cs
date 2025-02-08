@@ -20,7 +20,7 @@ namespace Drawing_App.VM
         private string _rows = "16";
         private string _columns = "16";
         private string _hue = "0";
-        private string _saturation = "1";
+        private string _saturation = "0";
         private string _value = "1";
         private SolidColorBrush _selectedColor;
 

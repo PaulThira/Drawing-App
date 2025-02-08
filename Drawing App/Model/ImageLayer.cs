@@ -212,7 +212,8 @@ namespace Drawing_App.Model
         }
         public List<Color> GradientColors()
         {
-            
+            first = pointsProjective[pointsProjective.Count-1];
+            last=pointsProjective[pointsProjective.Count-2];
             if (first.X < Bgr.Width && first.Y < Bgr.Height && last.X < Bgr.Width && last.Y < Bgr.Height)
             {
                 if (first.X >=0 && first.Y >=0 && last.X >=0 && last.Y >=0)
@@ -748,6 +749,11 @@ namespace Drawing_App.Model
 
                 Console.WriteLine("Lasso finalized");
                 ApplyMask();
+            }
+            if(e.LeftButton == MouseButtonState.Released && gradient == true)
+            {
+                last = first;
+                first = e.GetPosition((UIElement)sender);
             }
         }
         private void Image_MouseMove(object sender, MouseEventArgs e) {

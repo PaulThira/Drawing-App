@@ -359,6 +359,27 @@ namespace Algorithms.Sections
             }
             return result;
         }
+        public Image<Bgr, byte> MergeLayers(Image<Bgr, byte> layerA, Image<Bgr, byte> layerB)
+        {
+            int width = Math.Min(layerA.Width, layerB.Width);
+            int height = Math.Min(layerA.Height, layerB.Height);
+
+            Image<Bgr, byte> result = layerA.Clone(); // Start with the base layer
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    Bgr pixelB = layerB[y, x]; // Get pixel from Layer B
+                    if (pixelB.Blue != 0 || pixelB.Green != 0 || pixelB.Red != 0) // Assuming black = transparent
+                    {
+                        result[y, x] = pixelB; // Overwrite pixel
+                    }
+                }
+            }
+            return result;
+        }
+
         public Image<Bgr, byte> ColorDoge(Image<Bgr, byte> image1, Image<Bgr, byte> image2)
         {
             int maxWidth = (int)(Math.Max(image1.Width, image2.Width));
